@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.org/knowledge-video/v2/AnimationManifest.schema.json",
+  "$id": "https://example.org/knowledge-video/AnimationManifest.schema.json",
   "title": "AnimationManifest",
   "type": "object",
   "properties": {
     "schema_version": {
-      "const": "2.0.0"
+      "const": "1.0.0"
     },
     "project_id": {
       "type": "string",

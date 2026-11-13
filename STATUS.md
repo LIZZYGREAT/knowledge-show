@@ -5,7 +5,7 @@
 ## 当前可用状态
 
 - **默认分支**：`main`。
-- **已建立**：`backend/`、`frontend/`、`contracts/`、`docs/` 的模块化工作区；跨阶段契约 V2 的五份 JSON Schema、五份 Mock 示例和校验脚本。
+- **已建立**：`backend/`、`frontend/`、`contracts/`、`docs/` 的模块化工作区；跨阶段契约的五份 JSON Schema、五份 Mock 示例和校验脚本。
 - **尚未确认可运行**：知识研究 Agent、脚本 Agent、动画运行环境、前后端应用、端到端生成、视频导出。
 - **当前主要限制**：业务实现目录大多仍为 `.gitkeep` 占位；尚无仓库级已验证的应用启动命令。
 - **已存在的检查入口**：`python contracts/validate_contracts.py`；此状态快照不将该命令记作已在开发环境通过。

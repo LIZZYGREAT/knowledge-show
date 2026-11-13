@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""V2 sample contract tests: JSON Schema + cross-artifact consistency (not content accuracy)."""
+"""Validate sample contracts with JSON Schema and cross-artifact consistency checks."""
 from __future__ import annotations
 import copy
 import json
@@ -100,7 +100,7 @@ def check_cross(data: dict) -> None:
             last=seg['offset_ms']
     require(end==script['total_duration_ms'],'script total duration does not match scene endpoints')
     require(set(kp['constraints']['required_knowledge_refs'])<=used_k,'required knowledge missing from script')
-    # Animation manifest: clip can be 1:n to scenes; clips cannot cross scene boundary in V2.
+    # Animation manifest: clips may map 1:n to scenes but cannot cross scene boundaries.
     clips=am['clips']; unique(clips,'clip_id','clip')
     clip_by_id={x['clip_id']:x for x in clips}; clip_events={}
     cursor=0
