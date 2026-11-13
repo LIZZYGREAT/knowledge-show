@@ -15,7 +15,7 @@
 - **动画层**：自主设计可持续追踪的视觉对象、知识关系和连续运动，形成可引用片段及实际预览产物。
 - **工作流与接口层**：维护项目状态、版本、跨层调用及局部修订路由。用户无需理解内部 Agent 分工或亲自审核知识资料。
 
-具体分工和目录见 [目录结构与分工](docs/work/目录结构与分工.md)，产品理念见 [产品理念与工作流共识](docs/work/design/产品理念与工作流共识.md)，知识层内部工作流见 [知识层探索与创意策划](docs/work/backend/knowledge/知识层探索与创意策划.md)。
+具体分工和目录见 [目录结构与分工](docs/work/目录结构与分工.md)，产品理念见 [产品理念与工作流共识](docs/work/design/产品理念与工作流共识.md)，知识层内部工作流见 [知识层探索与创意策划](docs/work/backend/knowledge/知识层探索与创意策划.md)，知识层开发选型与环境安装见 [知识层技术栈路线](docs/work/backend/知识层技术栈路线.md)。
 
 ## 当前可运行范围
 
@@ -48,9 +48,10 @@ python contracts/validate_contracts.py
 | `docs/work/design-principles.md` | 稳定的产品与设计原则 |
 | `docs/work/design/产品理念与工作流共识.md` | 较完整的产品体验与流程共识 |
 | `docs/work/backend/knowledge/知识层探索与创意策划.md` | 知识层内部研究、创意、核验与交付共识 |
+| `docs/work/backend/知识层技术栈路线.md` | 知识层技术选型、虚拟环境、依赖与本地配置 |
 | `docs/work/engineering.md`、`docs/work/workflow.md` | 实现规则与日常开发验证 |
 | `docs/work/documentation.md`、`docs/work/git-collaboration.md` | 文档维护及双人 Git 协作 |
 | `docs/tasks/open/`、`docs/tasks/closed/` | 待执行与已确认完成的任务 |
 | `docs/playbooks/` | 按需使用的操作手册 |
 
-技术栈、接口地址、运行环境、部署方式尚未确定，不预先写入虚构命令。
+知识层选型和本地开发环境见技术栈路线；知识层尚未实际安装或实现。其他模块的技术栈、服务接口和部署方式尚未确定，不预先写入虚构命令。

@@ -1,0 +1,10 @@
+# Knowledge service runtime and local review UI
+openai>=2,<3
+httpx>=0.27,<1
+pydantic>=2,<3
+streamlit>=1.40,<2
+python-dotenv>=1,<2
+jsonschema>=4.18,<5
+
+# Local development and offline checks
+pytest>=8,<9
