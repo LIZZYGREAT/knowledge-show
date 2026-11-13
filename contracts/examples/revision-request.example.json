@@ -1,0 +1,31 @@
+{
+  "schema_version": "2.0.0",
+  "project_id": "P001",
+  "request_id": "R001",
+  "base_project_revision": 1,
+  "source": "user",
+  "target_layer": "unresolved",
+  "target_artifact": {
+    "kind": "animation_manifest",
+    "artifact_id": "AM001",
+    "revision": 1
+  },
+  "anchors": [
+    {
+      "kind": "clip",
+      "id": "C03"
+    },
+    {
+      "kind": "time_range",
+      "start_ms": 27000,
+      "end_ms": 33000
+    }
+  ],
+  "scope": "local",
+  "problem": "这一段节奏偏慢，缺少吸引力。",
+  "desired_change": "保留知识结论，让视觉呈现更紧凑。",
+  "preserve": [
+    "K02、K03 的数学结论"
+  ],
+  "original_user_feedback": "这里有点无聊，想更精彩一点。"
+}

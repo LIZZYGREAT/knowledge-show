@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/knowledge-video/v2/RevisionRequest.schema.json",
+  "title": "RevisionRequest",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "2.0.0"
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+    },
+    "base_project_revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "source": {
+      "enum": [
+        "user",
+        "knowledge",
+        "script",
+        "animation",
+        "reviewer"
+      ]
+    },
+    "target_layer": {
+      "enum": [
+        "unresolved",
+        "knowledge",
+        "script",
+        "animation"
+      ]
+    },
+    "target_artifact": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "project_state",
+            "knowledge_package",
+            "production_script",
+            "animation_manifest"
+          ]
+        },
+        "artifact_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "kind",
+        "artifact_id",
+        "revision"
+      ],
+      "additionalProperties": false
+    },
+    "anchors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "enum": [
+              "direction",
+              "knowledge_unit",
+              "scene",
+              "script_event",
+              "clip",
+              "clip_event",
+              "time_range",
+              "whole_artifact"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+          },
+          "start_ms": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "end_ms": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "direction",
+                    "knowledge_unit",
+                    "scene",
+                    "script_event",
+                    "clip",
+                    "clip_event"
+                  ]
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            },
+            "then": {
+              "required": [
+                "id"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "time_range"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            },
+            "then": {
+              "required": [
+                "start_ms",
+                "end_ms"
+              ]
+            }
+          }
+        ]
+      },
+      "minItems": 0
+    },
+    "scope": {
+      "enum": [
+        "unknown",
+        "local",
+        "multi_scene",
+        "global"
+      ]
+    },
+    "problem": {
+      "type": "string",
+      "minLength": 1
+    },
+    "desired_change": {
+      "type": "string",
+      "minLength": 1
+    },
+    "preserve": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "original_user_feedback": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "schema_version",
+    "project_id",
+    "request_id",
+    "base_project_revision",
+    "source",
+    "target_layer",
+    "target_artifact",
+    "anchors",
+    "scope",
+    "problem"
+  ],
+  "additionalProperties": false
+}

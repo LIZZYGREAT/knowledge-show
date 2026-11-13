@@ -1,0 +1,274 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/knowledge-video/v2/ProjectState.schema.json",
+  "title": "ProjectState",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "2.0.0"
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "brief": {
+      "type": "object",
+      "properties": {
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "user_input": {
+          "type": "object",
+          "properties": {
+            "topic": {
+              "type": "string",
+              "minLength": 1
+            },
+            "focus": {
+              "type": "string",
+              "minLength": 1
+            },
+            "creative_mode": {
+              "enum": [
+                "auto",
+                "creative",
+                "visual_explain",
+                "knowledge_dense",
+                "story",
+                "custom"
+              ]
+            },
+            "creative_mode_notes": {
+              "type": "string",
+              "minLength": 1
+            },
+            "creative_idea": {
+              "type": "string",
+              "minLength": 1
+            },
+            "must_include": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            },
+            "must_avoid": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            },
+            "art_style": {
+              "type": "string",
+              "minLength": 1
+            },
+            "knowledge_depth": {
+              "enum": [
+                "auto",
+                "intro",
+                "balanced",
+                "advanced"
+              ]
+            },
+            "aspect_ratio": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*:[1-9][0-9]*$"
+            }
+          },
+          "required": [
+            "topic"
+          ],
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "creative_mode": {
+                    "const": "custom"
+                  }
+                },
+                "required": [
+                  "creative_mode"
+                ]
+              },
+              "then": {
+                "required": [
+                  "creative_mode_notes"
+                ]
+              }
+            }
+          ]
+        },
+        "effective": {
+          "type": "object",
+          "properties": {
+            "creative_mode": {
+              "enum": [
+                "creative",
+                "visual_explain",
+                "knowledge_dense",
+                "story",
+                "custom"
+              ]
+            },
+            "creative_mode_notes": {
+              "type": "string",
+              "minLength": 1
+            },
+            "knowledge_depth": {
+              "enum": [
+                "intro",
+                "balanced",
+                "advanced"
+              ]
+            },
+            "aspect_ratio": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*:[1-9][0-9]*$"
+            },
+            "art_style": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "creative_mode",
+            "knowledge_depth",
+            "aspect_ratio"
+          ],
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "creative_mode": {
+                    "const": "custom"
+                  }
+                },
+                "required": [
+                  "creative_mode"
+                ]
+              },
+              "then": {
+                "required": [
+                  "creative_mode_notes"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "required": [
+        "revision",
+        "user_input",
+        "effective"
+      ],
+      "additionalProperties": false
+    },
+    "decisions": {
+      "type": "object",
+      "properties": {
+        "direction_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+        },
+        "direction_status": {
+          "enum": [
+            "system_default",
+            "user_confirmed",
+            "script_selected"
+          ]
+        }
+      },
+      "required": [],
+      "additionalProperties": false,
+      "dependentRequired": {
+        "direction_id": [
+          "direction_status"
+        ],
+        "direction_status": [
+          "direction_id"
+        ]
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "properties": {
+        "knowledge_package": {
+          "type": "object",
+          "properties": {
+            "artifact_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "artifact_id",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        "production_script": {
+          "type": "object",
+          "properties": {
+            "artifact_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "artifact_id",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        "animation_manifest": {
+          "type": "object",
+          "properties": {
+            "artifact_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "artifact_id",
+            "revision"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "project_id",
+    "revision",
+    "brief",
+    "decisions",
+    "artifacts"
+  ],
+  "additionalProperties": false
+}

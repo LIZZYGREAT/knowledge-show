@@ -1,0 +1,129 @@
+{
+  "schema_version": "2.0.0",
+  "project_id": "P001",
+  "artifact_id": "KP001",
+  "revision": 1,
+  "brief_revision": 1,
+  "directions": [
+    {
+      "id": "D01",
+      "title": "两个骰子为什么更容易掷出七？",
+      "core_question": "两个骰子的点数和为什么并非等概率？",
+      "hook": "看似公平的两颗骰子，却让某些点数和更容易出现。",
+      "learning_goal": "认识点数和为 7 的组合最多，并理解组合数如何决定概率。",
+      "knowledge_refs": [
+        "K01",
+        "K02",
+        "K03"
+      ],
+      "visual_potential": {
+        "level": "high",
+        "reason": "结果存在可比较的组合数量和明显差异。"
+      },
+      "recommendation_reason": "契合直观演示创作模式。"
+    },
+    {
+      "id": "D02",
+      "title": "随机结果为什么会呈现规律？",
+      "core_question": "为什么不断重复投掷会呈现较稳定的频率分布？",
+      "hook": "每次结果都难预测，长期频率却逐渐呈现规律。",
+      "learning_goal": "理解频率接近理论概率的现象。",
+      "knowledge_refs": [
+        "K01",
+        "K03",
+        "K04"
+      ],
+      "visual_potential": {
+        "level": "high",
+        "reason": "存在随试验次数增加而变化的统计分布。"
+      }
+    }
+  ],
+  "recommended_direction_id": "D01",
+  "knowledge_units": [
+    {
+      "id": "K01",
+      "type": "principle",
+      "content": "两个独立且公平的六面骰子共有 36 种等可能的有序结果。",
+      "explanation": "两次结果分别有六种取值，因此总组合数为 6×6=36。",
+      "importance": "core",
+      "conditions": [
+        "两个骰子公平且彼此独立。"
+      ],
+      "evidence_refs": [
+        "E01"
+      ]
+    },
+    {
+      "id": "K02",
+      "type": "fact",
+      "content": "点数和为 7 的有序结果共有六种。",
+      "explanation": "(1,6)、(2,5)、(3,4)、(4,3)、(5,2)、(6,1) 均得到七。",
+      "importance": "core",
+      "depends_on": [
+        "K01"
+      ],
+      "evidence_refs": [
+        "E01"
+      ],
+      "visual_potential": {
+        "level": "high",
+        "reason": "可以比较不同点数和对应的组合数量。"
+      }
+    },
+    {
+      "id": "K03",
+      "type": "principle",
+      "content": "两个公平且独立的骰子点数和为 7 的概率为 6/36=1/6。",
+      "explanation": "36 种有序结果等可能，其中六种之和为七。",
+      "importance": "core",
+      "depends_on": [
+        "K01",
+        "K02"
+      ],
+      "conditions": [
+        "结果独立且每个骰子公平。"
+      ],
+      "evidence_refs": [
+        "E01"
+      ]
+    },
+    {
+      "id": "K04",
+      "type": "phenomenon",
+      "content": "重复投掷足够多次时，点数和的相对频率趋向于其理论概率。",
+      "explanation": "在独立同分布重复试验中，相应指示变量的样本均值依概率收敛到事件概率。",
+      "importance": "optional",
+      "depends_on": [
+        "K03"
+      ],
+      "conditions": [
+        "各次投掷独立同分布。"
+      ],
+      "evidence_refs": [
+        "E02"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E01",
+      "kind": "mathematical_derivation",
+      "title": "两个六面骰子的组合计数",
+      "details": "6×6=36 个等可能有序结果；和为七的有六个，因此概率为 1/6。"
+    },
+    {
+      "id": "E02",
+      "kind": "mathematical_derivation",
+      "title": "大数定律应用",
+      "details": "用一次投掷中点数和为 k 的指示变量表示事件，样本均值依概率收敛到事件概率。"
+    }
+  ],
+  "constraints": {
+    "required_knowledge_refs": [],
+    "must_not_misrepresent": [
+      "不得描述点数和 2 至 12 为等概率。",
+      "使用 36 种等可能结果的结论时，应保持两个骰子公平独立的假设。"
+    ]
+  }
+}

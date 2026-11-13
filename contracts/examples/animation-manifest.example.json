@@ -1,0 +1,109 @@
+{
+  "schema_version": "2.0.0",
+  "project_id": "P001",
+  "artifact_id": "AM001",
+  "revision": 1,
+  "brief_revision": 1,
+  "production_script_ref": {
+    "artifact_id": "PS001",
+    "revision": 1
+  },
+  "total_duration_ms": 60000,
+  "preview_ref": "preview://P001/AM001/r1",
+  "clips": [
+    {
+      "clip_id": "C01",
+      "scene_id": "S01",
+      "start_ms": 0,
+      "duration_ms": 12000,
+      "resource_ref": "clip://P001/C01/r1",
+      "script_event_refs": [
+        "EV01",
+        "EV02"
+      ],
+      "internal_events": [
+        {
+          "id": "AE01",
+          "offset_ms": 0,
+          "duration_ms": 6500,
+          "description": "开场问题呈现",
+          "script_event_refs": [
+            "EV01"
+          ]
+        }
+      ]
+    },
+    {
+      "clip_id": "C02",
+      "scene_id": "S02",
+      "start_ms": 12000,
+      "duration_ms": 12000,
+      "resource_ref": "clip://P001/C02/r1",
+      "script_event_refs": [
+        "EV03"
+      ],
+      "internal_events": [
+        {
+          "id": "AE02",
+          "offset_ms": 0,
+          "duration_ms": 12000,
+          "description": "呈现有序组合的过程",
+          "script_event_refs": [
+            "EV03"
+          ]
+        }
+      ]
+    },
+    {
+      "clip_id": "C03",
+      "scene_id": "S02",
+      "start_ms": 24000,
+      "duration_ms": 14000,
+      "resource_ref": "clip://P001/C03/r1",
+      "script_event_refs": [
+        "EV04"
+      ],
+      "internal_events": [
+        {
+          "id": "AE03",
+          "offset_ms": 0,
+          "description": "组合分类与比较",
+          "script_event_refs": [
+            "EV04"
+          ]
+        }
+      ]
+    },
+    {
+      "clip_id": "C04",
+      "scene_id": "S03",
+      "start_ms": 38000,
+      "duration_ms": 22000,
+      "resource_ref": "clip://P001/C04/r1",
+      "script_event_refs": [
+        "EV05",
+        "EV06"
+      ],
+      "internal_events": [
+        {
+          "id": "AE04",
+          "offset_ms": 0,
+          "duration_ms": 12000,
+          "description": "六种组合突出显示",
+          "script_event_refs": [
+            "EV05"
+          ]
+        },
+        {
+          "id": "AE05",
+          "offset_ms": 12000,
+          "duration_ms": 10000,
+          "description": "结果揭示",
+          "script_event_refs": [
+            "EV06"
+          ]
+        }
+      ]
+    }
+  ]
+}
