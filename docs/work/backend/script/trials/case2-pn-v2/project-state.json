@@ -1,0 +1,28 @@
+{
+  "project_id": "P002",
+  "revision": 1,
+  "brief": {
+    "revision": 1,
+    "user_input": {
+      "topic": "PN 结为什么单向导电",
+      "focus": "同一个结，正向和反向为什么差别这么大",
+      "creative_mode": "visual_explain",
+      "knowledge_depth": "intro",
+      "aspect_ratio": "9:16",
+      "must_avoid": ["不要堆公式", "不要把电子说成真的穿过绝缘区"]
+    },
+    "effective": {
+      "creative_mode": "visual_explain",
+      "knowledge_depth": "intro",
+      "aspect_ratio": "9:16",
+      "target_duration_ms": 165000
+    }
+  },
+  "decisions": {
+    "direction_id": "D01",
+    "direction_status": "system_default"
+  },
+  "artifacts": {
+    "knowledge_package": {"artifact_id": "KP002", "revision": 1}
+  }
+}
