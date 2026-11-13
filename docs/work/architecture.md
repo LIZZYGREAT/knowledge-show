@@ -1,6 +1,6 @@
 # knowledge-show 系统架构与数据流
 
-> 本文描述已确定的**概念架构与仓库模块边界**，不是已实现架构的运行报告。具体模型调用、存储、API 传输、渲染框架和前端实现以实际开发为准。字段及类型由 `contracts/` 中的现行定义负责。
+> 本文描述已确定的**概念架构与仓库模块边界**，并标出知识层在 `feat/knowledge-layer-implementation` 的实际落地状态。该分支尚未合并或接入共享工作流。字段及类型由 `contracts/` 中的现行定义负责。
 
 ## 一、整体工作流
 
@@ -46,7 +46,7 @@ flowchart TD
 
 - **Research** 可以从模型已有知识、可复核推导或必要的外部 Search/Fetch 获得材料，不要求基础知识一律先搜索；所有拟正式采用的知识都需进行适当核验。
 - **Creative** 基于知识关系探索真正有价值的核心问题、因果变化和认知主线。它可以向 Research 请求具体知识补充，Research 也可以主动反馈值得进一步创作的发现。
-- **ResearchStore** 在逻辑上统一保存研究问题、资料、知识主张、证据关系、创意线索和未解决问题。Agent 先检索已有成果，有明确缺口时再补充研究。它是知识层内部状态，不新增跨阶段机器契约。
+- **ResearchStore** 在逻辑上统一保存研究问题、资料、知识主张、证据关系、创意线索和未解决问题。知识层分支已用项目隔离的 SQLite 实现，Agent 先检索已有成果，有明确缺口时再补充研究。它是知识层内部状态，不新增跨阶段机器契约。
 - **Verifier** 以风险驱动方式检查重要事实和误导风险，优先指出能保留创意的局部修正；不代替 Creative 判断故事形式，也不作为动画审美审核者。
 - **收敛** 优先深入推荐方向，其他可行方向保留适量可靠材料；只要方向值得做、知识足以支持脚本且没有关键事实问题，就可以交付，不设置固定知识单元数或机械搜索配额。
 
@@ -70,7 +70,7 @@ flowchart TD
 
 | 仓库位置 | 规划中的职责 | 当前情况 |
 | --- | --- | --- |
-| `backend/src/knowledge/` | 研究、创意探索、知识管理、事实核验与知识包交付 | 业务待实现 |
+| `backend/src/knowledge/` | 研究、创意探索、知识管理、事实核验与知识包交付 | 已在 `feat/knowledge-layer-implementation` 实现并验证，尚待集成 |
 | `backend/src/script/` | 选材、叙事主线、场景事件、时间规划和脚本输出 | 业务待实现 |
 | `backend/src/workflow/` | 跨层项目状态、执行编排、版本与修订路由 | 业务待实现 |
 | `backend/src/api/` | 前后端入口；具体协议待定 | 占位目录 |
@@ -100,10 +100,10 @@ flowchart TD
 仓库已有的跨阶段结构校验入口：
 
 ```bash
-python -m pip install 'jsonschema>=4.18'
-python contracts/validate_contracts.py
+PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests/knowledge -q
+.venv/bin/python contracts/validate_contracts.py
 ```
 
-该脚本验证公开数据的结构、引用和部分时间/版本关系，**不能代替事实核验、创意质量、脚本可看性、动画播放及最终观感检查**。实际运行和产物状态以对应模块的真实测试为准。
+本分支已运行以上知识层测试和契约校验，并以真实 DeepSeek 请求验证多个主题。契约脚本验证公开数据的结构、引用和部分时间/版本关系，**不能代替事实核验、创意质量、脚本可看性、动画播放及最终观感检查**。实际运行和产物状态以对应模块的真实测试为准。
 
 分工与协作规则见 `docs/work/目录结构与分工.md` 和 `docs/work/workflow.md`。

@@ -1,6 +1,6 @@
 # knowledge-show
 
-> 面向普通创作者的 AI 知识短视频制作项目。当前仓库处于**基础骨架与接口契约已建立、业务功能尚未集成**的阶段；不要将文档中的目标能力理解为已经实现。
+> 面向普通创作者的 AI 知识短视频制作项目。当前 `main` 仍以基础骨架和接口契约为主；知识层已在 `feat/knowledge-layer-implementation` 完成首版实现与验证，尚未集成脚本、动画和共享工作流。
 
 ## 项目目标
 
@@ -19,16 +19,22 @@
 
 ## 当前可运行范围
 
-仓库已包含五类 **跨阶段数据契约**、连贯 Mock 示例及校验脚本，但业务模块、完整动画预览和导出功能尚未确认实现。以 [STATUS.md](STATUS.md) 为准。
+仓库已包含五类 **跨阶段数据契约**、连贯 Mock 示例及校验脚本。知识层工作分支可运行完整研究、创意、核验与知识包交付，也提供本地检验页；脚本层、动画预览、跨层工作流和视频导出仍未集成。以 [STATUS.md](STATUS.md) 为准。
 
-当前可执行的检查（在仓库根目录）：
+在仓库根目录激活 `.venv` 后，可运行知识层测试和契约校验：
 
 ```bash
-python -m pip install 'jsonschema>=4.18'
-python contracts/validate_contracts.py
+PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests/knowledge -q
+.venv/bin/python contracts/validate_contracts.py
 ```
 
-预期通过时输出契约校验 `PASS` 信息。以上是**已有检查命令，不代表已在当前仓库现场重新运行通过**。业务运行、前后端安装与启动命令尚未确定；实现后再更新此处。密钥只存放在非版本控制的本地配置，不提交真实凭据。
+知识层本地检验页可用 Mock 模式离线运行；Real API 模式从仓库根目录 `.env` 读取 DeepSeek 配置（由 `python-dotenv` 自动加载），真实凭据不提交到版本控制：
+
+```bash
+PYTHONPATH=backend/src STREAMLIT_SERVER_ADDRESS=127.0.0.1 STREAMLIT_SERVER_PORT=8501 .venv/bin/python -m streamlit run backend/src/knowledge/devtools/review_app.py
+```
+
+当前分支的知识层测试、契约校验和真实 API 验收已运行通过；脚本、动画、全链路应用启动和视频导出尚未实现。
 
 ## 目录与文档入口
 
@@ -54,4 +60,4 @@ python contracts/validate_contracts.py
 | `docs/tasks/open/`、`docs/tasks/closed/` | 待执行与已确认完成的任务 |
 | `docs/playbooks/` | 按需使用的操作手册 |
 
-知识层选型和本地开发环境见技术栈路线；知识层尚未实际安装或实现。其他模块的技术栈、服务接口和部署方式尚未确定，不预先写入虚构命令。
+知识层实现和本地开发环境见技术栈路线；其余模块的技术栈、服务接口和部署方式尚未确定，不预先写入虚构命令。

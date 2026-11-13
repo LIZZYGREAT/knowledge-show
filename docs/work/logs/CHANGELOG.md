@@ -4,9 +4,11 @@
 
 普通提交、样式调整、局部 Bug、试错过程不写入；完整版本历史由 Git 保存。
 
-## 待项目启动
+## 2026-11-14 — 知识层首版在功能分支完成验证
 
-当前没有已完成的项目级里程碑。
+- 结果：Research、Creative、Verifier、项目隔离的 SQLite 研究库、KnowledgePackage 导出和本地 Streamlit 检验页已实现；运行闭环、定向补研和核验反馈修订均有覆盖。
+- 验证：仓库 `.venv` 中 54 项知识层测试通过，契约校验通过；真实 DeepSeek 验收覆盖生日悖论、物理创意优先/直观演示、Attention 进阶和自定义方向。
+- 影响：未修改公共 Schema；当前实现位于 `feat/knowledge-layer-implementation`，脚本、动画和共享工作流仍待集成。Fetch 的失败请求会被记录，且不作为知识证据使用。
 
 <!-- 新增重要记录时使用简短形式：
 ## YYYY-MM-DD — 一句话描述结果
