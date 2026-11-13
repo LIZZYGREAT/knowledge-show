@@ -99,14 +99,19 @@ def check_links(objects):
             check(set(e.get('knowledge_refs',[]))<=knowledge_ids,f'{sid}: event references knowledge absent from scene')
             event_map[e['id']]=sid
             last=e['offset_ms']
-        last=-1
+        last=-1;subtitle_end=-1
         for t in scene.get('timed_text',[]):
             check(t['id'] not in text_map,'duplicate timed_text id')
             check(t['offset_ms']>=last,f'{sid}: timed_text not sorted')
             check(t['offset_ms']+t['duration_ms']<=scene['duration_ms'],f'{sid}: timed_text outside scene')
+            if t.get('kind','subtitle')=='subtitle':
+                check(t['offset_ms']>=subtitle_end,f'{sid}: overlapping subtitles')
+                subtitle_end=t['offset_ms']+t['duration_ms']
             text_map[t['id']]=sid
             last=t['offset_ms']
     check(time_end==script['total_duration_ms'],'script scene coverage differs from total_duration_ms')
+    target_duration=project['brief']['effective']['target_duration_ms']
+    check(abs(script['total_duration_ms']-target_duration)<=target_duration*0.1,'script total duration deviates from target by more than 10%')
     check(required<=used,'required knowledge missing from script')
     # Animation clips form a contiguous timeline; 1 scene can own multiple clips.
     clips=am['clips'];unique(clips,'clip_id','clip')
@@ -152,7 +157,7 @@ def main():
     # Expected failures, to ensure checks are not cosmetic.
     negatives={
       'unverified fact cited by script':lambda d:d['production-script']['scenes'][1]['knowledge_refs'].append('K05'),
-      'subtitle time overflow':lambda d:d['production-script']['scenes'][0]['timed_text'][0].update(duration_ms=20000),
+      'subtitle time overflow':lambda d:d['production-script']['scenes'][0]['timed_text'][0].update(duration_ms=40000),
       'invalid scene role':lambda d:d['production-script']['scenes'][0].update(role='voice_actor'),
       'broken animation coverage':lambda d:d['animation-manifest']['clips'][1].update(start_ms=13000),
       'stale upstream ref':lambda d:d['production-script']['knowledge_package_ref'].update(revision=2),
