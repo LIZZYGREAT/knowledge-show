@@ -1,5 +1,4 @@
 {
-  "schema_version": "1.0.0",
   "project_id": "P001",
   "revision": 1,
   "brief": {
@@ -8,17 +7,18 @@
       "topic": "两个公平六面骰子的点数和概率",
       "focus": "为什么点数和为 7 最常见？",
       "creative_mode": "visual_explain",
-      "creative_idea": "希望结果有一个明显的揭示瞬间",
+      "creative_idea": "希望最后有明显的规律揭示",
       "knowledge_depth": "intro",
       "aspect_ratio": "9:16",
       "must_avoid": [
-        "避免冗长的公式推导"
+        "不要冗长的数学推导"
       ]
     },
     "effective": {
       "creative_mode": "visual_explain",
       "knowledge_depth": "intro",
-      "aspect_ratio": "9:16"
+      "aspect_ratio": "9:16",
+      "target_duration_ms": 150000
     }
   },
   "decisions": {

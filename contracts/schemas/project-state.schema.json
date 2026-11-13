@@ -1,12 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.org/knowledge-video/ProjectState.schema.json",
   "title": "ProjectState",
   "type": "object",
   "properties": {
-    "schema_version": {
-      "const": "1.0.0"
-    },
     "project_id": {
       "type": "string",
       "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
@@ -135,6 +131,11 @@
               "type": "string",
               "pattern": "^[1-9][0-9]*:[1-9][0-9]*$"
             },
+            "target_duration_ms": {
+              "type": "integer",
+              "minimum": 1000,
+              "maximum": 900000
+            },
             "art_style": {
               "type": "string",
               "minLength": 1
@@ -143,7 +144,8 @@
           "required": [
             "creative_mode",
             "knowledge_depth",
-            "aspect_ratio"
+            "aspect_ratio",
+            "target_duration_ms"
           ],
           "additionalProperties": false,
           "allOf": [
@@ -263,7 +265,6 @@
     }
   },
   "required": [
-    "schema_version",
     "project_id",
     "revision",
     "brief",

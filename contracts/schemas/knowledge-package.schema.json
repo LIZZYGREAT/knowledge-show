@@ -1,12 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.org/knowledge-video/KnowledgePackage.schema.json",
   "title": "KnowledgePackage",
   "type": "object",
   "properties": {
-    "schema_version": {
-      "const": "1.0.0"
-    },
     "project_id": {
       "type": "string",
       "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
@@ -78,6 +74,28 @@
             ],
             "additionalProperties": false
           },
+          "duration_fit": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "enum": [
+                  "adequate",
+                  "thin",
+                  "dense",
+                  "uncertain"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "status",
+              "reason"
+            ],
+            "additionalProperties": false
+          },
           "recommendation_reason": {
             "type": "string",
             "minLength": 1
@@ -89,7 +107,8 @@
           "core_question",
           "hook",
           "learning_goal",
-          "knowledge_refs"
+          "knowledge_refs",
+          "duration_fit"
         ],
         "additionalProperties": false
       },
@@ -135,6 +154,12 @@
               "optional"
             ]
           },
+          "verification_status": {
+            "enum": [
+              "verified",
+              "needs_review"
+            ]
+          },
           "depends_on": {
             "type": "array",
             "items": {
@@ -157,7 +182,7 @@
               "type": "string",
               "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
             },
-            "minItems": 1
+            "uniqueItems": true
           },
           "visual_potential": {
             "type": "object",
@@ -188,9 +213,36 @@
           "content",
           "explanation",
           "importance",
+          "verification_status",
           "evidence_refs"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "verification_status": {
+                  "const": "verified"
+                }
+              },
+              "required": [
+                "verification_status"
+              ]
+            },
+            "then": {
+              "properties": {
+                "evidence_refs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+                  },
+                  "minItems": 1
+                }
+              }
+            }
+          }
+        ]
       },
       "minItems": 1
     },
@@ -228,9 +280,45 @@
           "kind",
           "title"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "external_source"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            },
+            "then": {
+              "required": [
+                "locator"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "mathematical_derivation"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            },
+            "then": {
+              "required": [
+                "details"
+              ]
+            }
+          }
+        ]
       },
-      "minItems": 1
+      "minItems": 0
     },
     "constraints": {
       "type": "object",
@@ -260,7 +348,6 @@
     }
   },
   "required": [
-    "schema_version",
     "project_id",
     "artifact_id",
     "revision",

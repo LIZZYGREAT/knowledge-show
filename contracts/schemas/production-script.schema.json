@@ -1,12 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.org/knowledge-video/ProductionScript.schema.json",
   "title": "ProductionScript",
   "type": "object",
   "properties": {
-    "schema_version": {
-      "const": "1.0.0"
-    },
     "project_id": {
       "type": "string",
       "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
@@ -75,6 +71,24 @@
             "type": "string",
             "minLength": 1
           },
+          "role": {
+            "enum": [
+              "hook",
+              "setup",
+              "explain",
+              "twist",
+              "payoff",
+              "other"
+            ]
+          },
+          "visual_notes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          },
           "events": {
             "type": "array",
             "items": {
@@ -122,7 +136,7 @@
             },
             "uniqueItems": true
           },
-          "narration_segments": {
+          "timed_text": {
             "type": "array",
             "items": {
               "type": "object",
@@ -142,6 +156,13 @@
                 "text": {
                   "type": "string",
                   "minLength": 1
+                },
+                "kind": {
+                  "enum": [
+                    "subtitle",
+                    "title",
+                    "annotation"
+                  ]
                 }
               },
               "required": [
@@ -153,10 +174,6 @@
               "additionalProperties": false
             },
             "minItems": 0
-          },
-          "on_screen_text": {
-            "type": "string",
-            "minLength": 1
           },
           "audio_intent": {
             "type": "string",
@@ -185,7 +202,6 @@
     }
   },
   "required": [
-    "schema_version",
     "project_id",
     "artifact_id",
     "revision",

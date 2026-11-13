@@ -1,5 +1,4 @@
 {
-  "schema_version": "1.0.0",
   "project_id": "P001",
   "artifact_id": "PS001",
   "revision": 1,
@@ -10,31 +9,43 @@
   },
   "direction_id": "D01",
   "total_duration_ms": 150000,
-  "core_message": "两个公平骰子的点数和并非等概率，组合数决定了概率差异。",
+  "core_message": "两颗公平骰子点数和并非等概率；组合数决定了概率差异。",
   "scenes": [
     {
       "scene_id": "S01",
       "start_ms": 0,
       "duration_ms": 30000,
-      "objective": "提出直观问题，建立观看兴趣。",
+      "objective": "吸引注意并提出需要比较点数和的问题。",
+      "role": "hook",
+      "visual_notes": [
+        "后续解释应继续沿用本场景建立的两枚骰子语义。"
+      ],
       "events": [
         {
           "id": "EV01",
           "offset_ms": 0,
-          "description": "提出两个骰子点数和的比较问题。"
+          "description": "提出两枚骰子点数和的比较问题。"
         },
         {
           "id": "EV02",
-          "offset_ms": 16250,
-          "description": "为观众保留猜测空间，并准备展开解释。"
+          "offset_ms": 15000,
+          "description": "为观众留出猜测时间，准备展示分析依据。"
         }
       ],
-      "narration_segments": [
+      "timed_text": [
         {
-          "id": "VO01",
+          "id": "T01",
           "offset_ms": 0,
-          "duration_ms": 16250,
-          "text": "两个骰子一起掷出，哪个点数和最容易出现？"
+          "duration_ms": 11250,
+          "text": "两个骰子，哪种点数和最容易出现？",
+          "kind": "subtitle"
+        },
+        {
+          "id": "T02",
+          "offset_ms": 15000,
+          "duration_ms": 10000,
+          "text": "答案可能与你想的不一样",
+          "kind": "title"
         }
       ],
       "knowledge_refs": [
@@ -45,12 +56,19 @@
       "scene_id": "S02",
       "start_ms": 30000,
       "duration_ms": 65000,
-      "objective": "说明所有有序组合，并比较不同点数和。",
+      "objective": "呈现可能结果并比较不同点数和的组合数量。",
+      "role": "explain",
+      "visual_notes": [
+        "本场景的两枚骰子延续 S01 所指的同一随机试验。",
+        "不同点数和的组合数量需要使用一致的比较口径。",
+        "后续场景应承接此处得到的组合比较结果。"
+      ],
       "events": [
         {
           "id": "EV03",
           "offset_ms": 0,
-          "description": "说明两个公平骰子共有 36 种等可能的有序组合。",
+          "duration_ms": 28750,
+          "description": "呈现两颗骰子共有 36 种等可能有序组合。",
           "knowledge_refs": [
             "K01"
           ]
@@ -58,25 +76,28 @@
         {
           "id": "EV04",
           "offset_ms": 28750,
-          "description": "比较不同点数和对应的组合数。",
+          "duration_ms": 32500,
+          "description": "比较不同点数和对应的组合数量。",
           "knowledge_refs": [
             "K02",
             "K03"
           ]
         }
       ],
-      "narration_segments": [
+      "timed_text": [
         {
-          "id": "VO02",
+          "id": "T03",
           "offset_ms": 2500,
-          "duration_ms": 28750,
-          "text": "两颗公平骰子，总共有三十六种等可能的有序组合。"
+          "duration_ms": 21250,
+          "text": "公平的两颗骰子有 36 种等可能组合。",
+          "kind": "subtitle"
         },
         {
-          "id": "VO03",
+          "id": "T04",
           "offset_ms": 33750,
-          "duration_ms": 26250,
-          "text": "但不同的点数和，对应的组合数量可不一样。"
+          "duration_ms": 23750,
+          "text": "不同的点数和，组合数并不相同。",
+          "kind": "subtitle"
         }
       ],
       "knowledge_refs": [
@@ -84,18 +105,23 @@
         "K02",
         "K03"
       ],
-      "audio_intent": "节奏逐步增强。"
+      "audio_intent": "可以配合非语音音效强调数量逐步变化。"
     },
     {
       "scene_id": "S03",
       "start_ms": 95000,
       "duration_ms": 55000,
-      "objective": "揭示点数和为 7 的结果最多，并完成知识回收。",
+      "objective": "揭示点数和七的组合最多并回收核心结论。",
+      "role": "payoff",
+      "visual_notes": [
+        "与 S02 使用同一种组合计数口径，避免在揭示时更换统计对象。"
+      ],
       "events": [
         {
           "id": "EV05",
           "offset_ms": 0,
-          "description": "突出点数和为 7 的六种有序结果。",
+          "duration_ms": 30000,
+          "description": "比较并确认点数和七有六种有序结果。",
           "knowledge_refs": [
             "K02"
           ]
@@ -103,24 +129,27 @@
         {
           "id": "EV06",
           "offset_ms": 30000,
-          "description": "揭示概率为 6/36=1/6。",
+          "duration_ms": 25000,
+          "description": "给出概率 6/36=1/6 并完成总结。",
           "knowledge_refs": [
             "K03"
           ]
         }
       ],
-      "narration_segments": [
+      "timed_text": [
         {
-          "id": "VO04",
+          "id": "T05",
           "offset_ms": 0,
           "duration_ms": 26250,
-          "text": "只有点数和为七，一共有六种不同的组合。"
+          "text": "点数和为 7，有六种组合。",
+          "kind": "subtitle"
         },
         {
-          "id": "VO05",
+          "id": "T06",
           "offset_ms": 30000,
-          "duration_ms": 21250,
-          "text": "所以它出现的概率，是六分之一。"
+          "duration_ms": 22500,
+          "text": "所以概率是 6/36 = 1/6",
+          "kind": "subtitle"
         }
       ],
       "knowledge_refs": [
@@ -128,7 +157,7 @@
         "K03"
       ],
       "semantic_constraints": [
-        "不得改变 6/36=1/6 的数学结论。"
+        "概率结论必须保持数学正确。"
       ]
     }
   ]

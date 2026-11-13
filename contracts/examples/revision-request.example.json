@@ -1,5 +1,4 @@
 {
-  "schema_version": "1.0.0",
   "project_id": "P001",
   "request_id": "R001",
   "base_project_revision": 1,
@@ -22,10 +21,10 @@
     }
   ],
   "scope": "local",
-  "problem": "这一段节奏偏慢，缺少吸引力。",
-  "desired_change": "保留知识结论，让视觉呈现更紧凑。",
+  "problem": "这一段有点拖沓。",
+  "desired_change": "保留知识结论，增强视觉变化的节奏。",
   "preserve": [
-    "K02、K03 的数学结论"
+    "保持数学结论和已确认的主题方向"
   ],
-  "original_user_feedback": "这里有点无聊，想更精彩一点。"
+  "original_user_feedback": "这一段有点无聊，能不能更紧凑些？"
 }

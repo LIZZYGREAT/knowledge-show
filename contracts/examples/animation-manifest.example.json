@@ -1,5 +1,4 @@
 {
-  "schema_version": "1.0.0",
   "project_id": "P001",
   "artifact_id": "AM001",
   "revision": 1,
@@ -25,8 +24,8 @@
         {
           "id": "AE01",
           "offset_ms": 0,
-          "duration_ms": 16250,
-          "description": "开场问题呈现",
+          "duration_ms": 15000,
+          "description": "开场问题建立",
           "script_event_refs": [
             "EV01"
           ]
@@ -46,8 +45,8 @@
         {
           "id": "AE02",
           "offset_ms": 0,
-          "duration_ms": 30000,
-          "description": "呈现有序组合的过程",
+          "duration_ms": 28750,
+          "description": "结果组合铺开",
           "script_event_refs": [
             "EV03"
           ]
@@ -67,7 +66,8 @@
         {
           "id": "AE03",
           "offset_ms": 0,
-          "description": "组合分类与比较",
+          "duration_ms": 30000,
+          "description": "点数和的分类比较",
           "script_event_refs": [
             "EV04"
           ]
@@ -89,7 +89,7 @@
           "id": "AE04",
           "offset_ms": 0,
           "duration_ms": 30000,
-          "description": "六种组合突出显示",
+          "description": "突出点数和七的六种结果",
           "script_event_refs": [
             "EV05"
           ]
@@ -98,7 +98,7 @@
           "id": "AE05",
           "offset_ms": 30000,
           "duration_ms": 25000,
-          "description": "结果揭示",
+          "description": "概率结论出现",
           "script_event_refs": [
             "EV06"
           ]

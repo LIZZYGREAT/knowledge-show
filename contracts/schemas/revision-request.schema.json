@@ -1,12 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.org/knowledge-video/RevisionRequest.schema.json",
   "title": "RevisionRequest",
   "type": "object",
   "properties": {
-    "schema_version": {
-      "const": "1.0.0"
-    },
     "project_id": {
       "type": "string",
       "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
@@ -74,6 +70,7 @@
               "knowledge_unit",
               "scene",
               "script_event",
+              "timed_text",
               "clip",
               "clip_event",
               "time_range",
@@ -107,6 +104,7 @@
                     "knowledge_unit",
                     "scene",
                     "script_event",
+                    "timed_text",
                     "clip",
                     "clip_event"
                   ]
@@ -174,7 +172,6 @@
     }
   },
   "required": [
-    "schema_version",
     "project_id",
     "request_id",
     "base_project_revision",
