@@ -28,7 +28,7 @@ class VisualPotentialDraft(BaseModel):
 class CreativeTaskDraft(BaseModel):
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
-    question: str = Field(min_length=1, max_length=128)
+    question: str = Field(min_length=1, max_length=500)
     purpose: str = Field(min_length=1, validation_alias=AliasChoices("purpose", "why_it_matters"))
     claim_indices: list[int] = Field(
         default_factory=list,
@@ -166,7 +166,13 @@ class CreativeAgent:
         if verification_feedback is not None:
             data["verification_feedback"] = verification_feedback
         prompt = (
-            "Revise the existing candidate directions using the verifier feedback. Keep the valuable "
+            "Final bounded recovery: no candidate from the previous revision has all essential claims "
+            "verified. Build a coherent candidate using only the supplied verified_claim_indices; every "
+            "claim_indices and required_claim_indices value must be in that set. Preserve the topic and "
+            "a useful learning arc, but do not mention unsupported details. Do not create research_tasks. "
+            "Return one or more candidates with exactly one recommendation."
+            if verification_feedback is not None and verification_feedback.get("final_verified_only")
+            else "Revise the existing candidate directions using the verifier feedback. Keep the valuable "
             "core question where possible, but remove or reframe every unverified claim so the direction "
             "uses only verified claim indices. Preserve the viewer's learning arc with the remaining facts. "
             "Do not start another research task. Return the same candidate JSON shape and one recommendation."

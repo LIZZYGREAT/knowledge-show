@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 from knowledge.config import KnowledgeSettings
 from knowledge.models import Claim, ClaimEvidence, ClaimStatus, Provenance, ResearchTask, Source
-from knowledge.research import ResearchAgent, ResearchClaimDraft, ResearchPlan, ResearchResult, SourceClaimReview, SourceReview, _dependency_index, stable_id
+from knowledge.research import ResearchAgent, ResearchClaimDraft, ResearchPlan, ResearchResult, ResearchTaskDraft, SourceClaimReview, SourceReview, _compact_search_query, _dependency_index, stable_id
 from knowledge.search_client import FetchPage, SearchHit
 from knowledge.store import ResearchStore
 
@@ -333,6 +333,87 @@ def test_research_followup_accepts_source_and_search_task_aliases():
     assert ResearchClaimDraft.model_validate(
         {"claim": "An untrusted label cannot establish evidence.", "provenance": "verified_fact"}
     ).provenance == "model_generated"
+
+
+def test_research_normalizes_null_optional_model_fields():
+    plan = ResearchPlan.model_validate(
+        {
+            "summary": "A minimal research answer.",
+            "claims": [
+                {
+                    "content": "A claim with optional null fields.",
+                    "explanation": None,
+                    "conditions": None,
+                    "related_concepts": None,
+                    "depends_on": None,
+                    "derivation_steps": None,
+                }
+            ],
+            "search_tasks": [
+                {"question": "A focused query", "purpose": "Check one source", "claim_indices": None}
+            ],
+            "discoveries": None,
+        }
+    )
+
+    assert plan.claims[0].explanation == ""
+    assert plan.claims[0].conditions == []
+    assert plan.claims[0].derivation_steps == ""
+    assert plan.search_tasks[0].claim_indices == []
+    assert plan.discoveries == []
+
+
+def test_research_repairs_invalid_dependency_indices_once():
+    class DependencyRepairLLM:
+        def __init__(self):
+            self.calls = 0
+
+        async def generate_json(self, **kwargs):
+            self.calls += 1
+            depends_on = [2] if self.calls == 1 else []
+            return SimpleNamespace(
+                value={
+                    "summary": "Two independent claims about a simple topic.",
+                    "claims": [
+                        {"content": "A first model-generated claim."},
+                        {"content": "A second model-generated claim.", "depends_on": depends_on},
+                    ],
+                    "search_tasks": [],
+                    "discoveries": [],
+                },
+                usage={"input_tokens": 1, "output_tokens": 1, "total_tokens": 2},
+            )
+
+    llm = DependencyRepairLLM()
+    events = []
+    result = asyncio.run(
+        ResearchAgent(llm, None, on_event=events.append).execute(
+            "P_DEPENDENCY_REPAIR",
+            {
+                "revision": 1,
+                "user_input": {"topic": "simple topic"},
+                "effective": {},
+            },
+        )
+    )
+
+    assert llm.calls == 2
+    assert len(result.claims) == 2
+    assert result.claims[1].depends_on == []
+    assert len(result.usage) == 2
+    assert any(event["event_type"] == "progress" for event in events)
+
+
+def test_research_compacts_only_the_search_request_and_preserves_task_question():
+    question = "What concrete experimental evidence shows that high attention weights do not reliably indicate causal importance to a model prediction, including ablation or intervention studies?"
+    draft = ResearchTaskDraft.model_validate(
+        {"question": question, "purpose": "Verify a specific empirical claim."}
+    )
+    query = _compact_search_query(draft.question)
+
+    assert draft.question == question
+    assert len(query) <= 128
+    assert query.startswith("What concrete experimental evidence")
 
 
 def test_source_review_accepts_verdict_alias():

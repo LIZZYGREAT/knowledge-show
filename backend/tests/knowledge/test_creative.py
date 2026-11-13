@@ -78,3 +78,12 @@ def test_creative_research_task_retains_gap_and_reason():
     assert task.purpose == "It changes the real-world caveat."
     assert task.claim_indices == [2]
     assert task.gap_to_resolve.startswith("Need a measured")
+
+
+def test_creative_research_gap_can_retain_a_specific_long_question():
+    question = "Which empirical studies explain when attention weights fail to reflect the contribution of an input token?"
+    task = CreativeTaskDraft.model_validate(
+        {"question": question, "purpose": "Support a carefully scoped explanation."}
+    )
+
+    assert task.question == question

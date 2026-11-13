@@ -33,7 +33,7 @@ class RunOptions:
     allow_search: bool = True
     max_searches: int = 3
     max_fetches: int = 3
-    max_model_calls: int = 8
+    max_model_calls: int = 10
     force_refresh: bool = False
     data_dir: str | None = None
     export_dir: str | None = None
@@ -249,6 +249,23 @@ async def generate_knowledge_package(
                     llm, on_event=emit, run_id=run_id, store=store
                 ).verify(project_id, research, creative)
                 verification_usage = _sum_usage(verification_usage, verification.usage)
+            if not _has_eligible_candidate(creative, verification):
+                feedback = _verification_feedback(creative, verification)
+                feedback["final_verified_only"] = True
+                current_phase = "creative"
+                creative = await creative_agent.propose(
+                    project_id,
+                    brief,
+                    research,
+                    existing=creative,
+                    verification_feedback=feedback,
+                )
+                creative_usage = _sum_usage(creative_usage, creative.usage)
+                current_phase = "verifier"
+                verification = await VerifierAgent(
+                    llm, on_event=emit, run_id=run_id, store=store
+                ).verify(project_id, research, creative)
+                verification_usage = _sum_usage(verification_usage, verification.usage)
             for issue in [
                 *[
                     {
@@ -361,6 +378,24 @@ def _recommended_direction_needs_revision(creative: Any, verification: Any) -> b
         or verification.claims[index].status.value != "verified"
         for index in candidate.claim_indices
     )
+
+
+def _has_eligible_candidate(creative: Any, verification: Any) -> bool:
+    for candidate in creative.candidates:
+        required = candidate.required_claim_indices or candidate.claim_indices
+        required_verified = all(
+            0 <= index < len(verification.claims)
+            and verification.claims[index].status.value == "verified"
+            for index in required
+        )
+        has_verified_claim = any(
+            0 <= index < len(verification.claims)
+            and verification.claims[index].status.value == "verified"
+            for index in candidate.claim_indices
+        )
+        if required_verified and has_verified_claim:
+            return True
+    return False
 
 
 def _verification_feedback(creative: Any, verification: Any) -> dict[str, Any]:

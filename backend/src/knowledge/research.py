@@ -31,6 +31,16 @@ class ResearchClaimDraft(BaseModel):
         validation_alias=AliasChoices("derivation_steps", "derivation"),
     )
 
+    @field_validator("explanation", "derivation_steps", mode="before")
+    @classmethod
+    def normalize_optional_claim_text(cls, value: Any) -> str:
+        return "" if value is None else str(value)
+
+    @field_validator("conditions", "related_concepts", "depends_on", mode="before")
+    @classmethod
+    def normalize_optional_claim_lists(cls, value: Any) -> Any:
+        return [] if value is None else value
+
     @field_validator("provenance", mode="before")
     @classmethod
     def normalize_provenance(cls, value: Any) -> str:
@@ -50,7 +60,7 @@ class ResearchTaskDraft(BaseModel):
 
     question: str = Field(
         min_length=1,
-        max_length=128,
+        max_length=500,
         validation_alias=AliasChoices("question", "query", "search_query", "研究问题"),
     )
     purpose: str = Field(
@@ -58,6 +68,11 @@ class ResearchTaskDraft(BaseModel):
         validation_alias=AliasChoices("purpose", "reason", "why_it_matters", "目的"),
     )
     claim_indices: list[int] = Field(default_factory=list)
+
+    @field_validator("claim_indices", mode="before")
+    @classmethod
+    def normalize_claim_indices(cls, value: Any) -> Any:
+        return [] if value is None else value
 
 
 class ResearchPlan(BaseModel):
@@ -67,6 +82,11 @@ class ResearchPlan(BaseModel):
     claims: list[ResearchClaimDraft] = Field(min_length=1)
     search_tasks: list[ResearchTaskDraft] = Field(default_factory=list)
     discoveries: list[str | dict[str, Any]] = Field(default_factory=list)
+
+    @field_validator("discoveries", mode="before")
+    @classmethod
+    def normalize_discoveries(cls, value: Any) -> Any:
+        return [] if value is None else value
 
 
 class SourceClaimReview(BaseModel):
@@ -79,6 +99,11 @@ class SourceClaimReview(BaseModel):
     )
     excerpt: str = ""
     locator: str = ""
+
+    @field_validator("excerpt", "locator", mode="before")
+    @classmethod
+    def normalize_optional_source_text(cls, value: Any) -> str:
+        return "" if value is None else str(value)
 
     @field_validator("relation")
     @classmethod
@@ -181,7 +206,9 @@ class ResearchAgent:
             raise ValueError(_validation_summary("Research", exc)) from exc
         result.usage.append(initial.usage)
         result.summary = plan.summary
-        result.claims = self._make_claims(project_id, plan.claims)
+        result.claims, plan = await self._make_claims_with_dependency_repair(
+            project_id, plan, result.usage
+        )
         result.evidence_by_claim = {claim.id: [] for claim in result.claims}
 
         if self.store is not None:
@@ -315,7 +342,9 @@ class ResearchAgent:
                 except ValidationError as exc:
                     raise ValueError(_validation_summary("Research follow-up", exc)) from exc
                 result.usage.append(output.usage)
-                new_claims = self._make_claims(project_id, plan.claims)
+                new_claims, plan = await self._make_claims_with_dependency_repair(
+                    project_id, plan, result.usage
+                )
                 task_claim_ids: list[str] = []
                 for index, claim in enumerate(new_claims):
                     existing = next((item for item in result.claims if item.id == claim.id), None)
@@ -370,6 +399,60 @@ class ResearchAgent:
                 stats={"claims": len(task.related_claim_ids), "status": task.status.value},
             )
         return any_supported_result
+
+    async def _make_claims_with_dependency_repair(
+        self,
+        project_id: str,
+        plan: ResearchPlan,
+        usage: list[dict[str, int]],
+    ) -> tuple[list[Claim], ResearchPlan]:
+        try:
+            return self._make_claims(project_id, plan.claims), plan
+        except ValueError as exc:
+            message = str(exc)
+            if not message.startswith(("Research claim ", "Research dependency label")):
+                raise
+
+        await self._event(
+            "research",
+            "progress",
+            "Research 返回了无效的主张依赖索引，正在进行一次有界校正。",
+        )
+        repair = await self.llm.generate_json(
+            role="research",
+            prompt=(
+                "Correct only depends_on references in this research plan. Keep each claim's content, "
+                "explanation, conditions, related concepts, provenance, and derivation steps unchanged. "
+                "Keep claim order, summary, search_tasks, and discoveries unchanged. Every dependency "
+                "must be a zero-based integer index of another claim in the claims array; never refer "
+                "to the current claim or a missing index. If a dependency is unclear, use an empty list. "
+                "Return the same JSON shape."
+            ),
+            data={"research_plan": plan.model_dump(mode="json"), "validation_error": message},
+        )
+        usage.append(repair.usage)
+        try:
+            corrected = ResearchPlan.model_validate(repair.value)
+        except ValidationError as exc:
+            raise ValueError(_validation_summary("Research dependency correction", exc)) from exc
+        if len(corrected.claims) != len(plan.claims) or any(
+            original.model_dump(exclude={"depends_on"})
+            != revised.model_dump(exclude={"depends_on"})
+            for original, revised in zip(plan.claims, corrected.claims)
+        ):
+            raise ValueError(
+                "Research dependency correction changed claim content or ordering"
+            )
+        try:
+            claims = self._make_claims(project_id, corrected.claims)
+        except ValueError as exc:
+            message = str(exc)
+            if message.startswith(("Research claim ", "Research dependency label")):
+                raise ValueError(
+                    "Research dependency references remained invalid after one correction"
+                ) from exc
+            raise
+        return claims, plan.model_copy(update={"claims": corrected.claims})
 
     def _include_stored_claim(
         self,
@@ -487,12 +570,17 @@ class ResearchAgent:
         remaining_searches = max(0, self.max_searches - result.search_count)
         for task in requested_tasks[:remaining_searches]:
             result.search_count += 1
+            query = _compact_search_query(task.question)
+            compacted = query != task.question.strip()
             await self._event(
-                "search", "started", f"检索：{task.question}", stats={"query": task.question}
+                "search",
+                "started",
+                f"检索：{query}" + ("（查询按 Search 接口限制缩短）" if compacted else ""),
+                stats={"query": query, "task_question": task.question},
             )
             try:
                 task_hits = await self.search.search(
-                    task.question,
+                    query,
                     original_question=brief["user_input"].get("focus")
                     or brief["user_input"]["topic"],
                     count=5,
@@ -506,7 +594,7 @@ class ResearchAgent:
             hits.extend(task_hits)
             await self._event(
                 "search", "completed", f"Search 找到 {len(task_hits)} 个来源线索。",
-                stats={"query": task.question, "results": len(task_hits)},
+                stats={"query": query, "results": len(task_hits)},
             )
 
         chosen = self._select_hits(hits)
@@ -761,6 +849,17 @@ class ResearchAgent:
 def stable_id(prefix: str, project_id: str, value: str) -> str:
     digest = hashlib.sha256(f"{project_id}\0{value}".encode("utf-8")).hexdigest()[:16]
     return f"{prefix}{digest}"
+
+
+def _compact_search_query(question: str) -> str:
+    query = " ".join(question.split())
+    if len(query) <= 128:
+        return query
+    truncated = query[:128]
+    word_boundary = truncated.rfind(" ")
+    if word_boundary >= 96:
+        truncated = truncated[:word_boundary]
+    return truncated.rstrip()
 
 
 def _normalize_text(value: str) -> str:

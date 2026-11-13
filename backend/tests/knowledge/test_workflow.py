@@ -204,9 +204,11 @@ class CreativeResearchLoopClient:
 
 
 class VerifierRevisionClient:
-    def __init__(self):
+    def __init__(self, *, stubborn=False):
         self.calls = []
         self.refinement_data = None
+        self.creative_feedback = []
+        self.stubborn = stubborn
 
     async def generate_json(self, *, role, **kwargs):
         self.calls.append(role)
@@ -239,11 +241,17 @@ class VerifierRevisionClient:
         elif role == "creative":
             if "verification_feedback" in kwargs["data"]:
                 self.refinement_data = kwargs["data"]
-                claim_indices = [0]
-                required = [0]
+                self.creative_feedback.append(kwargs["data"]["verification_feedback"])
+                if kwargs["data"]["verification_feedback"].get("final_verified_only"):
+                    claim_indices = [0]
+                elif self.stubborn:
+                    claim_indices = [0, 1]
+                else:
+                    claim_indices = [0]
+                required = claim_indices if self.stubborn else [0]
             else:
                 claim_indices = [0, 1]
-                required = [0]
+                required = claim_indices if self.stubborn else [0]
             value = {
                 "candidates": [
                     {
@@ -375,6 +383,27 @@ def test_verifier_feedback_causes_one_local_creative_revision(tmp_path):
     assert llm.refinement_data["verification_feedback"]["unverified_claims"][0]["index"] == 1
     assert len(package["knowledge_units"]) == 1
     assert package["knowledge_units"][0]["content"] == "A fair coin has two equally likely outcomes."
+
+
+def test_final_recovery_runs_only_when_no_candidate_is_deliverable(tmp_path):
+    llm = VerifierRevisionClient(stubborn=True)
+    package = asyncio.run(
+        generate_knowledge_package(
+            "P_FINAL_RECOVERY",
+            build_brief({"topic": "公平硬币的概率"}),
+            run_options=RunOptions(
+                mode="real",
+                allow_search=False,
+                clients={"llm": llm, "search": None},
+                store=ResearchStore(tmp_path / "knowledge.sqlite3"),
+                export_dir=str(tmp_path / "exports"),
+            ),
+        )
+    )
+
+    assert llm.calls == ["research", "creative", "verifier", "creative", "verifier", "creative", "verifier"]
+    assert llm.creative_feedback[-1]["final_verified_only"] is True
+    assert len(package["knowledge_units"]) == 1
 
 
 def test_missing_api_key_is_reported_as_a_research_phase_failure(monkeypatch):
