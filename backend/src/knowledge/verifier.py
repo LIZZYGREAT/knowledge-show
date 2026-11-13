@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Literal
 
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field, ValidationError
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from .models import Claim, ClaimEvidence, ClaimStatus, Issue
 from .research import ResearchResult, stable_id
@@ -22,6 +22,11 @@ class ClaimReviewDraft(BaseModel):
         default="", validation_alias=AliasChoices("suggested_correction", "correction")
     )
     concise_basis: str = ""
+
+    @field_validator("issue", "suggested_correction", "concise_basis", mode="before")
+    @classmethod
+    def normalize_optional_text(cls, value: Any) -> str:
+        return "" if value is None else str(value)
 
 
 class VerifierOutput(BaseModel):

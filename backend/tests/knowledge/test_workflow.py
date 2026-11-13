@@ -114,6 +114,166 @@ class FakeRoleClient:
         return SimpleNamespace(value=value, usage={"input_tokens": 10, "output_tokens": 5, "total_tokens": 15})
 
 
+class CreativeResearchLoopClient:
+    def __init__(self):
+        self.calls = []
+        self.research_calls = 0
+        self.creative_calls = 0
+
+    async def generate_json(self, *, role, **kwargs):
+        self.calls.append(role)
+        if role == "research":
+            self.research_calls += 1
+            if self.research_calls == 1:
+                value = {
+                    "summary": "可从公平抛掷的样本空间建立基础。",
+                    "claims": [
+                        {
+                            "content": "公平硬币正面和反面的概率各为二分之一。",
+                            "explanation": "两个结果等可能。",
+                            "conditions": ["硬币是公平的。"],
+                            "related_concepts": ["等可能结果"],
+                            "depends_on": [],
+                            "provenance": "derivation",
+                            "derivation_steps": "样本空间有正面、反面两个等可能结果，正面占其中一个。",
+                        }
+                    ],
+                    "search_tasks": [],
+                    "discoveries": [],
+                }
+            else:
+                value = {
+                    "summary": "两个独立抛掷共有四种等可能组合。",
+                    "claims": [
+                        {
+                            "content": "两次独立抛掷都为正面的概率是四分之一。",
+                            "explanation": "四种等可能组合中只有正正符合条件。",
+                            "conditions": ["硬币公平，且两次抛掷相互独立。"],
+                            "related_concepts": ["独立事件", "样本空间"],
+                            "depends_on": [],
+                            "provenance": "derivation",
+                            "derivation_steps": "HH、HT、TH、TT 四种等可能组合中，只有 HH，因此概率为 1/4。",
+                        }
+                    ],
+                    "search_tasks": [],
+                    "discoveries": [],
+                }
+        elif role == "creative":
+            self.creative_calls += 1
+            claims = [0] if self.creative_calls == 1 else [0, 1]
+            value = {
+                "candidates": [
+                    {
+                        "title": "从一次正面到连续正面",
+                        "core_question": "为什么连续两次正面只有四分之一？",
+                        "hook": "每次都是二分之一，但组合结果会增加。",
+                        "learning_goal": "理解独立事件的结果组合。",
+                        "claim_indices": claims,
+                        "required_claim_indices": claims,
+                        "recommendation_reason": "样本空间可以清楚解释概率变化。",
+                        "duration_fit": {"status": "adequate", "reason": "两步计算适合短片说明。"},
+                        "visual_potential": {"level": "high", "reason": "四种结果可以逐项比较。"},
+                        "recommended": True,
+                    }
+                ],
+                "research_tasks": []
+                if self.creative_calls > 1
+                else [
+                    {
+                        "question": "两次独立抛掷都为正面的概率怎样推导？",
+                        "purpose": "补足候选方向需要的组合概率。",
+                        "claim_indices": [0],
+                        "candidate_index": 0,
+                        "gap_to_resolve": "需要展示完整结果空间。",
+                    }
+                ],
+                "summary": "候选由独立试验的结果组合构成。",
+            }
+        else:
+            value = {
+                "reviews": [
+                    {"claim_index": index, "decision": "pass"}
+                    for index in range(2)
+                ],
+                "summary": "两条推导都能逐步复核。",
+            }
+        return SimpleNamespace(
+            value=value,
+            usage={"input_tokens": 10, "output_tokens": 5, "total_tokens": 15},
+        )
+
+
+class VerifierRevisionClient:
+    def __init__(self):
+        self.calls = []
+        self.refinement_data = None
+
+    async def generate_json(self, *, role, **kwargs):
+        self.calls.append(role)
+        if role == "research":
+            value = {
+                "summary": "One derivable fact and one model-only claim.",
+                "claims": [
+                    {
+                        "content": "A fair coin has two equally likely outcomes.",
+                        "explanation": "The outcomes are heads and tails.",
+                        "conditions": ["The coin is fair."],
+                        "related_concepts": [],
+                        "depends_on": [],
+                        "provenance": "derivation",
+                        "derivation_steps": "There are two equiprobable outcomes, heads and tails.",
+                    },
+                    {
+                        "content": "A model-only claim without evidence.",
+                        "explanation": "No source or derivation is provided.",
+                        "conditions": [],
+                        "related_concepts": [],
+                        "depends_on": [],
+                        "provenance": "model_generated",
+                        "derivation_steps": "",
+                    },
+                ],
+                "search_tasks": [],
+                "discoveries": [],
+            }
+        elif role == "creative":
+            if "verification_feedback" in kwargs["data"]:
+                self.refinement_data = kwargs["data"]
+                claim_indices = [0]
+                required = [0]
+            else:
+                claim_indices = [0, 1]
+                required = [0]
+            value = {
+                "candidates": [
+                    {
+                        "title": "公平硬币为什么各有一半机会？",
+                        "core_question": "两种结果为什么等可能？",
+                        "hook": "每次抛掷只有正反两种结果。",
+                        "learning_goal": "理解等可能结果的概率。",
+                        "claim_indices": claim_indices,
+                        "required_claim_indices": required,
+                        "recommendation_reason": "可以从两个结果的样本空间直接说明。",
+                        "duration_fit": {"status": "adequate", "reason": "一个短推导即可说明。"},
+                        "visual_potential": {"level": "medium", "reason": "两种结果可直接比较。"},
+                        "recommended": True,
+                    }
+                ],
+                "research_tasks": [],
+                "summary": "候选围绕等可能结果。",
+            }
+        else:
+            indexes = [item["index"] for item in kwargs["data"]["claims"]]
+            value = {
+                "reviews": [{"claim_index": index, "decision": "pass"} for index in indexes],
+                "summary": "核对每条方向主张。",
+            }
+        return SimpleNamespace(
+            value=value,
+            usage={"input_tokens": 10, "output_tokens": 5, "total_tokens": 15},
+        )
+
+
 def test_real_workflow_with_injected_clients_returns_valid_package_without_network(tmp_path):
     events = []
     store = ResearchStore(tmp_path / "knowledge.sqlite3")
@@ -166,6 +326,55 @@ def test_real_workflow_keeps_model_only_claims_unverified(tmp_path):
 
     assert events[-1]["event_type"] == "failed"
     assert "未形成正式知识包" in events[-1]["summary"]
+
+
+def test_creative_research_gap_runs_one_targeted_research_and_refinement(tmp_path):
+    events = []
+    store = ResearchStore(tmp_path / "knowledge.sqlite3")
+    llm = CreativeResearchLoopClient()
+    package = asyncio.run(
+        generate_knowledge_package(
+            "P_CLOSED_LOOP",
+            build_brief({"topic": "两次独立抛硬币的概率"}),
+            on_event=events.append,
+            run_options=RunOptions(
+                mode="real",
+                allow_search=False,
+                clients={"llm": llm, "search": None},
+                store=store,
+                export_dir=str(tmp_path / "exports"),
+            ),
+        )
+    )
+
+    assert llm.calls == ["research", "creative", "research", "creative", "verifier"]
+    assert len(package["knowledge_units"]) == 2
+    task = store.list_tasks("P_CLOSED_LOOP")[0]
+    assert task.status.value == "completed"
+    assert len(task.related_claim_ids) == 2
+    assert sum(event["phase"] == "research" and event["event_type"] == "completed" for event in events) == 2
+
+
+def test_verifier_feedback_causes_one_local_creative_revision(tmp_path):
+    llm = VerifierRevisionClient()
+    package = asyncio.run(
+        generate_knowledge_package(
+            "P_VERIFIER_REVISION",
+            build_brief({"topic": "公平硬币的概率"}),
+            run_options=RunOptions(
+                mode="real",
+                allow_search=False,
+                clients={"llm": llm, "search": None},
+                store=ResearchStore(tmp_path / "knowledge.sqlite3"),
+                export_dir=str(tmp_path / "exports"),
+            ),
+        )
+    )
+
+    assert llm.calls == ["research", "creative", "verifier", "creative", "verifier"]
+    assert llm.refinement_data["verification_feedback"]["unverified_claims"][0]["index"] == 1
+    assert len(package["knowledge_units"]) == 1
+    assert package["knowledge_units"][0]["content"] == "A fair coin has two equally likely outcomes."
 
 
 def test_missing_api_key_is_reported_as_a_research_phase_failure(monkeypatch):

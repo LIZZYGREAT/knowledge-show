@@ -10,7 +10,7 @@ from typing import Any, Literal
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from .config import KnowledgeSettings, load_settings
-from .models import Claim, ClaimEvidence, ClaimStatus, Provenance, ResearchTask, Source
+from .models import Claim, ClaimEvidence, ClaimStatus, Provenance, ResearchTask, Source, TaskStatus
 from .search_client import DeepSeekSearchClient, SearchAPIError, SearchHit
 
 
@@ -25,18 +25,38 @@ class ResearchClaimDraft(BaseModel):
         default_factory=list,
         validation_alias=AliasChoices("depends_on", "dependencies"),
     )
-    provenance: Literal["model_generated", "derivation"] = "model_generated"
+    provenance: Literal["model_generated", "derivation", "external_source", "user_material"] = "model_generated"
     derivation_steps: str = Field(
         default="",
         validation_alias=AliasChoices("derivation_steps", "derivation"),
     )
 
+    @field_validator("provenance", mode="before")
+    @classmethod
+    def normalize_provenance(cls, value: Any) -> str:
+        """Treat unrecognized model labels as model-only; labels never create evidence."""
+        text = str(value or "").strip().casefold().replace("-", "_").replace(" ", "_")
+        if text in {"derivation", "derived", "推导", "数学推导"}:
+            return "derivation"
+        if text in {"external_source", "external", "source", "外部来源", "来源"}:
+            return "external_source"
+        if text in {"user_material", "user", "用户材料"}:
+            return "user_material"
+        return "model_generated"
+
 
 class ResearchTaskDraft(BaseModel):
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
-    question: str = Field(min_length=1, max_length=128)
-    purpose: str = Field(min_length=1, validation_alias=AliasChoices("purpose", "reason"))
+    question: str = Field(
+        min_length=1,
+        max_length=128,
+        validation_alias=AliasChoices("question", "query", "search_query", "研究问题"),
+    )
+    purpose: str = Field(
+        min_length=1,
+        validation_alias=AliasChoices("purpose", "reason", "why_it_matters", "目的"),
+    )
     claim_indices: list[int] = Field(default_factory=list)
 
 
@@ -46,7 +66,7 @@ class ResearchPlan(BaseModel):
     summary: str = Field(min_length=1)
     claims: list[ResearchClaimDraft] = Field(min_length=1)
     search_tasks: list[ResearchTaskDraft] = Field(default_factory=list)
-    discoveries: list[str] = Field(default_factory=list)
+    discoveries: list[str | dict[str, Any]] = Field(default_factory=list)
 
 
 class SourceClaimReview(BaseModel):
@@ -210,6 +230,170 @@ class ResearchAgent:
         )
         return result
 
+    async def resolve_creative_tasks(
+        self,
+        project_id: str,
+        brief: dict[str, Any],
+        result: ResearchResult,
+        tasks: list[ResearchTask],
+    ) -> bool:
+        """Resolve Creative's concrete gaps once, using stored evidence before new research."""
+        any_supported_result = False
+        for task in tasks:
+            await self._event(
+                "research", "started", f"定向补研：{task.question}",
+                stats={"initiated_by": "creative"},
+            )
+            matched_ids: list[str] = []
+            if self.store is not None:
+                for related_id in task.related_claim_ids:
+                    detail = self.store.get_claim_and_evidence(
+                        related_id, project_id=project_id
+                    )
+                    if (
+                        detail
+                        and detail["claim"].status == ClaimStatus.VERIFIED
+                        and any(item.relation == "supports" for item in detail["evidence"])
+                    ):
+                        self._include_stored_claim(
+                            result, detail["claim"], detail["evidence"]
+                        )
+                        matched_ids.append(related_id)
+                for match in self.store.search_claims(
+                    task.question,
+                    filters={"status": "verified"},
+                    project_id=project_id,
+                    limit=8,
+                ):
+                    evidence = match["evidence"]
+                    if match["claim"].id in matched_ids:
+                        continue
+                    if not any(item.relation == "supports" for item in evidence):
+                        continue
+                    self._include_stored_claim(result, match["claim"], evidence)
+                    matched_ids.append(match["claim"].id)
+                    for related in self.store.get_related_claims(
+                        match["claim"].id, project_id=project_id
+                    ):
+                        detail = self.store.get_claim_and_evidence(
+                            related.id, project_id=project_id
+                        )
+                        if detail:
+                            self._include_stored_claim(result, detail["claim"], detail["evidence"])
+                            matched_ids.append(related.id)
+
+            supported = bool(matched_ids)
+            if not supported:
+                prior_claims = self._load_prior_claims(project_id, task.question)
+                output = await self.llm.generate_json(
+                    role="research",
+                    prompt=(
+                        "Resolve this specific Creative research gap. Search relevant saved claims first, "
+                        "then add only the smallest useful knowledge claims. State conditions and show "
+                        "reproducible derivation steps where possible. Request external sources only for "
+                        "facts that need them. Do not force evidence to support the proposed direction. "
+                        "Return exactly this JSON shape: {summary, claims, search_tasks, discoveries}. "
+                        "Each claim has content, explanation, conditions (array), related_concepts (array), "
+                        "depends_on (zero-based indices within claims), provenance (only model_generated or "
+                        "derivation), and derivation_steps. Each search_tasks item has question, purpose, "
+                        "and claim_indices (zero-based indices within claims). Discoveries is an array of "
+                        "short strings. Use no other provenance values. Return at most 8 claims and 2 tasks."
+                    ),
+                    data={
+                        "brief": brief,
+                        "research_task": task.model_dump(mode="json"),
+                        "related_claims": [
+                            claim.model_dump(mode="json")
+                            for claim in result.claims
+                            if claim.id in task.related_claim_ids
+                        ],
+                        "prior_claims": prior_claims,
+                    },
+                )
+                try:
+                    plan = ResearchPlan.model_validate(output.value)
+                except ValidationError as exc:
+                    raise ValueError(_validation_summary("Research follow-up", exc)) from exc
+                result.usage.append(output.usage)
+                new_claims = self._make_claims(project_id, plan.claims)
+                task_claim_ids: list[str] = []
+                for index, claim in enumerate(new_claims):
+                    existing = next((item for item in result.claims if item.id == claim.id), None)
+                    if existing is None:
+                        result.claims.append(claim)
+                        result.evidence_by_claim[claim.id] = []
+                        existing = claim
+                    task_claim_ids.append(existing.id)
+                    draft = plan.claims[index]
+                    if draft.provenance == "derivation" and draft.derivation_steps.strip():
+                        public, internal = self._derivation_evidence(
+                            project_id, existing, draft.derivation_steps
+                        )
+                        if all(item.id != internal.id for item in result.internal_evidence):
+                            result.internal_evidence.append(internal)
+                            result.evidence_by_claim[existing.id].append(public)
+                followup_tasks = self._make_tasks(project_id, plan.search_tasks, new_claims)
+                if self.store is not None:
+                    followup_tasks = [self.store.save_task(item) for item in followup_tasks]
+                result.tasks.extend(followup_tasks)
+                before_sources = {item.id for item in result.sources}
+                if followup_tasks:
+                    await self._run_search(
+                        project_id, brief, plan, result, tasks=followup_tasks
+                    )
+                if set(result.source_contents) and (
+                    {item.id for item in result.sources} - before_sources
+                ):
+                    await self._attach_source_evidence(brief, plan, result)
+                supported = any(
+                    item.claim_id in task_claim_ids and item.relation == "supports"
+                    for item in result.internal_evidence
+                )
+                task.related_claim_ids = list(
+                    dict.fromkeys(task.related_claim_ids + task_claim_ids)
+                )
+
+            task.status = "completed" if supported else "blocked"
+            any_supported_result = any_supported_result or supported
+            if self.store is not None:
+                self.store.save_task(task)
+                self.store.update_task_status(project_id, task.id, task.status.value)
+                self.store.save_claims(result.claims)
+                for source in result.sources:
+                    self.store.save_source(source)
+                for evidence in result.internal_evidence:
+                    self.store.save_evidence(evidence)
+            await self._event(
+                "research",
+                "completed" if supported else "progress",
+                "定向补研找到可追溯依据。" if supported else "定向补研仍缺少可核验依据，已保留为阻塞任务。",
+                stats={"claims": len(task.related_claim_ids), "status": task.status.value},
+            )
+        return any_supported_result
+
+    def _include_stored_claim(
+        self,
+        result: ResearchResult,
+        claim: Claim,
+        evidence: list[ClaimEvidence],
+    ) -> None:
+        if all(item.id != claim.id for item in result.claims):
+            result.claims.append(claim)
+            result.evidence_by_claim[claim.id] = []
+        result.evidence_by_claim.setdefault(claim.id, [])
+        for item in evidence:
+            if all(existing.id != item.id for existing in result.internal_evidence):
+                result.internal_evidence.append(item)
+            if all(existing["id"] != item.id for existing in result.evidence_by_claim[claim.id]):
+                result.evidence_by_claim[claim.id].append(self._public_evidence(item))
+            if item.source_id and self.store is not None:
+                source = self.store.get_source(claim.project_id, item.source_id)
+                if source is not None and all(existing.id != source.id for existing in result.sources):
+                    result.sources.append(source)
+                    content = self.store.read_source_content(claim.project_id, source.id)
+                    if content is not None:
+                        result.source_contents[source.id] = content
+
     def _make_claims(self, project_id: str, drafts: list[ResearchClaimDraft]) -> list[Claim]:
         claim_ids = [
             stable_id("CLM_", project_id, draft.content + "\0" + "\0".join(sorted(draft.conditions)))
@@ -286,7 +470,13 @@ class ResearchAgent:
         brief: dict[str, Any],
         plan: ResearchPlan,
         result: ResearchResult,
+        *,
+        tasks: list[ResearchTask] | None = None,
     ) -> None:
+        requested_tasks = tasks if tasks is not None else result.tasks
+        requested_tasks = [task for task in requested_tasks if task.status == TaskStatus.OPEN]
+        if not requested_tasks:
+            return
         if self.search is None:
             result.open_issues.append(
                 {"issue": "研究提出了外部资料需求，但 Search 客户端不可用。", "recommendation": "检查密钥与 Search 配置。"}
@@ -294,7 +484,8 @@ class ResearchAgent:
             return
 
         hits: list[SearchHit] = []
-        for task in result.tasks[: self.max_searches]:
+        remaining_searches = max(0, self.max_searches - result.search_count)
+        for task in requested_tasks[:remaining_searches]:
             result.search_count += 1
             await self._event(
                 "search", "started", f"检索：{task.question}", stats={"query": task.question}
@@ -418,6 +609,8 @@ class ResearchAgent:
         by_id = {item["claim"].id: item for item in results}
         for item in list(results):
             for related in self.store.get_related_claims(item["claim"].id, project_id=project_id):
+                if related.status == ClaimStatus.REJECTED:
+                    continue
                 if related.id not in by_id:
                     detail = self.store.get_claim_and_evidence(related.id, project_id=project_id)
                     if detail:
@@ -425,7 +618,18 @@ class ResearchAgent:
         return [
             {
                 "claim": item["claim"].model_dump(mode="json"),
-                "evidence": [evidence.model_dump(mode="json") for evidence in item.get("evidence", [])],
+                "evidence": [
+                    {
+                        "id": evidence.id,
+                        "evidence_kind": evidence.evidence_kind,
+                        "source_id": evidence.source_id,
+                        "locator": evidence.locator,
+                        "excerpt": evidence.excerpt[:800],
+                        "derivation_steps": evidence.derivation_steps[:1500],
+                        "relation": evidence.relation,
+                    }
+                    for evidence in item.get("evidence", [])
+                ],
             }
             for item in by_id.values()
         ]

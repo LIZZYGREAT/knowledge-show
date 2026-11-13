@@ -3,8 +3,8 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from knowledge.config import KnowledgeSettings
-from knowledge.models import Claim, ClaimEvidence, ClaimStatus, Provenance, Source
-from knowledge.research import ResearchAgent, ResearchClaimDraft, SourceClaimReview, SourceReview, _dependency_index, stable_id
+from knowledge.models import Claim, ClaimEvidence, ClaimStatus, Provenance, ResearchTask, Source
+from knowledge.research import ResearchAgent, ResearchClaimDraft, ResearchPlan, ResearchResult, SourceClaimReview, SourceReview, _dependency_index, stable_id
 from knowledge.search_client import FetchPage, SearchHit
 from knowledge.store import ResearchStore
 
@@ -208,6 +208,83 @@ def test_research_reuses_verified_internal_claims_and_cached_source(tmp_path):
     assert result.fetch_count == 0
 
 
+def test_creative_followup_reuses_project_claim_before_calling_model(tmp_path):
+    project_id = "P_FOLLOWUP_CACHE"
+    settings = KnowledgeSettings(
+        api_key="test",
+        base_url="https://api.deepseek.com",
+        model="deepseek-flash",
+        timeout_seconds=5,
+        data_dir=tmp_path / "data",
+        export_dir=tmp_path / "exports",
+    )
+    store = ResearchStore(settings.data_dir / "knowledge.sqlite3")
+    source_file = settings.data_dir / "source.md"
+    source_file.parent.mkdir(parents=True, exist_ok=True)
+    source_file.write_text("The stored excerpt.", encoding="utf-8")
+    source = store.save_source(
+        Source(
+            id="SRC_FOLLOWUP",
+            project_id=project_id,
+            url="https://example.org/followup",
+            title="Saved record",
+            content_path=str(source_file),
+            content_hash="followup-hash",
+        )
+    )
+    claim = store.save_claim(
+        Claim(
+            id="CLM_FOLLOWUP",
+            project_id=project_id,
+            content="The follow-up claim answers the creative gap.",
+            provenance=Provenance.EXTERNAL_SOURCE,
+            status=ClaimStatus.VERIFIED,
+        )
+    )
+    store.save_evidence(
+        ClaimEvidence(
+            id="EVD_FOLLOWUP",
+            project_id=project_id,
+            claim_id=claim.id,
+            evidence_kind="external_source",
+            source_id=source.id,
+            locator=source.url,
+            excerpt="The stored excerpt.",
+        )
+    )
+    task = store.save_task(
+        ResearchTask(
+            id="TASK_FOLLOWUP",
+            project_id=project_id,
+            question="What does the follow-up claim answer?",
+            initiated_by="creative",
+            purpose="Fill a specific knowledge gap.",
+        )
+    )
+
+    class UnexpectedModelCall:
+        async def generate_json(self, **kwargs):
+            raise AssertionError("stored evidence should resolve this task without another call")
+
+    result = ResearchResult(
+        claims=[], evidence_by_claim={}, internal_evidence=[], sources=[], source_contents={}, tasks=[]
+    )
+    resolved = asyncio.run(
+        ResearchAgent(UnexpectedModelCall(), None, settings=settings, store=store).resolve_creative_tasks(
+            project_id,
+            {"revision": 1, "user_input": {"topic": "test"}, "effective": {}},
+            result,
+            [task],
+        )
+    )
+
+    assert resolved is True
+    assert result.claims == [claim]
+    assert result.sources == [source]
+    assert task.status.value == "completed"
+    assert store.list_tasks(project_id)[0].status.value == "completed"
+
+
 def test_research_accepts_claim_aliases_and_resolves_named_dependencies():
     drafts = [
         ResearchClaimDraft.model_validate(
@@ -230,6 +307,32 @@ def test_research_accepts_claim_aliases_and_resolves_named_dependencies():
     assert drafts[0].content.startswith("P(no collision)")
     assert drafts[1].derivation_steps == "Use 1 - P(no collision)."
     assert _dependency_index(drafts[1].depends_on[0], 1, drafts) == 0
+
+
+def test_research_followup_accepts_source_and_search_task_aliases():
+    plan = ResearchPlan.model_validate(
+        {
+            "summary": "A focused answer with a source to fetch.",
+            "claims": [
+                {
+                    "claim": "A bounded claim.",
+                    "provenance": "external_source",
+                    "conditions": [],
+                }
+            ],
+            "search_tasks": [
+                {"search_query": "official source for the bounded claim", "why_it_matters": "Verify the date."}
+            ],
+            "discoveries": [{"claim": "A useful discovery."}],
+        }
+    )
+
+    assert plan.claims[0].provenance == "external_source"
+    assert plan.search_tasks[0].question == "official source for the bounded claim"
+    assert plan.discoveries == [{"claim": "A useful discovery."}]
+    assert ResearchClaimDraft.model_validate(
+        {"claim": "An untrusted label cannot establish evidence.", "provenance": "verified_fact"}
+    ).provenance == "model_generated"
 
 
 def test_source_review_accepts_verdict_alias():

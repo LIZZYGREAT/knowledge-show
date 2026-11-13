@@ -125,7 +125,16 @@ class CreativeAgent:
         self.run_id = run_id
         self.store = store
 
-    async def propose(self, project_id: str, brief: dict[str, Any], research: ResearchResult) -> CreativeResult:
+    async def propose(
+        self,
+        project_id: str,
+        brief: dict[str, Any],
+        research: ResearchResult,
+        *,
+        existing: CreativeResult | None = None,
+        resolved_tasks: list[ResearchTask] | None = None,
+        verification_feedback: dict[str, Any] | None = None,
+    ) -> CreativeResult:
         await self._event("creative", "started", "Creative 正在从知识关系中寻找观看主线。")
         data = {
             "brief": brief,
@@ -141,26 +150,60 @@ class CreativeAgent:
                 }
                 for index, claim in enumerate(research.claims)
             ],
-            "open_research_tasks": [task.model_dump(mode="json") for task in research.tasks],
+            "open_research_tasks": [
+                task.model_dump(mode="json")
+                for task in research.tasks
+                if task.status.value == "open"
+            ],
         }
+        if existing is not None:
+            data["existing_directions"] = [
+                candidate.model_dump(mode="json") for candidate in existing.candidates
+            ]
+            data["resolved_research_tasks"] = [
+                task.model_dump(mode="json") for task in (resolved_tasks or [])
+            ]
+        if verification_feedback is not None:
+            data["verification_feedback"] = verification_feedback
+        prompt = (
+            "Revise the existing candidate directions using the verifier feedback. Keep the valuable "
+            "core question where possible, but remove or reframe every unverified claim so the direction "
+            "uses only verified claim indices. Preserve the viewer's learning arc with the remaining facts. "
+            "Do not start another research task. Return the same candidate JSON shape and one recommendation."
+            if verification_feedback is not None
+            else "Refine the existing candidate directions using the newly resolved research tasks. "
+            "Keep their useful core question and viewing value when the new evidence still supports it. "
+            "Change only directions affected by the added knowledge, connect new claims only when they "
+            "improve the learning arc, and remove claims that no longer fit. Do not start a further "
+            "research loop in this refinement. Return the same candidate JSON shape and one recommendation."
+            if existing is not None
+            else "Produce one or more materially different candidate directions. They must answer "
+            "the user's topic and focus, honor must_include and must_avoid, and use the actual "
+            "knowledge relationships as the source of interest. For each direction give a core "
+            "question, hook, learning goal, recommendation reason, duration fit, visual potential, "
+            "all related claim indices, and which claims are essential. A candidate must have at "
+            "least one essential claim. You may propose a concrete research_tasks item only for a "
+            "specific fact gap that materially affects a candidate; include its claim indices. Do "
+            "not write a scene list, script, timing, character, shot, or animation method. Mark "
+            "exactly one direction recommended. Return JSON with candidates, research_tasks, summary. "
+            "Use candidates fields: title, core_question, hook, learning_goal, claim_indices, "
+            "required_claim_indices, recommendation_reason, duration_fit as an object with status "
+            "and reason, visual_potential as an object with level and reason, and recommended "
+            "as a boolean. Do not include IDs. Research task fields are question, purpose, "
+            "claim_indices, and candidate_index."
+        )
+        if existing is not None:
+            prompt += (
+                " Exact top-level JSON keys: candidates, research_tasks, summary. Each candidate must "
+                "contain title, core_question, hook, learning_goal, claim_indices (integer array), "
+                "required_claim_indices (integer array), recommendation_reason, duration_fit "
+                "({status, reason}), visual_potential ({level, reason}), and recommended (boolean). "
+                "Use only claim indices supplied in the data. Mark exactly one candidate recommended. "
+                "When no further task is warranted, return research_tasks as an empty array."
+            )
         output = await self.llm.generate_json(
             role="creative",
-            prompt=(
-                "Produce one or more materially different candidate directions. They must answer "
-                "the user's topic and focus, honor must_include and must_avoid, and use the actual "
-                "knowledge relationships as the source of interest. For each direction give a core "
-                "question, hook, learning goal, recommendation reason, duration fit, visual potential, "
-                "all related claim indices, and which claims are essential. A candidate must have at "
-                "least one essential claim. You may propose a concrete research_tasks item only for a "
-                "specific fact gap that materially affects a candidate; include its claim indices. Do "
-                "not write a scene list, script, timing, character, shot, or animation method. Mark "
-                "exactly one direction recommended. Return JSON with candidates, research_tasks, summary. "
-                "Use candidates fields: title, core_question, hook, learning_goal, claim_indices, "
-                "required_claim_indices, recommendation_reason, duration_fit as an object with status "
-                "and reason, visual_potential as an object with level and reason, and recommended "
-                "as a boolean. Do not include IDs. Research task fields are question, purpose, "
-                "claim_indices, and candidate_index."
-            ),
+            prompt=prompt,
             data=data,
         )
         try:

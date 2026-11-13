@@ -33,7 +33,7 @@ class RunOptions:
     allow_search: bool = True
     max_searches: int = 3
     max_fetches: int = 3
-    max_model_calls: int = 6
+    max_model_calls: int = 8
     force_refresh: bool = False
     data_dir: str | None = None
     export_dir: str | None = None
@@ -192,7 +192,7 @@ async def generate_knowledge_package(
             if search_client is None and options.allow_search and "search" not in injected:
                 search_client = DeepSeekSearchClient(settings)
             llm = ModelCallBudget(llm_client, options.max_model_calls)
-            research = await ResearchAgent(
+            research_agent = ResearchAgent(
                 llm,
                 search_client,
                 settings=settings,
@@ -202,15 +202,53 @@ async def generate_knowledge_package(
                 max_fetches=options.max_fetches if options.allow_search else 0,
                 store=store,
                 force_refresh=options.force_refresh,
-            ).execute(project_id, brief)
+            )
+            research = await research_agent.execute(project_id, brief)
             current_phase = "creative"
-            creative = await CreativeAgent(
+            creative_agent = CreativeAgent(
                 llm, on_event=emit, run_id=run_id, store=store
-            ).propose(project_id, brief, research)
+            )
+            creative = await creative_agent.propose(project_id, brief, research)
+            creative_usage = dict(creative.usage)
+            if creative.research_tasks:
+                current_phase = "research"
+                resolved = await research_agent.resolve_creative_tasks(
+                    project_id, brief, research, creative.research_tasks
+                )
+                completed_tasks = [
+                    task for task in creative.research_tasks if task.status.value == "completed"
+                ]
+                if resolved and completed_tasks:
+                    current_phase = "creative"
+                    creative = await creative_agent.propose(
+                        project_id,
+                        brief,
+                        research,
+                        existing=creative,
+                        resolved_tasks=completed_tasks,
+                    )
+                    creative_usage = _sum_usage(creative_usage, creative.usage)
             current_phase = "verifier"
             verification = await VerifierAgent(
                 llm, on_event=emit, run_id=run_id, store=store
             ).verify(project_id, research, creative)
+            verification_usage = dict(verification.usage)
+            if _recommended_direction_needs_revision(creative, verification):
+                feedback = _verification_feedback(creative, verification)
+                current_phase = "creative"
+                creative = await creative_agent.propose(
+                    project_id,
+                    brief,
+                    research,
+                    existing=creative,
+                    verification_feedback=feedback,
+                )
+                creative_usage = _sum_usage(creative_usage, creative.usage)
+                current_phase = "verifier"
+                verification = await VerifierAgent(
+                    llm, on_event=emit, run_id=run_id, store=store
+                ).verify(project_id, research, creative)
+                verification_usage = _sum_usage(verification_usage, verification.usage)
             for issue in [
                 *[
                     {
@@ -236,8 +274,8 @@ async def generate_knowledge_package(
             package = assemble_knowledge_package(project_id, brief, research, creative, verification)
             token_usage = {
                 field: sum(item.get(field, 0) for item in research.usage)
-                + creative.usage.get(field, 0)
-                + verification.usage.get(field, 0)
+                + creative_usage.get(field, 0)
+                + verification_usage.get(field, 0)
                 for field in ("input_tokens", "output_tokens", "total_tokens")
             }
             run_stats = {
@@ -304,6 +342,59 @@ async def generate_knowledge_package(
             await llm_client.close()
         if owns_search and search_client is not None:
             await search_client.close()
+
+
+def _sum_usage(*usage_values: dict[str, int]) -> dict[str, int]:
+    fields = {"input_tokens", "output_tokens", "total_tokens"}
+    return {
+        field: sum(usage.get(field, 0) for usage in usage_values)
+        for field in fields
+    }
+
+
+def _recommended_direction_needs_revision(creative: Any, verification: Any) -> bool:
+    candidate = next((item for item in creative.candidates if item.recommended), None)
+    if candidate is None:
+        return False
+    return any(
+        index >= len(verification.claims)
+        or verification.claims[index].status.value != "verified"
+        for index in candidate.claim_indices
+    )
+
+
+def _verification_feedback(creative: Any, verification: Any) -> dict[str, Any]:
+    candidate = next((item for item in creative.candidates if item.recommended), None)
+    issues_by_claim: dict[str, list[dict[str, str]]] = {}
+    for issue in verification.public_issues:
+        issues_by_claim.setdefault(issue["claim_id"], []).append(
+            {"issue": issue["issue"], "recommendation": issue["recommendation"]}
+        )
+    unverified = []
+    if candidate is not None:
+        for index in candidate.claim_indices:
+            if index >= len(verification.claims):
+                unverified.append({"index": index, "status": "missing"})
+                continue
+            claim = verification.claims[index]
+            if claim.status.value != "verified":
+                unverified.append(
+                    {
+                        "index": index,
+                        "claim_id": claim.id,
+                        "content": claim.content,
+                        "status": claim.status.value,
+                        "issues": issues_by_claim.get(claim.id, []),
+                    }
+                )
+    return {
+        "recommended_title": candidate.title if candidate else "",
+        "verified_claim_indices": [
+            index for index, claim in enumerate(verification.claims)
+            if claim.status.value == "verified"
+        ],
+        "unverified_claims": unverified,
+    }
 
 
 def _safe_error(error: Exception) -> str:

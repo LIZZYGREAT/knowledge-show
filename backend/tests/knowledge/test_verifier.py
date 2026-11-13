@@ -22,6 +22,20 @@ def test_verifier_accepts_index_and_correction_aliases():
     assert parsed.reviews[0].suggested_correction == "补上相互独立这一前提。"
 
 
+def test_verifier_normalizes_null_optional_text_fields():
+    parsed = _parse_output(
+        {
+            "reviews": [
+                {"index": 0, "decision": "pass", "issue": None, "correction": None}
+            ],
+            "summary": "未发现关键问题。",
+        }
+    )
+
+    assert parsed.reviews[0].issue == ""
+    assert parsed.reviews[0].suggested_correction == ""
+
+
 def test_verifier_shape_error_does_not_include_model_response_text():
     with pytest.raises(ValueError) as exc:
         _parse_output(
