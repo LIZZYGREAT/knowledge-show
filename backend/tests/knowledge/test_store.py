@@ -72,7 +72,7 @@ def test_store_deduplicates_sources_by_normalized_url_and_content(tmp_path):
     assert normalize_url("HTTPS://Example.org:443/article/?utm_source=search#top") == "https://example.org/article"
     assert url_duplicate.id == first.id
     assert content_duplicate.id == first.id
-    assert store.get_source("P_ALPHA", first.id).url.startswith("HTTPS://")
+    assert store.get_source("P_ALPHA", first.id).url == "https://example.org/article"
     assert store.get_source("P_BETA", first.id) is None
 
 

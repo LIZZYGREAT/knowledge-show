@@ -8,17 +8,21 @@ from knowledge.brief import build_brief
 from knowledge.mock_data import MockFixtureNotFound
 from knowledge.package import validate_knowledge_package
 from knowledge.service import RunOptions, generate_knowledge_package
+from knowledge.store import ResearchStore
 
 
-def test_mock_workflow_returns_valid_public_package_and_safe_events():
+def test_mock_workflow_returns_valid_public_package_and_safe_events(tmp_path):
     events = []
+    store = ResearchStore(tmp_path / "knowledge.sqlite3")
     brief = build_brief({"topic": "生日悖论", "focus": "为什么 23 人就超过一半"})
     package = asyncio.run(
         generate_knowledge_package(
             "P_TEST_KNOWLEDGE",
             brief,
             on_event=events.append,
-            run_options=RunOptions(mode="mock"),
+            run_options=RunOptions(
+                mode="mock", store=store, export_dir=str(tmp_path / "exports")
+            ),
         )
     )
 
@@ -30,10 +34,21 @@ def test_mock_workflow_returns_valid_public_package_and_safe_events():
     )
     assert [event["phase"] for event in events][-1] == "delivery"
     assert all("chain_of_thought" not in event for event in events)
+    run_id = events[0]["run_id"]
+    stored_run = store.get_run("P_TEST_KNOWLEDGE", run_id)
+    assert stored_run.status == "completed"
+    assert stored_run.package_revision == package["revision"]
+    assert store.get_package("P_TEST_KNOWLEDGE", package["artifact_id"]) == package
+    assert len(store.list_run_events("P_TEST_KNOWLEDGE", run_id)) == len(events)
+    assert (tmp_path / "exports" / f"{package['artifact_id']}-r1.json").is_file()
+    assert (tmp_path / "exports" / f"{run_id}.json").is_file()
+    store.save_review("P_TEST_KNOWLEDGE", run_id, "usable", "候选主线清晰")
+    assert store.get_run("P_TEST_KNOWLEDGE", run_id).human_note == "候选主线清晰"
 
 
-def test_mock_unknown_topic_fails_without_a_package_and_reports_failure():
+def test_mock_unknown_topic_fails_without_a_package_and_reports_failure(tmp_path):
     events = []
+    store = ResearchStore(tmp_path / "knowledge.sqlite3")
     brief = build_brief({"topic": "随便一个未覆盖主题"})
 
     with pytest.raises(MockFixtureNotFound, match="固定主题"):
@@ -42,12 +57,15 @@ def test_mock_unknown_topic_fails_without_a_package_and_reports_failure():
                 "P_TEST_KNOWLEDGE",
                 brief,
                 on_event=events.append,
-                run_options=RunOptions(mode="mock"),
+                run_options=RunOptions(
+                    mode="mock", store=store, export_dir=str(tmp_path / "exports")
+                ),
             )
         )
 
     assert events[-1]["event_type"] == "failed"
     assert "离线 Mock" in events[-1]["error"]
+    assert store.get_run("P_TEST_KNOWLEDGE", events[0]["run_id"]).status == "failed"
 
 
 class FakeRoleClient:
@@ -96,8 +114,9 @@ class FakeRoleClient:
         return SimpleNamespace(value=value, usage={"input_tokens": 10, "output_tokens": 5, "total_tokens": 15})
 
 
-def test_real_workflow_with_injected_clients_returns_valid_package_without_network():
+def test_real_workflow_with_injected_clients_returns_valid_package_without_network(tmp_path):
     events = []
+    store = ResearchStore(tmp_path / "knowledge.sqlite3")
     brief = build_brief({"topic": "两次掷硬币的概率"})
     llm = FakeRoleClient()
     package = asyncio.run(
@@ -109,6 +128,7 @@ def test_real_workflow_with_injected_clients_returns_valid_package_without_netwo
                 mode="real",
                 allow_search=False,
                 clients={"llm": llm, "search": None},
+                store=store,
             ),
         )
     )
@@ -117,9 +137,16 @@ def test_real_workflow_with_injected_clients_returns_valid_package_without_netwo
     assert llm.calls == 3
     assert package["knowledge_units"][0]["verification_status"] == "verified"
     assert events[-1]["stats"]["total_tokens"] == 45
+    run_id = events[0]["run_id"]
+    assert store.get_run("P_REAL_TEST", run_id).status == "completed"
+    assert store.get_run("P_REAL_TEST", run_id).input_brief == brief
+    assert store.list_leads("P_REAL_TEST")
+    assert store.get_claim_and_evidence(
+        package["knowledge_units"][0]["id"], project_id="P_REAL_TEST"
+    )["evidence"]
 
 
-def test_real_workflow_keeps_model_only_claims_unverified():
+def test_real_workflow_keeps_model_only_claims_unverified(tmp_path):
     events = []
     brief = build_brief({"topic": "两次掷硬币的概率"})
     with pytest.raises(ValueError, match="No candidate direction"):
@@ -132,6 +159,7 @@ def test_real_workflow_keeps_model_only_claims_unverified():
                     mode="real",
                     allow_search=False,
                     clients={"llm": FakeRoleClient(supported=False), "search": None},
+                    store=ResearchStore(tmp_path / "model-only.sqlite3"),
                 ),
             )
         )

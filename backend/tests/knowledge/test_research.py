@@ -3,16 +3,20 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from knowledge.config import KnowledgeSettings
-from knowledge.research import ResearchAgent, ResearchClaimDraft, SourceClaimReview, SourceReview, _dependency_index
+from knowledge.models import Claim, ClaimEvidence, ClaimStatus, Provenance, Source
+from knowledge.research import ResearchAgent, ResearchClaimDraft, SourceClaimReview, SourceReview, _dependency_index, stable_id
 from knowledge.search_client import FetchPage, SearchHit
+from knowledge.store import ResearchStore
 
 
 class ResearchLLM:
     def __init__(self):
         self.calls = 0
+        self.request_data = []
 
     async def generate_json(self, *, role, **kwargs):
         self.calls += 1
+        self.request_data.append(kwargs.get("data", {}))
         if self.calls == 1:
             value = {
                 "summary": "A source is needed to support this historical claim.",
@@ -123,6 +127,85 @@ def test_research_fetches_and_persists_exact_source_text(tmp_path):
     assert body_path.read_text(encoding="utf-8") == "# History\n\nThe experiment began in 1901."
     assert [event["phase"] for event in events].count("search") == 2
     assert [event["phase"] for event in events].count("fetch") == 2
+
+
+def test_research_reuses_verified_internal_claims_and_cached_source(tmp_path):
+    project_id = "P_RESEARCH_CACHE"
+    settings = KnowledgeSettings(
+        api_key="test",
+        base_url="https://api.deepseek.com",
+        model="deepseek-flash",
+        timeout_seconds=5,
+        data_dir=tmp_path / "data",
+        export_dir=tmp_path / "exports",
+    )
+    store = ResearchStore(settings.data_dir / "knowledge.sqlite3")
+    content = "The sample experiment began in 1901."
+    claim_text = "The sample experiment began in 1901."
+    claim = Claim(
+        id=stable_id("CLM_", project_id, claim_text + "\0"),
+        project_id=project_id,
+        content=claim_text,
+        explanation="A dated record identifies the experiment start.",
+        provenance=Provenance.EXTERNAL_SOURCE,
+        status=ClaimStatus.VERIFIED,
+    )
+    body = settings.data_dir / project_id / "sources" / "saved.md"
+    body.parent.mkdir(parents=True, exist_ok=True)
+    body.write_text(content, encoding="utf-8")
+    source = Source(
+        id="SRC_CACHED",
+        project_id=project_id,
+        url="https://example.org/experiment",
+        title="Official record",
+        content_path=str(body),
+        content_hash="cached-hash",
+    )
+    store.save_source(source)
+    store.save_claim(claim)
+    store.save_evidence(
+        ClaimEvidence(
+            id="EVD_CACHED",
+            project_id=project_id,
+            claim_id=claim.id,
+            evidence_kind="external_source",
+            source_id=source.id,
+            locator=source.url,
+            excerpt=content,
+        )
+    )
+
+    llm = ResearchLLM()
+    search = ResearchSearch()
+    result = asyncio.run(
+        ResearchAgent(
+            llm,
+            search,
+            settings=settings,
+            store=store,
+            max_searches=1,
+            max_fetches=1,
+        ).execute(
+            project_id,
+            {
+                "revision": 1,
+                "user_input": {"topic": "sample experiment"},
+                "effective": {
+                    "creative_mode": "visual_explain",
+                    "knowledge_depth": "balanced",
+                    "aspect_ratio": "9:16",
+                    "target_duration_ms": 165_000,
+                },
+            },
+        )
+    )
+
+    assert llm.request_data[0]["prior_claims"][0]["claim"]["id"] == claim.id
+    assert result.claims[0].status == ClaimStatus.VERIFIED
+    assert any(item["id"] == "EVD_CACHED" for item in result.evidence_by_claim[claim.id])
+    assert search.search_calls
+    assert search.fetch_calls == []
+    assert result.fetch_count == 0
 
 
 def test_research_accepts_claim_aliases_and_resolves_named_dependencies():

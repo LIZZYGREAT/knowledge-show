@@ -41,10 +41,13 @@ class VerificationResult:
 
 
 class VerifierAgent:
-    def __init__(self, llm: Any, *, on_event: Any = None, run_id: str = "RUN_UNKNOWN") -> None:
+    def __init__(
+        self, llm: Any, *, on_event: Any = None, run_id: str = "RUN_UNKNOWN", store: Any = None
+    ) -> None:
         self.llm = llm
         self.on_event = on_event
         self.run_id = run_id
+        self.store = store
 
     async def verify(
         self,
@@ -189,6 +192,11 @@ class VerifierAgent:
                 public_issues.append(
                     {"claim_id": claim.id, "issue": issue_text, "recommendation": recommendation, "status": "revise"}
                 )
+
+        if self.store is not None:
+            self.store.save_claims(claims)
+            for issue in issues:
+                self.store.save_issue(issue)
 
         await self._event(
             "verifier", "completed", f"Verifier 通过 {sum(claim.status == ClaimStatus.VERIFIED for claim in claims)} 条相关主张，提出 {len(issues)} 个待处理问题。",

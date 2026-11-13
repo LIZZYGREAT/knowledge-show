@@ -117,10 +117,13 @@ class CreativeResult:
 
 
 class CreativeAgent:
-    def __init__(self, llm: Any, *, on_event: Any = None, run_id: str = "RUN_UNKNOWN") -> None:
+    def __init__(
+        self, llm: Any, *, on_event: Any = None, run_id: str = "RUN_UNKNOWN", store: Any = None
+    ) -> None:
         self.llm = llm
         self.on_event = on_event
         self.run_id = run_id
+        self.store = store
 
     async def propose(self, project_id: str, brief: dict[str, Any], research: ResearchResult) -> CreativeResult:
         await self._event("creative", "started", "Creative 正在从知识关系中寻找观看主线。")
@@ -214,6 +217,10 @@ class CreativeAgent:
             "creative", "completed", f"Creative 形成 {len(parsed.candidates)} 个候选，提出 {len(tasks)} 个补研问题。",
             stats={"candidates": len(parsed.candidates), "research_tasks": len(tasks)},
         )
+        if self.store is not None:
+            for lead in leads:
+                self.store.save_lead(lead)
+            tasks = [self.store.save_task(task) for task in tasks]
         return CreativeResult(
             candidates=parsed.candidates,
             leads=leads,

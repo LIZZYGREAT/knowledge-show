@@ -27,3 +27,15 @@ def test_review_page_displays_offline_mock_failure_without_package():
     assert not app.exception
     assert any("未形成可交付知识包" in item.value for item in app.error)
     assert not any("推荐方向" in item.value for item in app.subheader)
+
+
+def test_review_page_restores_local_run_history_after_new_session(monkeypatch, tmp_path):
+    monkeypatch.setenv("KNOWLEDGE_DATA_DIR", str(tmp_path / "knowledge-data"))
+    first_session = AppTest.from_file(str(APP)).run()
+    first_session.form_submit_button[0].click().run()
+    assert not first_session.exception
+
+    second_session = AppTest.from_file(str(APP)).run()
+    assert not second_session.exception
+    history = next(item for item in second_session.selectbox if item.label == "历史运行")
+    assert any("生日悖论" in str(option) for option in history.options)

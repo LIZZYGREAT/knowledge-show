@@ -108,6 +108,8 @@ class ResearchAgent:
         run_id: str = "RUN_UNKNOWN",
         max_searches: int = 3,
         max_fetches: int = 3,
+        store: Any = None,
+        force_refresh: bool = False,
     ) -> None:
         self.llm = llm
         self.search = search
@@ -116,6 +118,8 @@ class ResearchAgent:
         self.run_id = run_id
         self.max_searches = max_searches
         self.max_fetches = max_fetches
+        self.store = store
+        self.force_refresh = force_refresh
 
     async def execute(self, project_id: str, brief: dict[str, Any]) -> ResearchResult:
         await self._event("research", "started", "Research 正在结合 Brief 与内部知识提出可核验主张。")
@@ -127,8 +131,12 @@ class ResearchAgent:
             source_contents={},
             tasks=[],
         )
+        search_question = brief["user_input"].get("focus") or brief["user_input"]["topic"]
+        prior_claims = self._load_prior_claims(project_id, search_question)
         prompt = (
-            "Review the ProjectState.brief and prior claims. Return concise claims and only the key "
+            "Review the ProjectState.brief and prior claims. Reuse a relevant prior claim when its "
+            "content and conditions still fit; do not duplicate it or silently change its conditions. "
+            "Return concise claims and only the key "
             "facts needed to explain one short video. Do not make a long encyclopedia list. For each "
             "claim include: content, explanation, conditions (array), related_concepts (array), "
             "depends_on (array of zero-based integer indices into this claims array), provenance "
@@ -145,7 +153,7 @@ class ResearchAgent:
         initial = await self.llm.generate_json(
             role="research",
             prompt=prompt,
-            data={"brief": brief, "prior_claims": []},
+            data={"brief": brief, "prior_claims": prior_claims},
         )
         try:
             plan = ResearchPlan.model_validate(initial.value)
@@ -156,6 +164,24 @@ class ResearchAgent:
         result.claims = self._make_claims(project_id, plan.claims)
         result.evidence_by_claim = {claim.id: [] for claim in result.claims}
 
+        if self.store is not None:
+            for claim in result.claims:
+                saved_claim = self.store.get_claim(project_id, claim.id)
+                if saved_claim is None:
+                    continue
+                claim.status = saved_claim.status
+                claim.provenance = saved_claim.provenance
+                for evidence in self.store.list_evidence(project_id, claim_id=claim.id):
+                    result.internal_evidence.append(evidence)
+                    result.evidence_by_claim[claim.id].append(self._public_evidence(evidence))
+                    if evidence.source_id:
+                        source = self.store.get_source(project_id, evidence.source_id)
+                        if source and all(item.id != source.id for item in result.sources):
+                            result.sources.append(source)
+                            content = self.store.read_source_content(project_id, source.id)
+                            if content is not None:
+                                result.source_contents[source.id] = content
+
         for claim_index, draft in enumerate(plan.claims):
             if draft.provenance == "derivation" and draft.derivation_steps.strip():
                 claim = result.claims[claim_index]
@@ -164,8 +190,18 @@ class ResearchAgent:
                 result.internal_evidence.append(evidence[1])
 
         result.tasks = self._make_tasks(project_id, plan.search_tasks, result.claims)
+        if self.store is not None:
+            result.tasks = [self.store.save_task(task) for task in result.tasks]
         if result.tasks:
             await self._run_search(project_id, brief, plan, result)
+        if self.store is not None:
+            self.store.save_claims(result.claims)
+            for source in result.sources:
+                self.store.save_source(source)
+            for evidence in result.internal_evidence:
+                self.store.save_evidence(evidence)
+            for task in result.tasks:
+                self.store.save_task(task)
         await self._event(
             "research",
             "completed",
@@ -175,7 +211,10 @@ class ResearchAgent:
         return result
 
     def _make_claims(self, project_id: str, drafts: list[ResearchClaimDraft]) -> list[Claim]:
-        claim_ids = [stable_id("CLM_", project_id, draft.content) for draft in drafts]
+        claim_ids = [
+            stable_id("CLM_", project_id, draft.content + "\0" + "\0".join(sorted(draft.conditions)))
+            for draft in drafts
+        ]
         claims: list[Claim] = []
         for index, draft in enumerate(drafts):
             dependencies = []
@@ -279,8 +318,32 @@ class ResearchAgent:
                 stats={"query": task.question, "results": len(task_hits)},
             )
 
-        chosen = self._select_hits(hits)[: self.max_fetches]
+        chosen = self._select_hits(hits)
         for hit in chosen:
+            if self.store is not None and not self.force_refresh:
+                cached_source = self.store.get_source_by_url(project_id, hit.url)
+                cached_content = (
+                    self.store.read_source_content(project_id, cached_source.id)
+                    if cached_source is not None
+                    else None
+                )
+                if cached_source is not None and cached_content is not None:
+                    if all(item.id != cached_source.id for item in result.sources):
+                        result.sources.append(cached_source)
+                    result.source_contents[cached_source.id] = cached_content
+                    await self._event(
+                        "fetch",
+                        "completed",
+                        f"复用已保存来源正文：{cached_source.title}",
+                        stats={
+                            "url": cached_source.url or hit.url,
+                            "characters": len(cached_content),
+                            "cache": "hit",
+                        },
+                    )
+                    continue
+            if result.fetch_count >= self.max_fetches:
+                break
             result.fetch_count += 1
             await self._event(
                 "fetch", "started", f"读取来源：{hit.title}", stats={"url": hit.url}
@@ -294,7 +357,8 @@ class ResearchAgent:
                 await self._event("fetch", "failed", f"Fetch 失败：{hit.title}", error=str(exc))
                 continue
             source = self._save_source(project_id, hit, page.title, page.content)
-            result.sources.append(source)
+            if all(item.id != source.id for item in result.sources):
+                result.sources.append(source)
             result.source_contents[source.id] = page.content
             await self._event(
                 "fetch", "completed", f"已读取来源正文：{page.title}",
@@ -326,7 +390,7 @@ class ResearchAgent:
         folder.mkdir(parents=True, exist_ok=True)
         body_path = folder / f"{source_id}.md"
         body_path.write_text(content, encoding="utf-8")
-        return Source(
+        source = Source(
             id=source_id,
             project_id=project_id,
             url=hit.url,
@@ -340,6 +404,59 @@ class ResearchAgent:
             rerank_score=hit.rerank_score,
             published_at=hit.published_at,
         )
+        return self.store.save_source(source) if self.store is not None else source
+
+    def _load_prior_claims(self, project_id: str, question: str) -> list[dict[str, Any]]:
+        if self.store is None:
+            return []
+        results = self.store.search_claims(
+            question,
+            filters={"status": ["verified", "needs_review"]},
+            project_id=project_id,
+            limit=8,
+        )
+        by_id = {item["claim"].id: item for item in results}
+        for item in list(results):
+            for related in self.store.get_related_claims(item["claim"].id, project_id=project_id):
+                if related.id not in by_id:
+                    detail = self.store.get_claim_and_evidence(related.id, project_id=project_id)
+                    if detail:
+                        by_id[related.id] = detail
+        return [
+            {
+                "claim": item["claim"].model_dump(mode="json"),
+                "evidence": [evidence.model_dump(mode="json") for evidence in item.get("evidence", [])],
+            }
+            for item in by_id.values()
+        ]
+
+    def _public_evidence(self, evidence: ClaimEvidence) -> dict[str, Any]:
+        if evidence.evidence_kind == "external_source":
+            source = (
+                self.store.get_source(evidence.project_id, evidence.source_id)
+                if self.store is not None and evidence.source_id
+                else None
+            )
+            return {
+                "id": evidence.id,
+                "kind": "external_source",
+                "title": source.title if source else "已保存的外部来源",
+                "locator": evidence.locator or (source.url if source else ""),
+                "details": f"原文片段：{evidence.excerpt}" if evidence.excerpt else "已保存来源证据。",
+            }
+        if evidence.evidence_kind == "mathematical_derivation":
+            return {
+                "id": evidence.id,
+                "kind": "mathematical_derivation",
+                "title": "可复核推导",
+                "details": evidence.derivation_steps,
+            }
+        return {
+            "id": evidence.id,
+            "kind": "user_material",
+            "title": "用户材料",
+            "details": evidence.excerpt,
+        }
 
     async def _attach_source_evidence(
         self, brief: dict[str, Any], plan: ResearchPlan, result: ResearchResult

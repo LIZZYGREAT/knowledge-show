@@ -19,7 +19,14 @@ if str(ROOT / "backend" / "src") not in sys.path:
 load_dotenv(ROOT / ".env")
 
 from knowledge.brief import build_brief  # noqa: E402
-from knowledge.service import RunOptions, generate_knowledge_package  # noqa: E402
+from knowledge.config import load_settings  # noqa: E402
+from knowledge.service import (  # noqa: E402
+    RunOptions,
+    _safe_error,
+    export_run_artifacts,
+    generate_knowledge_package,
+)
+from knowledge.store import ResearchStore  # noqa: E402
 
 
 MODE_LABELS = {"离线 Mock": "mock", "Real API": "real"}
@@ -32,6 +39,49 @@ CREATIVE_MODES = {
     "自定义": "custom",
 }
 KNOWLEDGE_DEPTHS = {"遵循默认": None, "入门": "intro", "均衡": "balanced", "进阶": "advanced"}
+
+
+def _research_store() -> ResearchStore:
+    settings = load_settings()
+    return ResearchStore(settings.data_dir / "knowledge.sqlite3")
+
+
+def _stored_run_view(run: Any, store: ResearchStore) -> dict[str, Any]:
+    brief = run.input_brief or build_brief({"topic": run.input_summary})
+    events = [event.model_dump(mode="json") for event in store.list_run_events(run.project_id, run.id)]
+    package = None
+    if run.package_artifact_id and run.package_revision:
+        package = store.get_package(
+            run.project_id, run.package_artifact_id, revision=run.package_revision
+        )
+    failed = next((event.get("error") for event in reversed(events) if event.get("error")), None)
+    return {
+        "run_id": run.id,
+        "project_id": run.project_id,
+        "mode": run.mode,
+        "mode_label": "离线 Mock" if run.mode == "mock" else "Real API",
+        "started_at": run.started_at.isoformat(),
+        "brief": brief,
+        "events": events,
+        "issues": [
+            {
+                "issue": event["issue"] or event["summary"],
+                "recommendation": event.get("recommendation", ""),
+                "status": event.get("stats", {}).get("status", "open"),
+            }
+            for event in events
+            if event.get("issue") or event.get("phase") == "verifier" and event.get("event_type") == "progress"
+        ],
+        "package": package,
+        "error": failed if run.status == "failed" else None,
+        "rating": run.human_rating,
+        "note": run.human_note,
+    }
+
+
+def _load_run_history(project_id: str) -> list[dict[str, Any]]:
+    store = _research_store()
+    return [_stored_run_view(run, store) for run in store.list_runs(project_id, limit=100)]
 
 
 def _split_lines(text: str) -> list[str]:
@@ -74,6 +124,7 @@ def _run_user_input(user_input: dict[str, Any], mode_label: str) -> dict[str, An
 
     mode = MODE_LABELS[mode_label]
     project_id = st.session_state.setdefault("knowledge_project_id", "P_LOCAL_KNOWLEDGE_REVIEW")
+    store = _research_store()
     package: dict[str, Any] | None = None
     error: str | None = None
     started_at = datetime.now(timezone.utc).isoformat()
@@ -83,12 +134,12 @@ def _run_user_input(user_input: dict[str, Any], mode_label: str) -> dict[str, An
                 project_id,
                 brief,
                 on_event=receive_event,
-                run_options=RunOptions(mode=mode),
+                run_options=RunOptions(mode=mode, store=store),
             )
         )
         progress.update(label=f"{mode_label}：KnowledgePackage 已校验", state="complete")
     except Exception as exc:
-        error = str(exc)
+        error = _safe_error(exc)
         progress.update(label=f"{mode_label}：运行失败", state="error")
 
     run_id = next((event.get("run_id") for event in events if event.get("run_id")), "RUN_UNKNOWN")
@@ -102,12 +153,12 @@ def _run_user_input(user_input: dict[str, Any], mode_label: str) -> dict[str, An
         "events": events,
         "issues": [
             {
-                "issue": event["issue"],
+                "issue": event.get("issue", event["summary"]),
                 "recommendation": event.get("recommendation", ""),
                 "status": event.get("stats", {}).get("status", "open"),
             }
             for event in events
-            if event.get("issue")
+            if event.get("issue") or event.get("phase") == "verifier" and event.get("event_type") == "progress"
         ],
         "package": package,
         "error": error,
@@ -267,6 +318,11 @@ def _render_selected_run(run: dict[str, Any]) -> None:
     if submitted:
         run["rating"] = rating_labels[rating_label]
         run["note"] = note
+        store = _research_store()
+        stored_run = store.save_review(
+            run["project_id"], run["run_id"], run["rating"], run["note"]
+        )
+        export_run_artifacts(store, stored_run, load_settings().export_dir)
         st.session_state["knowledge_runs"] = [
             run if item["run_id"] == run["run_id"] else item
             for item in st.session_state["knowledge_runs"]
@@ -287,8 +343,12 @@ def main() -> None:
     st.title("知识层人工检验 · 本地开发入口")
     st.caption("本页面只监听本机。Mock 是固定离线资料；Real API 调用 DeepSeek。")
 
+    if "knowledge_project_id" not in st.session_state:
+        st.session_state["knowledge_project_id"] = "P_LOCAL_KNOWLEDGE_REVIEW"
     if "knowledge_runs" not in st.session_state:
-        st.session_state["knowledge_runs"] = []
+        st.session_state["knowledge_runs"] = _load_run_history(
+            st.session_state["knowledge_project_id"]
+        )
     if "selected_run_id" not in st.session_state:
         st.session_state["selected_run_id"] = None
 

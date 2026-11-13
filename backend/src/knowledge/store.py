@@ -177,7 +177,21 @@ class ResearchStore:
                 (task.project_id, task_key),
             ).fetchone()
             if existing:
-                return _model(ResearchTask, existing["payload"])
+                prior = _model(ResearchTask, existing["payload"])
+                merged = ResearchTask.model_validate(
+                    {
+                        **prior.model_dump(mode="json"),
+                        "purpose": task.purpose if task.initiated_by == "creative" else prior.purpose,
+                        "initiated_by": task.initiated_by if task.initiated_by == "creative" else prior.initiated_by,
+                        "related_creative_id": task.related_creative_id or prior.related_creative_id,
+                        "related_claim_ids": list(dict.fromkeys(prior.related_claim_ids + task.related_claim_ids)),
+                    }
+                )
+                connection.execute(
+                    "UPDATE research_tasks SET payload=? WHERE project_id=? AND id=?",
+                    (self._payload(merged), task.project_id, prior.id),
+                )
+                return merged
             connection.execute(
                 "INSERT INTO research_tasks(id, project_id, task_key, status, payload) VALUES(?,?,?,?,?)",
                 (task.id, task.project_id, task_key, task.status.value, self._payload(task)),
@@ -223,11 +237,13 @@ class ResearchStore:
         normalized_url = normalize_url(source.url)
         with self._connection() as connection:
             existing = None
+            matched_by_url = False
             if normalized_url:
                 existing = connection.execute(
                     "SELECT id, payload FROM sources WHERE project_id=? AND normalized_url=?",
                     (source.project_id, normalized_url),
                 ).fetchone()
+                matched_by_url = existing is not None
             if existing is None and source.content_hash:
                 existing = connection.execute(
                     "SELECT id, payload FROM sources WHERE project_id=? AND content_hash=?",
@@ -236,12 +252,13 @@ class ResearchStore:
             if existing:
                 prior = _model(Source, existing["payload"])
                 # A stable URL can acquire updated content; keep its identity and refresh the record.
-                if normalized_url and existing["id"] == source.id:
+                if matched_by_url:
+                    refreshed = source.model_copy(update={"id": prior.id})
                     connection.execute(
                         "UPDATE sources SET normalized_url=?, content_hash=?, payload=? WHERE project_id=? AND id=?",
-                        (normalized_url, source.content_hash, self._payload(source), source.project_id, source.id),
+                        (normalized_url, source.content_hash, self._payload(refreshed), source.project_id, prior.id),
                     )
-                    return source
+                    return refreshed
                 return prior
             connection.execute(
                 "INSERT INTO sources(id, project_id, normalized_url, content_hash, payload) VALUES(?,?,?,?,?)",
@@ -254,6 +271,17 @@ class ResearchStore:
             row = connection.execute(
                 "SELECT payload FROM sources WHERE project_id=? AND id=?",
                 (project_id, source_id),
+            ).fetchone()
+        return _model(Source, row["payload"]) if row else None
+
+    def get_source_by_url(self, project_id: str, url: str) -> Source | None:
+        normalized_url = normalize_url(url)
+        if normalized_url is None:
+            return None
+        with self._connection() as connection:
+            row = connection.execute(
+                "SELECT payload FROM sources WHERE project_id=? AND normalized_url=?",
+                (project_id, normalized_url),
             ).fetchone()
         return _model(Source, row["payload"]) if row else None
 

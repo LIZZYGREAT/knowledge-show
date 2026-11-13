@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from enum import StrEnum
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -112,6 +113,7 @@ class Run(InternalRecord):
     id: str
     project_id: str
     input_summary: str
+    input_brief: dict[str, Any] = Field(default_factory=dict)
     mode: str = Field(pattern="^(mock|real)$")
     status: str = Field(default="running", pattern="^(running|completed|failed)$")
     started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -134,3 +136,5 @@ class RunEvent(InternalRecord):
     elapsed_ms: int | None = Field(default=None, ge=0)
     stats: dict[str, int | float | str] = Field(default_factory=dict)
     error: str | None = None
+    issue: str | None = None
+    recommendation: str | None = None
