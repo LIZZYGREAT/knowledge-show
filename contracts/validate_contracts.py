@@ -80,7 +80,7 @@ def check_links(objects):
     # Script references. Relative timing within each scene; no voice track requirement.
     scenes=script['scenes'];unique(scenes,'scene_id','scene')
     scene_map={s['scene_id']:s for s in scenes}
-    event_map={};text_map={};used=set();time_end=0
+    event_map={};text_map={};used=set();time_end=0;anchors=[]
     for scene in scenes:
         sid=scene['scene_id'];end=time_end+scene['duration_ms']
         check(scene['start_ms']==time_end,'scene timeline not contiguous')
@@ -98,6 +98,8 @@ def check_links(objects):
                 check(e['offset_ms']+e['duration_ms']<=scene['duration_ms'],f'{sid}: event duration outside scene')
             check(set(e.get('knowledge_refs',[]))<=knowledge_ids,f'{sid}: event references knowledge absent from scene')
             event_map[e['id']]=sid
+            if e.get('anchor'):
+                anchors.append((e['id'],scene['start_ms']+e['offset_ms']))
             last=e['offset_ms']
         last=-1;subtitle_end=-1
         for t in scene.get('timed_text',[]):
@@ -136,6 +138,12 @@ def check_links(objects):
                 check(event_map.get(id_)==sid,'internal event references foreign script event')
             clip_events[ev['id']]=clip['clip_id'];last=ev['offset_ms']
     check(cursor==am['total_duration_ms'],'clips do not cover whole animation')
+    # Anchored script events are hard times: the animation must land them exactly.
+    check(anchors,'script declares no anchored moment')
+    for aid,at in anchors:
+        check(any(clip['start_ms']+ev['offset_ms']==at and aid in ev.get('script_event_refs',[])
+                  for clip in clips for ev in clip.get('internal_events',[])),
+              f'anchored event {aid} not honored at {at}ms by animation')
     # Feedback targets may refer to older historical artifact. This bundled example targets current.
     check(feedback['base_project_revision']<=project['revision'],'feedback based on future project revision')
     targets={'project_state':project,'knowledge_package':kp,'production_script':script,'animation_manifest':am}
@@ -165,12 +173,14 @@ def main():
       'unknown timed text anchor':lambda d:d['revision-request']['anchors'].append({'kind':'timed_text','id':'T_UNKNOWN'}),
       'bad status':lambda d:d['knowledge-package']['knowledge_units'][0].update(verification_status='maybe'),
       'invalid duration fit':lambda d:d['knowledge-package']['directions'][0]['duration_fit'].update(status='perfect'),
+      'no anchored moment':lambda d:[e.pop('anchor',None) for s in d['production-script']['scenes'] for e in s['events']],
+      'anchor shifted by animation':lambda d:d['animation-manifest']['clips'][3]['internal_events'][0].update(offset_ms=1000),
     }
     for name,mutate in negatives.items():
         d=copy.deepcopy(originals);mutate(d)
         try:check_schemas(d);check_links(d)
         except Exception:pass
         else:raise AssertionError(f'negative test not caught: {name}')
-    print('PASS: five schemas, five linked examples, cross-stage checks, nine negative cases')
+    print('PASS: five schemas, five linked examples, cross-stage checks, eleven negative cases')
 
 if __name__=='__main__':main()
