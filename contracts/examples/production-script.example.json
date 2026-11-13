@@ -68,6 +68,7 @@
           "id": "EV03",
           "offset_ms": 0,
           "duration_ms": 28750,
+          "anchor": true,
           "description": "呈现两颗骰子共有 36 种等可能有序组合。",
           "knowledge_refs": [
             "K01"
@@ -121,6 +122,7 @@
           "id": "EV05",
           "offset_ms": 0,
           "duration_ms": 30000,
+          "anchor": true,
           "description": "比较并确认点数和七有六种有序结果。",
           "knowledge_refs": [
             "K02"
