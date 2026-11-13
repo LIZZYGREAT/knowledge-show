@@ -100,6 +100,15 @@ def _run_user_input(user_input: dict[str, Any], mode_label: str) -> dict[str, An
         "started_at": started_at,
         "brief": brief,
         "events": events,
+        "issues": [
+            {
+                "issue": event["issue"],
+                "recommendation": event.get("recommendation", ""),
+                "status": event.get("stats", {}).get("status", "open"),
+            }
+            for event in events
+            if event.get("issue")
+        ],
         "package": package,
         "error": error,
         "rating": None,

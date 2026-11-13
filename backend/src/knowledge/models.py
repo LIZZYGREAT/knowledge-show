@@ -55,6 +55,10 @@ class Source(InternalRecord):
     query: str = ""
     retrieval_method: Provenance = Provenance.EXTERNAL_SOURCE
     content_hash: str | None = None
+    authority: int | None = None
+    rerank_score: float | None = None
+    published_at: str | None = None
+    site_name: str | None = None
 
 
 class Claim(InternalRecord):

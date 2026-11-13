@@ -8,6 +8,11 @@ from typing import Any
 
 from jsonschema import Draft202012Validator
 
+from .creative import CreativeResult
+from .models import Claim, ClaimStatus
+from .research import ResearchResult, stable_id
+from .verifier import VerificationResult
+
 
 class PackageValidationError(ValueError):
     """Raised when a KnowledgePackage cannot be safely handed downstream."""
@@ -72,6 +77,175 @@ def validate_knowledge_package(package: dict[str, Any]) -> None:
                 f"required_knowledge_refs contains missing knowledge unit {reference}"
             )
     _assert_acyclic_dependencies(unit_by_id)
+
+
+def assemble_knowledge_package(
+    project_id: str,
+    brief: dict[str, Any],
+    research: ResearchResult,
+    creative: CreativeResult,
+    verification: VerificationResult,
+    *,
+    revision: int = 1,
+    artifact_id: str | None = None,
+) -> dict[str, Any]:
+    """Convert verified internal claims and creative leads to the public contract."""
+    claims_by_id = {claim.id: claim for claim in verification.claims}
+    eligible: list[tuple[Any, list[int], list[int]]] = []
+    for candidate in creative.candidates:
+        required = candidate.required_claim_indices or candidate.claim_indices
+        required_verified = all(
+            0 <= index < len(verification.claims)
+            and verification.claims[index].status == ClaimStatus.VERIFIED
+            for index in required
+        )
+        available = [
+            index
+            for index in candidate.claim_indices
+            if 0 <= index < len(verification.claims)
+            and verification.claims[index].status == ClaimStatus.VERIFIED
+        ]
+        if required_verified and available:
+            eligible.append((candidate, available, required))
+
+    if not eligible:
+        raise PackageValidationError(
+            "No candidate direction has all essential claims verified with traceable evidence."
+        )
+
+    recommended = next((item for item in eligible if item[0].recommended), None)
+    fallback_used = recommended is None
+    if recommended is None:
+        recommended = eligible[0]
+
+    selected_claim_ids: set[str] = set()
+    required_ids = [verification.claims[index].id for index in recommended[2]]
+    for _, indices, _ in eligible:
+        selected_claim_ids.update(verification.claims[index].id for index in indices)
+    _add_dependencies(selected_claim_ids, claims_by_id)
+
+    package_evidence: dict[str, dict[str, Any]] = {}
+    knowledge_units: list[dict[str, Any]] = []
+    for claim in verification.claims:
+        if claim.id not in selected_claim_ids or claim.status != ClaimStatus.VERIFIED:
+            continue
+        evidence_refs = []
+        for evidence in research.evidence_by_claim.get(claim.id, []):
+            evidence_refs.append(evidence["id"])
+            package_evidence[evidence["id"]] = evidence
+        if not evidence_refs:
+            raise PackageValidationError(
+                f"Verified claim {claim.id} has no public evidence reference."
+            )
+        knowledge_units.append(
+            {
+                "id": claim.id,
+                "type": _knowledge_type(claim),
+                "content": claim.content,
+                "explanation": claim.explanation or claim.content,
+                "importance": _importance(claim, required_ids),
+                "verification_status": "verified",
+                "depends_on": [
+                    dependency for dependency in claim.depends_on
+                    if dependency in selected_claim_ids
+                ],
+                "conditions": claim.conditions,
+                "evidence_refs": list(dict.fromkeys(evidence_refs)),
+            }
+        )
+
+    directions: list[dict[str, Any]] = []
+    for candidate, claim_indices, _required in eligible:
+        refs = [verification.claims[index].id for index in claim_indices]
+        direction = {
+            "id": stable_id("DIR_", project_id, candidate.title),
+            "title": candidate.title,
+            "core_question": candidate.core_question,
+            "hook": candidate.hook,
+            "learning_goal": candidate.learning_goal,
+            "knowledge_refs": refs,
+            "duration_fit": candidate.duration_fit.model_dump(),
+            "recommendation_reason": candidate.recommendation_reason,
+        }
+        if candidate.visual_potential:
+            direction["visual_potential"] = candidate.visual_potential.model_dump()
+        if fallback_used and candidate is recommended[0]:
+            direction["recommendation_reason"] += (
+                " 原推荐方向的必要知识未通过核验，因此本次选择了首个可交付候选。"
+            )
+        directions.append(direction)
+
+    required_ids = [reference for reference in required_ids if reference in selected_claim_ids]
+    must_not_misrepresent = list(
+        dict.fromkeys(
+            condition
+            for reference in required_ids
+            for condition in claims_by_id[reference].conditions
+        )
+    )
+    package = {
+        "project_id": project_id,
+        "artifact_id": artifact_id or _default_artifact_id(project_id),
+        "revision": revision,
+        "brief_revision": brief["revision"],
+        "directions": directions,
+        "recommended_direction_id": next(
+            direction["id"]
+            for direction in directions
+            if direction["title"] == recommended[0].title
+        ),
+        "knowledge_units": knowledge_units,
+        "evidence": list(package_evidence.values()),
+        "constraints": {
+            "required_knowledge_refs": required_ids,
+            "must_not_misrepresent": must_not_misrepresent,
+        },
+    }
+    validate_knowledge_package(package)
+    return package
+
+
+def _add_dependencies(selected: set[str], claims: dict[str, Claim]) -> None:
+    queue = list(selected)
+    while queue:
+        claim_id = queue.pop()
+        claim = claims[claim_id]
+        for dependency in claim.depends_on:
+            if dependency not in claims:
+                raise PackageValidationError(
+                    f"Claim {claim.id} depends on missing claim {dependency}"
+                )
+            if claims[dependency].status != ClaimStatus.VERIFIED:
+                raise PackageValidationError(
+                    f"Claim {claim.id} depends on non-verified claim {dependency}"
+                )
+            if dependency not in selected:
+                selected.add(dependency)
+                queue.append(dependency)
+
+
+def _knowledge_type(claim: Claim) -> str:
+    text = f"{claim.content} {claim.explanation}".casefold()
+    if claim.provenance.value == "derivation" or any(mark in text for mark in ("=", "probability", "概率", "formula")):
+        return "derivation"
+    if any(mark in text for mark in ("mechanism", "attention", "mechanism", "机制", "原理")):
+        return "principle"
+    return "fact"
+
+
+def _importance(claim: Claim, required_ids: list[str]) -> str:
+    if claim.id in required_ids:
+        return "core"
+    return "supporting"
+
+
+def _default_artifact_id(project_id: str) -> str:
+    import re
+
+    suffix = re.sub(r"[^A-Za-z0-9_-]", "_", project_id)[:56]
+    if not suffix or not suffix[0].isalpha():
+        suffix = f"P_{suffix}"
+    return f"KP_{suffix}"[:64]
 
 
 def _unique_map(items: list[dict[str, Any]], field: str, kind: str) -> dict[str, dict[str, Any]]:
