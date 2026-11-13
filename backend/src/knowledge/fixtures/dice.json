@@ -1,0 +1,68 @@
+{
+  "project_id": "P_MOCK_DICE",
+  "artifact_id": "KP_MOCK_DICE",
+  "revision": 1,
+  "brief_revision": 1,
+  "directions": [
+    {
+      "id": "D_DICE_SEVEN",
+      "title": "两颗公平骰子，为什么总和为 7 最常见？",
+      "core_question": "每颗骰子都公平，为什么两颗骰子的点数和却不是等概率？",
+      "hook": "公平的是每颗骰子的六个面；组合成总和之后，不同结果拥有的组合数量变了。",
+      "learning_goal": "理解等可能的有序结果如何通过组合计数形成不同的点数和概率。",
+      "knowledge_refs": ["K_DICE_SPACE", "K_DICE_SEVEN"],
+      "visual_potential": {
+        "level": "high",
+        "reason": "不同总和对应的有序点数组合数量不同，组合数变化直接决定概率差异。"
+      },
+      "duration_fit": {
+        "status": "adequate",
+        "reason": "36 种结果、总和 7 的六种组合及公平独立条件组成完整的解释主线。"
+      },
+      "recommendation_reason": "公平单体结果与不公平总和分布之间存在清楚且可逐项核对的认知转变。"
+    }
+  ],
+  "recommended_direction_id": "D_DICE_SEVEN",
+  "knowledge_units": [
+    {
+      "id": "K_DICE_SPACE",
+      "type": "principle",
+      "content": "两颗公平且相互独立的六面骰子共有 36 种等可能的有序结果。",
+      "explanation": "第一颗有六种结果，第二颗也有六种结果；独立性使每个有序组合概率相同。",
+      "importance": "core",
+      "verification_status": "verified",
+      "conditions": ["两颗骰子公平。", "两次结果相互独立。"],
+      "evidence_refs": ["E_DICE_COUNT"]
+    },
+    {
+      "id": "K_DICE_SEVEN",
+      "type": "derivation",
+      "content": "两颗骰子点数和为 7 有六种有序结果，所以概率为 6/36，即 1/6。",
+      "explanation": "组合为 (1,6)、(2,5)、(3,4)、(4,3)、(5,2)、(6,1)。每个有序结果等可能，因此概率由有利结果数量除以 36 得到。",
+      "importance": "core",
+      "verification_status": "verified",
+      "depends_on": ["K_DICE_SPACE"],
+      "conditions": ["两颗骰子公平且独立。"],
+      "evidence_refs": ["E_DICE_COUNT"],
+      "visual_potential": {
+        "level": "high",
+        "reason": "每个有序组合都能归入一个点数和，总和 7 的组合数量达到最大。"
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E_DICE_COUNT",
+      "kind": "mathematical_derivation",
+      "title": "有序结果空间与总和为七的组合计数",
+      "details": "样本空间大小为 6×6=36。总和为 7 的有序组合有六种，因此概率为 6/36=1/6。"
+    }
+  ],
+  "constraints": {
+    "required_knowledge_refs": ["K_DICE_SPACE", "K_DICE_SEVEN"],
+    "must_not_misrepresent": [
+      "必须保留骰子公平且独立的条件。",
+      "不要说 2 至 12 的各种点数和等概率。"
+    ]
+  }
+}

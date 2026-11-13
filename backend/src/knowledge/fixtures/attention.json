@@ -1,0 +1,68 @@
+{
+  "project_id": "P_MOCK_ATTENTION",
+  "artifact_id": "KP_MOCK_ATTENTION",
+  "revision": 1,
+  "brief_revision": 1,
+  "directions": [
+    {
+      "id": "D_ATTENTION_CONTEXT",
+      "title": "一个词的表示，怎样被上下文里的其他词改变？",
+      "core_question": "Self-Attention 如何根据当前 token 与其他 token 的关系，汇总出新的上下文表示？",
+      "hook": "同一个词放在不同句子里，模型可以依据周围 token 的不同关系形成不同表示。",
+      "learning_goal": "理解 query-key 相似度、归一化权重和值的加权求和各自承担什么作用。",
+      "knowledge_refs": ["K_ATTENTION_SCORE", "K_ATTENTION_MIX"],
+      "visual_potential": {
+        "level": "high",
+        "reason": "关注对象保持不变，其与其他 token 的权重关系随输入变化，并影响输出向量的组成。"
+      },
+      "duration_fit": {
+        "status": "adequate",
+        "reason": "query/key/value 的分工、权重归一化和一个语义限制可以围绕同一计算过程展开。"
+      },
+      "recommendation_reason": "该方向把公式各部分连接成一次真实的信息汇总过程，并保留对权重含义的必要限定。"
+    }
+  ],
+  "recommended_direction_id": "D_ATTENTION_CONTEXT",
+  "knowledge_units": [
+    {
+      "id": "K_ATTENTION_SCORE",
+      "type": "principle",
+      "content": "在缩放点积注意力中，query 与各 key 的点积除以 √dₖ 后形成兼容性分数，再经 softmax 转为权重。",
+      "explanation": "对单个 query，分数描述当前查询向量与各 key 的点积关系；除以 √dₖ 用于控制维度变大时点积幅度，softmax 将权重归一化。",
+      "importance": "core",
+      "verification_status": "verified",
+      "conditions": ["这是标准缩放点积注意力的一种计算表述。", "dₖ 为 key 向量维度。"],
+      "evidence_refs": ["E_ATTENTION_FORMULA"]
+    },
+    {
+      "id": "K_ATTENTION_MIX",
+      "type": "derivation",
+      "content": "注意力输出是各 value 向量按对应权重求和；注意力权重表示当前计算中的相对分配，不应直接等同于词语的普遍语义重要性。",
+      "explanation": "对 query i，输出为 Σⱼ softmax(qᵢ·kⱼ/√dₖ) vⱼ。权重由输入、参数和该 query 共同决定；它不是脱离上下文的词语重要性分数。",
+      "importance": "core",
+      "verification_status": "verified",
+      "depends_on": ["K_ATTENTION_SCORE"],
+      "conditions": ["权重在被注意的 key 位置上归一化。", "不同实现可能使用掩码或多头计算。"],
+      "evidence_refs": ["E_ATTENTION_FORMULA"],
+      "visual_potential": {
+        "level": "high",
+        "reason": "权重变化会改变输出中各 value 的贡献比例，能显示同一 query 如何形成不同上下文表示。"
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E_ATTENTION_FORMULA",
+      "kind": "mathematical_derivation",
+      "title": "缩放点积注意力的计算关系",
+      "details": "对 Q∈R^(m×dₖ)、K∈R^(n×dₖ)、V∈R^(n×dᵥ)，Attention(Q,K,V)=softmax(QKᵀ/√dₖ)V。softmax 沿 key 位置归一化；因此输出是 value 的加权和。"
+    }
+  ],
+  "constraints": {
+    "required_knowledge_refs": ["K_ATTENTION_SCORE", "K_ATTENTION_MIX"],
+    "must_not_misrepresent": [
+      "注意力权重不等同于脱离上下文的语义重要性。",
+      "不要把 query-key 权重与 value 内容混为一谈。"
+    ]
+  }
+}
