@@ -1,0 +1,48 @@
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Python environments and caches
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Frontend dependencies and build output
+node_modules/
+dist/
+build/
+coverage/
+.next/
+.nuxt/
+.vite/
+
+# Generated previews, renders, exports, and temporary runtime data
+**/output/
+**/outputs/
+**/previews/
+**/renders/
+**/exports/
+**/generated-media/
+**/runtime-data/
+/tmp/
+/temp/
+/backend/tmp/
+/backend/temp/
+/frontend/tmp/
+/frontend/temp/
+/backend/**/logs/
+/frontend/**/logs/
+*.log
+
+# OS metadata
+.DS_Store
+Thumbs.db
+Desktop.ini
