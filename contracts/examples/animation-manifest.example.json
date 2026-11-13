@@ -8,14 +8,14 @@
     "artifact_id": "PS001",
     "revision": 1
   },
-  "total_duration_ms": 60000,
+  "total_duration_ms": 150000,
   "preview_ref": "preview://P001/AM001/r1",
   "clips": [
     {
       "clip_id": "C01",
       "scene_id": "S01",
       "start_ms": 0,
-      "duration_ms": 12000,
+      "duration_ms": 30000,
       "resource_ref": "clip://P001/C01/r1",
       "script_event_refs": [
         "EV01",
@@ -25,7 +25,7 @@
         {
           "id": "AE01",
           "offset_ms": 0,
-          "duration_ms": 6500,
+          "duration_ms": 16250,
           "description": "开场问题呈现",
           "script_event_refs": [
             "EV01"
@@ -36,8 +36,8 @@
     {
       "clip_id": "C02",
       "scene_id": "S02",
-      "start_ms": 12000,
-      "duration_ms": 12000,
+      "start_ms": 30000,
+      "duration_ms": 30000,
       "resource_ref": "clip://P001/C02/r1",
       "script_event_refs": [
         "EV03"
@@ -46,7 +46,7 @@
         {
           "id": "AE02",
           "offset_ms": 0,
-          "duration_ms": 12000,
+          "duration_ms": 30000,
           "description": "呈现有序组合的过程",
           "script_event_refs": [
             "EV03"
@@ -57,8 +57,8 @@
     {
       "clip_id": "C03",
       "scene_id": "S02",
-      "start_ms": 24000,
-      "duration_ms": 14000,
+      "start_ms": 60000,
+      "duration_ms": 35000,
       "resource_ref": "clip://P001/C03/r1",
       "script_event_refs": [
         "EV04"
@@ -77,8 +77,8 @@
     {
       "clip_id": "C04",
       "scene_id": "S03",
-      "start_ms": 38000,
-      "duration_ms": 22000,
+      "start_ms": 95000,
+      "duration_ms": 55000,
       "resource_ref": "clip://P001/C04/r1",
       "script_event_refs": [
         "EV05",
@@ -88,7 +88,7 @@
         {
           "id": "AE04",
           "offset_ms": 0,
-          "duration_ms": 12000,
+          "duration_ms": 30000,
           "description": "六种组合突出显示",
           "script_event_refs": [
             "EV05"
@@ -96,8 +96,8 @@
         },
         {
           "id": "AE05",
-          "offset_ms": 12000,
-          "duration_ms": 10000,
+          "offset_ms": 30000,
+          "duration_ms": 25000,
           "description": "结果揭示",
           "script_event_refs": [
             "EV06"

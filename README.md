@@ -1,39 +1,55 @@
-# 项目名称
+# knowledge-show
 
-> **用途**：人和 Agent 的项目入口。只写当前项目事实；尚未决定的事项明确标注“待定”。
+> 面向普通创作者的 AI 知识短视频制作项目。当前仓库处于**基础骨架与接口契约已建立、业务功能尚未集成**的阶段；不要将文档中的目标能力理解为已经实现。
 
-## 项目概览
+## 项目目标
 
-- **目标用户与问题**：待选题后填写。
-- **最小可用流程（MVP）**：待选题后填写。
-- **当前技术栈**：待定。
-- **当前稳定版本**：见 [STATUS.md](./STATUS.md)。
+用户提供知识主题及可选的细化方向、创作模式、知识深度、美术偏好等信息。系统在知识可靠的基础上探索合适的切入点，规划脚本与时间线，生成可播放的动态视频预览；用户可以针对内容、节奏或动画提出修改，确认后导出视频。
 
-## 启动与检查
+面向一般观众，以时长约 **2 分 30 秒至 3 分钟**的知识短视频为典型产物。重视观看吸引力、视听品质与清楚的核心收获，不以讲完一套完整课程为目标。
 
-> 技术栈确定后填写真实、可复现的命令。禁止使用未经执行的示例命令冒充已验证步骤。
+主生产链路：**ProjectState → 知识层（KnowledgePackage）→ 脚本层（ProductionScript）→ 动画层（AnimationManifest）→ 预览、修订与导出**。
 
-- 环境要求：待定。
-- 安装依赖：待定。
-- 本地启动：待定。
-- 最小验证：待定。
-- 配置变量：待定；只提交 `.env.example`，不提交真实密钥。
+- **知识层**：研究、核验、筛选知识，形成候选方向及可引用知识素材；不提前规定具体动画方案。
+- **脚本层**：从知识素材中取舍内容，确定时间、事件、旁白与整体节奏。
+- **动画层**：将脚本实现为视听场景，形成可引用的片段和预览产物。
+- **工作流与接口层**：维护项目状态、版本、跨层调用及修订路由。
+
+具体分工和目录见 [目录结构与分工](docs/work/目录结构与分工.md)，产品理念见 [产品理念与工作流共识](docs/work/design/产品理念与工作流共识.md)。
+
+## 当前可运行范围
+
+仓库已包含五类 **跨阶段数据契约**、连贯 Mock 示例及校验脚本，但业务模块、完整动画预览和导出功能尚未确认实现。以 [STATUS.md](STATUS.md) 为准。
+
+当前可执行的检查（在仓库根目录）：
+
+```bash
+python -m pip install 'jsonschema>=4.18'
+python contracts/validate_contracts.py
+```
+
+预期通过时输出契约校验 `PASS` 信息。以上是**已有检查命令，不代表已在当前仓库现场重新运行通过**。业务运行、前后端安装与启动命令尚未确定；实现后再更新此处。密钥只存放在非版本控制的本地配置，不提交真实凭据。
 
 ## 目录与文档入口
 
-| 路径 | 用途 |
+| 路径 | 当前作用 |
 | --- | --- |
-| `AGENTS.md` | Agent 的启动、执行、授权与交付流程 |
-| `STATUS.md` | 当前可用能力、进行中的任务、负责人和阻塞 |
-| `tasks/open/`、`tasks/closed/` | 待执行与已确认完成的任务方案；只读取当前指定的任务 |
-| `tasks/_TEMPLATE.md` | 任务执行与结果对照审查模板 |
-| `docs/engineering.md` | 代码实现与质量规范 |
-| `docs/workflow.md` | 小步开发、测试验证、Commit 与任务交付流程 |
-| `docs/design-principles.md` | 用户维护的核心产品与设计理念 |
-| `playbooks/` | 指定操作的 Codex 操作手册（例如页面截图检查），按需使用 |
-| `docs/documentation.md` | 文档分层、归属与更新规则 |
-| `docs/contracts/API.md` | 当前共享 API 契约或权威契约入口 |
-| `docs/CHANGELOG.md` | 已完成的关键成果与重要变化 |
-| `docs/architecture.md` | 项目架构设计文档 |
+| `AGENTS.md` | Agent 接手、授权、修改与交付约定 |
+| `STATUS.md` | 当前状态、负责人、阻塞及下次集成 |
+| `backend/src/knowledge/`、`backend/src/script/` | 知识和脚本的独立开发工作区 |
+| `backend/src/workflow/`、`backend/src/api/` | 待实现的共享编排与对接入口 |
+| `frontend/src/features/`、`frontend/src/animation/` | 用户流程与动画实现工作区 |
+| `contracts/schemas/` | **唯一机器可读契约**（五类 JSON Schema） |
+| `contracts/examples/` | Mock 联调样例 |
+| `contracts/validate_contracts.py` | Schema 与跨对象一致性校验 |
+| `contracts/跨阶段接口契约与协作规范.md` | 跨阶段接口、权限、修订语义的权威说明 |
+| `docs/work/contracts/API.md` | 对接入口与传输 API 的登记处（当前未锁定 HTTP 端点） |
+| `docs/work/architecture.md` | 当前系统边界和数据流 |
+| `docs/work/design-principles.md` | 稳定的产品与设计原则 |
+| `docs/work/design/产品理念与工作流共识.md` | 较完整的产品体验与流程共识 |
+| `docs/work/engineering.md`、`docs/work/workflow.md` | 实现规则与日常开发验证 |
+| `docs/work/documentation.md`、`docs/work/git-collaboration.md` | 文档维护及双人 Git 协作 |
+| `docs/tasks/open/`、`docs/tasks/closed/` | 待执行与已确认完成的任务 |
+| `docs/playbooks/` | 按需使用的操作手册 |
 
-`docs/architecture.md` 及前后端详细文档仅在确有必要时编写；不要为了填满模板而复制源码说明。
+技术栈、接口地址、运行环境、部署方式尚未确定，不预先写入虚构命令。

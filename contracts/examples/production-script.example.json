@@ -9,13 +9,13 @@
     "revision": 1
   },
   "direction_id": "D01",
-  "total_duration_ms": 60000,
+  "total_duration_ms": 150000,
   "core_message": "两个公平骰子的点数和并非等概率，组合数决定了概率差异。",
   "scenes": [
     {
       "scene_id": "S01",
       "start_ms": 0,
-      "duration_ms": 12000,
+      "duration_ms": 30000,
       "objective": "提出直观问题，建立观看兴趣。",
       "events": [
         {
@@ -25,7 +25,7 @@
         },
         {
           "id": "EV02",
-          "offset_ms": 6500,
+          "offset_ms": 16250,
           "description": "为观众保留猜测空间，并准备展开解释。"
         }
       ],
@@ -33,7 +33,7 @@
         {
           "id": "VO01",
           "offset_ms": 0,
-          "duration_ms": 6500,
+          "duration_ms": 16250,
           "text": "两个骰子一起掷出，哪个点数和最容易出现？"
         }
       ],
@@ -43,8 +43,8 @@
     },
     {
       "scene_id": "S02",
-      "start_ms": 12000,
-      "duration_ms": 26000,
+      "start_ms": 30000,
+      "duration_ms": 65000,
       "objective": "说明所有有序组合，并比较不同点数和。",
       "events": [
         {
@@ -57,7 +57,7 @@
         },
         {
           "id": "EV04",
-          "offset_ms": 11500,
+          "offset_ms": 28750,
           "description": "比较不同点数和对应的组合数。",
           "knowledge_refs": [
             "K02",
@@ -68,14 +68,14 @@
       "narration_segments": [
         {
           "id": "VO02",
-          "offset_ms": 1000,
-          "duration_ms": 11500,
+          "offset_ms": 2500,
+          "duration_ms": 28750,
           "text": "两颗公平骰子，总共有三十六种等可能的有序组合。"
         },
         {
           "id": "VO03",
-          "offset_ms": 13500,
-          "duration_ms": 10500,
+          "offset_ms": 33750,
+          "duration_ms": 26250,
           "text": "但不同的点数和，对应的组合数量可不一样。"
         }
       ],
@@ -88,8 +88,8 @@
     },
     {
       "scene_id": "S03",
-      "start_ms": 38000,
-      "duration_ms": 22000,
+      "start_ms": 95000,
+      "duration_ms": 55000,
       "objective": "揭示点数和为 7 的结果最多，并完成知识回收。",
       "events": [
         {
@@ -102,7 +102,7 @@
         },
         {
           "id": "EV06",
-          "offset_ms": 12000,
+          "offset_ms": 30000,
           "description": "揭示概率为 6/36=1/6。",
           "knowledge_refs": [
             "K03"
@@ -113,13 +113,13 @@
         {
           "id": "VO04",
           "offset_ms": 0,
-          "duration_ms": 10500,
+          "duration_ms": 26250,
           "text": "只有点数和为七，一共有六种不同的组合。"
         },
         {
           "id": "VO05",
-          "offset_ms": 12000,
-          "duration_ms": 8500,
+          "offset_ms": 30000,
+          "duration_ms": 21250,
           "text": "所以它出现的概率，是六分之一。"
         }
       ],
