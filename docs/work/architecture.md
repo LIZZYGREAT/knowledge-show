@@ -37,7 +37,7 @@ flowchart TB
 | `AnimationManifest` | 动画层 | 动画片段、时间范围、脚本引用、播放资源索引 | 支持预览、修订、导出 |
 | `RevisionRequest` | 反馈发起方 / 协调器 | 修改目标、原版本、对象锚点、反馈与保留要求 | 路由到对应层并控制影响范围 |
 
-**权威字段与校验**：`contracts/schemas/`、`contracts/examples/`、`contracts/validate_contracts.py`；语义和责任见 `contracts/跨阶段接口契约与协作规范.md`。本文件只讲数据流和模块关系，避免复制完整字段表。
+**权威字段与校验**：`contracts/schemas/`、`contracts/examples/`、`contracts/validate_contracts.py`；语义和责任见 `contracts/接口契约与协作规范.md`。本文件只讲数据流和模块关系，避免复制完整字段表。
 
 ## 三、目录到模块的映射
 

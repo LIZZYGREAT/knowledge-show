@@ -8,7 +8,7 @@
 2. 阅读根目录 `README.md` 与 `STATUS.md`，确认目前真正可用的功能、当前任务与阻塞；本仓库目前以基础目录与跨阶段契约为主。
 3. 用户给出指定任务文件时，只阅读该任务（通常在 `docs/tasks/open/`）；否则按 `STATUS.md` 精确指向的任务阅读。**不要默认遍历历史任务**。
 4. 按本次工作范围阅读：
-   - 共享字段/阶段交接：`contracts/跨阶段接口契约与协作规范.md`、`contracts/schemas/` 及相关 `contracts/examples/`。
+   - 共享字段/阶段交接：`contracts/接口契约与协作规范.md`、`contracts/schemas/` 及相关 `contracts/examples/`。
    - 模块边界：`docs/work/architecture.md`、`docs/work/目录结构与分工.md`。
    - 产品或交互：`docs/work/design-principles.md`、`docs/work/design/产品理念与工作流共识.md`。
    - 工程与协作：`docs/work/engineering.md`、`docs/work/workflow.md`、`docs/work/git-collaboration.md`。

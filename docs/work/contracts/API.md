@@ -6,7 +6,7 @@
 
 | 位置（从仓库根目录起） | 作用 |
 | --- | --- |
-| `contracts/跨阶段接口契约与协作规范.md` | 各阶段职责、对象语义、修改权限、版本与修订流程 |
+| `contracts/接口契约与协作规范.md` | 各阶段职责、对象语义、修改权限、版本与修订流程 |
 | `contracts/schemas/*.schema.json` | 五类标准数据对象的机器可读约束 |
 | `contracts/examples/*.example.json` | ProjectState、KnowledgePackage、ProductionScript、AnimationManifest、RevisionRequest 的 Mock 数据 |
 | `contracts/validate_contracts.py` | Schema 与跨阶段一致性检查 |

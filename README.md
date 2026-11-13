@@ -42,7 +42,7 @@ python contracts/validate_contracts.py
 | `contracts/schemas/` | **唯一机器可读契约**（五类 JSON Schema） |
 | `contracts/examples/` | Mock 联调样例 |
 | `contracts/validate_contracts.py` | Schema 与跨对象一致性校验 |
-| `contracts/跨阶段接口契约与协作规范.md` | 跨阶段接口、权限、修订语义的权威说明 |
+| `contracts/接口契约与协作规范.md` | 跨阶段接口、权限、修订语义的权威说明 |
 | `docs/work/contracts/API.md` | 对接入口与传输 API 的登记处（当前未锁定 HTTP 端点） |
 | `docs/work/architecture.md` | 当前系统边界和数据流 |
 | `docs/work/design-principles.md` | 稳定的产品与设计原则 |

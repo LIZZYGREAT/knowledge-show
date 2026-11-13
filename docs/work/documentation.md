@@ -17,7 +17,7 @@
 | 双人 Git 协作 | `docs/work/git-collaboration.md` | 仅规定分支、集成和权限 |
 | 目录、责任与并行边界 | `docs/work/目录结构与分工.md` | 以实际仓库路径为准 |
 | **跨阶段机器字段** | **`contracts/schemas/`** | 五类 Schema 的唯一机器定义 |
-| 跨阶段交付与修订语义 | `contracts/跨阶段接口契约与协作规范.md` | 解释 Schema、对象所有权与版本 |
+| 跨阶段交付与修订语义 | `contracts/接口契约与协作规范.md` | 解释 Schema、对象所有权与版本 |
 | 真实 API 端点与传输行为 | `docs/work/contracts/API.md` | 仅登记已实现对接，不复制 Schema 字段 |
 | 跨层 Mock 与校验 | `contracts/examples/`、`contracts/validate_contracts.py` | 随契约同步更新 |
 | 模块内部设计 | `docs/work/backend/`、`docs/work/frontend/` | 有实际复杂度时才补充 |
