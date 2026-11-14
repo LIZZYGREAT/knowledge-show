@@ -21,9 +21,11 @@ test("home adapts PN polarity and instrument motion then restores silk", async (
   await expect(page.locator(".stage-pn")).toHaveAttribute("opacity", "0");
   await expect(page.locator(".stage-silk")).toHaveAttribute("opacity", "0");
   const gap = await page.locator(".stage-pn").evaluate(el => {
-    const matrix = (el as SVGGraphicsElement).getScreenCTM()!;
     const seed = document.querySelector(".idea-seed")!.getBoundingClientRect();
-    return Math.hypot(matrix.e - seed.x - seed.width / 2, matrix.f - seed.y - seed.height / 2);
+    return Math.max(...[...el.querySelectorAll<SVGCircleElement>("[data-pn-particle]")].map(particle => {
+      const point = new DOMPoint(particle.cx.baseVal.value, particle.cy.baseVal.value).matrixTransform(particle.getScreenCTM()!);
+      return Math.hypot(point.x - seed.x - seed.width / 2, point.y - seed.y - seed.height / 2);
+    }));
   });
   expect(gap).toBeLessThan(1);
   for (const offset of [.5, 2, 5.5]) {

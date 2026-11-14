@@ -11,13 +11,26 @@ export function PnStage({ time }: { time: number }) {
   const split = easeBetween(seconds, 10, 11.7);
   const current = easeBetween(seconds, 0, 1.5) * (1 - reverse * .965);
   const mode = seconds < 6 ? "forward" : seconds < 10 ? "reverse" : "compare";
+  const textOpacity = 1 - easeBetween(p.cycle, 33.8, 34.4);
+  const shellOpacity = 1 - easeBetween(p.cycle, 34.1, 35.15);
+  const instrumentOpacity = 1 - easeBetween(p.cycle, 34, 34.85);
   function device(comparison = false) {
     const rotation = comparison ? 0 : reverse * 180;
     const flow = comparison ? .95 : current;
+    const deviceScale = 1 - split * .4;
+    const deviceX = split * (comparison ? -20 : 350);
+    const deviceY = split * 133;
+    // Convert the shared silk endpoint into this device's rotated coordinates.
+    const angle = -rotation * Math.PI / 180;
+    const tx = (SILK_ENDPOINT[0] - deviceX) / deviceScale - 380;
+    const ty = (SILK_ENDPOINT[1] - deviceY) / deviceScale - 332.5;
+    const targetX = 380 + tx * Math.cos(angle) - ty * Math.sin(angle);
+    const targetY = 332.5 + tx * Math.sin(angle) + ty * Math.cos(angle);
     const t = comparison ? 5.8 : Math.min(seconds, 10);
     return <g data-pn-device={comparison ? "comparison" : "main"} opacity={comparison ? split : 1} transform={comparison ? `translate(${-split * 20} ${split * 133}) scale(${1 - split * .4})` : `translate(${split * 350} ${split * 133}) scale(${1 - split * .4})`}>
-      <path d="M590 332.5H627.5" stroke="#a6b3a0" strokeWidth="1.5"/>
+      <path opacity={instrumentOpacity} d="M590 332.5H627.5" stroke="#a6b3a0" strokeWidth="1.5"/>
       <g data-pn-assembly="true" transform={`rotate(${rotation} 380 332.5)`}>
+        <g data-pn-shell="true" opacity={shellOpacity} transform={`translate(380 332.5) scale(${1 - .07 * easeBetween(p.cycle, 34.1, 35.15)}) translate(-380 -332.5)`}>
         <path d="M170 332.5H260M500 332.5H590" stroke={`url(#${id}-wire)`} strokeWidth="3" strokeLinecap="round"/>
         <circle cx="170" cy="332.5" r="10.5" fill="#f8f7eb" stroke="#8fa28d"/>
         <path d="M165 332.5h10m-5-5v10" stroke="#52715d" strokeWidth="1.2"/>
@@ -29,6 +42,7 @@ export function PnStage({ time }: { time: number }) {
         <path d="M277 282H482" stroke="#fffef3" strokeWidth="1.5" strokeOpacity=".85"/>
         <rect x="361" y="283" width="38" height="98" fill={`url(#${id}-contact)`}/>
         <path d="M272 385H488" stroke="#718470" strokeOpacity=".22"/>
+        </g>
         {Array.from({ length: 32 }, (_, i) => {
           const initial = (i * 37 + 900) % 1150;
           const age = Math.max(0, t - 6);
@@ -41,10 +55,17 @@ export function PnStage({ time }: { time: number }) {
           const body = Math.max(0, Math.min(1, (x - 520) / 90)) * Math.max(0, Math.min(1, (1000 - x) / 90));
           const y = 465 + body * ((i % 5 - 2) * 25 + Math.sin(i * 2.1 + t * 2) * 4);
           const opacity = !comparison && t >= 6 && initial >= 595 && i % 15 !== 0 ? Math.max(0, 1 - age / 1.3) : .95;
-          return <circle key={i} data-pn-particle="true" cx={x * .5} cy={100 + y * .5} r={i % 2 ? 2.5 : 3} fill={i % 2 ? "#78a8b0" : "#c68e7a"} stroke="#fffbed" strokeWidth=".4" opacity={opacity}/>;
+          const gather = easeBetween(p.cycle, 34.35 + i % 8 * .025 + (comparison ? .06 : 0), 35.95);
+          const bend = Math.sin(gather * Math.PI) * (comparison ? -1 : 1) * (18 + i % 4 * 6);
+          const px = x * .5 + (targetX - x * .5) * gather;
+          const py = 100 + y * .5 + (targetY - 100 - y * .5) * gather + bend;
+          const source = i % 2 ? [120, 168, 176] : [198, 142, 122];
+          const gold = [213, 179, 110];
+          const color = `rgb(${source.map((v, channel) => Math.round(v + (gold[channel] - v) * gather)).join(",")})`;
+          return <circle key={i} data-pn-particle="true" cx={px} cy={py} r={(i % 2 ? 2.5 : 3) * (1 - gather * .65)} fill={color} stroke="#fffbed" strokeWidth={.4 * (1 - gather)} opacity={opacity * (i % 3 ? 1 - gather * .75 : 1)}/>;
         })}
       </g>
-      <g data-pn-meter="true">
+      <g data-pn-meter="true" opacity={instrumentOpacity}>
         <circle cx="680" cy="332.5" r="52.5" fill="#f3f2e5" stroke="#9eae97" strokeWidth="1"/>
         <circle cx="680" cy="332.5" r="48" fill={`url(#${id}-dial)`}/>
         {Array.from({ length: 25 }, (_, i) => {
@@ -60,7 +81,7 @@ export function PnStage({ time }: { time: number }) {
   }
   const reverseTitle = easeBetween(seconds, 5.7, 6.3);
   const compareTitle = easeBetween(seconds, 10, 10.6);
-  return <g className="stage-pn" opacity={p.opacity} data-scene-ms={p.sceneMs.toFixed(0)} data-pn-mode={mode} transform={`translate(${400 + (SILK_ENDPOINT[0] - 400) * p.exit} ${332.5 + (SILK_ENDPOINT[1] - 332.5) * p.exit}) scale(${1 - p.exit}) translate(-400 -332.5)`}>
+  return <g className="stage-pn" opacity={p.opacity} data-scene-ms={p.sceneMs.toFixed(0)} data-pn-mode={mode}>
     <defs>
       <linearGradient id={`${id}-ceramic`} x2=".2" y2="1"><stop stopColor="#fffcef"/><stop offset=".55" stopColor="#e4e8d8"/><stop offset="1" stopColor="#aebfa9"/></linearGradient>
       <linearGradient id={`${id}-tint`}><stop stopColor="#c68e7a" stopOpacity=".24"/><stop offset=".48" stopColor="#f2eedc" stopOpacity=".12"/><stop offset="1" stopColor="#78a8b0" stopOpacity=".3"/></linearGradient>
@@ -68,9 +89,9 @@ export function PnStage({ time }: { time: number }) {
       <linearGradient id={`${id}-wire`} x2="0" y2="1"><stop stopColor="#c5cfb9"/><stop offset="1" stopColor="#78917b"/></linearGradient>
       <radialGradient id={`${id}-dial`}><stop stopColor="#fffdef"/><stop offset="1" stopColor="#e6ead9"/></radialGradient>
     </defs>
-    {[["同一个结，电流畅行", 1 - reverseTitle], ["接法一换，电流受阻", reverseTitle * (1 - compareTitle)], ["同一个结，两个方向", compareTitle]].map(([text, opacity]) => <text key={text} x="400" y="97" textAnchor="middle" className="pn-question" opacity={Number(opacity)}>{text}</text>)}
+    {[["同一个结，电流畅行", 1 - reverseTitle], ["接法一换，电流受阻", reverseTitle * (1 - compareTitle)], ["同一个结，两个方向", compareTitle]].map(([text, opacity]) => <text key={text} x="400" y="97" textAnchor="middle" className="pn-question" opacity={Number(opacity) * textOpacity}>{text}</text>)}
     {device()}{device(true)}
-    <g opacity={1 - split}>
+    <g opacity={(1 - split) * textOpacity}>
       <text x="380" y="441" textAnchor="middle" className="pn-explanation" opacity={1 - reverseTitle}>载流子通过，指针随之偏转</text>
       <text x="380" y="441" textAnchor="middle" className="pn-explanation" opacity={reverseTitle}>大部分载流子折返，只剩微弱电流</text>
     </g>

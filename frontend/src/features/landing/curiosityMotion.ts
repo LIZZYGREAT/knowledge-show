@@ -59,7 +59,7 @@ export function inkState(time: number) {
   const question = easeBetween(phase, 2.4, 3.1) * (1 - easeBetween(cycle, 16.8, 18));
   const flowTime = returning ? FLOW_DRAW_DURATION : Math.min(cycle, FLOW_DRAW_DURATION);
   const revealFrom = returning ? 1 - easeBetween(cycle, SILK_REDRAW_START, SILK_REDRAW_START + FLOW_DRAW_DURATION) : 0;
-  const seedOpacity = returning ? easeBetween(cycle, 35.6, 36) * (1 - easeBetween(cycle, 41.8, 42.5))
+  const seedOpacity = returning ? easeBetween(cycle, 35.35, 35.95) * (1 - easeBetween(cycle, 41.8, 42.5))
     : (1 - bloom) * (time >= STAGE_DURATION ? easeBetween(cycle, FLOW_DRAW_DURATION, 6.1) : 1);
   return { bloom, fold, silkOpacity, question, scale: 1 - fold * .94, flowTime, revealFrom, seedOpacity, returning };
 }

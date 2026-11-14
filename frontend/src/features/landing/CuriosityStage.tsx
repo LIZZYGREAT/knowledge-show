@@ -15,6 +15,7 @@ export function CuriosityStage({ pose }: { pose?: number }) {
 
   const ink = inkState(time);
   const pn = pnState(time);
+  const pnCaption = pn.opacity * (1 - easeBetween(pn.cycle, 33.8, 34.4));
   const diceOpacity = 1 - easeBetween(pn.cycle, 19.5, 20.7);
   const diceDetails = 1 - easeBetween(pn.cycle, 16.8, 18);
   const contour = inkContour(ink.bloom);
@@ -94,9 +95,9 @@ export function CuriosityStage({ pose }: { pose?: number }) {
       </svg>
       <IdeaSeed style={{ left: `${seedLeft}%`, top: `${seedTop}%`, opacity: ink.seedOpacity }}/>
     </div>
-    <figcaption style={{ opacity: Math.max(ink.question, pn.opacity), transform: `translateY(${6 * (1 - Math.max(ink.question, pn.opacity))}px)` }}>
+    <figcaption style={{ opacity: Math.max(ink.question, pnCaption), transform: `translateY(${6 * (1 - Math.max(ink.question, pnCaption))}px)` }}>
       <span style={{ opacity: ink.question }}>36 种等可能的组合，6 种相加为 7。</span>
-      <span style={{ opacity: pn.opacity }}>同一个 PN 结，两个方向，不同的电流。</span>
+      <span style={{ opacity: pnCaption }}>同一个 PN 结，两个方向，不同的电流。</span>
     </figcaption>
   </figure>;
 }
