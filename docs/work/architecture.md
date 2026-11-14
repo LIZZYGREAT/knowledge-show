@@ -1,6 +1,6 @@
 # knowledge-show 系统架构与数据流
 
-> 本文描述已确定的**概念架构与仓库模块边界**。知识层首版、体验修订和联调前最小修订分别位于 `feat/knowledge-layer-implementation`、`feat/knowledge-cost-efficiency-ux`、`feat/knowledge-handoff-readiness`，尚未合并或接入共享工作流。字段及类型由 `contracts/` 中的现行定义负责。
+> 本文描述已确定的**概念架构与仓库模块边界**。知识层已通过 PR #5 集成进 `main`；当前代码含 v0.3 脚本写作提示词和可选事件锚点契约，但没有脚本生成执行器、共享工作流或动画运行时。字段及类型由 `contracts/` 中的现行定义负责。
 
 ## 一、整体工作流
 
@@ -46,11 +46,11 @@ flowchart TD
 
 - **Research** 可以从模型已有知识、可复核推导或必要的外部 Search/Fetch 获得材料，不要求基础知识一律先搜索；所有拟正式采用的知识都需进行适当核验。
 - **Creative** 基于知识关系探索真正有价值的核心问题、因果变化和认知主线。它可以向 Research 请求具体知识补充，Research 也可以主动反馈值得进一步创作的发现。
-- **ResearchStore** 在逻辑上统一保存研究问题、资料、知识主张、证据关系、创意线索和未解决问题。知识层分支已用项目隔离的 SQLite 实现，Agent 先检索已有成果，有明确缺口时再补充研究。它是知识层内部状态，不新增跨阶段机器契约。
+- **ResearchStore** 在逻辑上统一保存研究问题、资料、知识主张、证据关系、创意线索和未解决问题。知识层已在 `main` 中以项目隔离的 SQLite 实现；Agent 先检索已有成果，有明确缺口时再补充研究。它是知识层内部状态，不新增跨阶段机器契约。
 - **Verifier** 以风险驱动方式检查重要事实和误导风险，优先指出能保留创意的局部修正；不代替 Creative 判断故事形式，也不作为动画审美审核者。
 - **收敛** 优先深入推荐方向，其他可行方向保留适量可靠材料；只要方向值得做、知识足以支持脚本且没有关键事实问题，就可以交付，不设置固定知识单元数或机械搜索配额。
 
-知识层内部细则统一维护于 `docs/work/backend/knowledge/知识层探索与创意策划.md`；本架构文档只描述公共数据流和模块连接。
+知识层内部细则统一维护于 `docs/work/backend/knowledge/知识层探索与创意策划.md`；实现已进入 `main`，本架构文档只描述公共数据流和模块连接。
 
 ## 三、五种跨模块对象
 
@@ -58,7 +58,7 @@ flowchart TD
 | --- | --- | --- | --- |
 | `ProjectState` | 协调器 | `brief.user_input`、`brief.effective`、已选择方向、当前产物引用 | 各层共享用户意图和版本 |
 | `KnowledgePackage` | 知识层 | 候选、知识单元、证据、必要条件与限制 | 供脚本层选材与策划 |
-| `ProductionScript` | 脚本层 | 选定方向、时间线、事件、文字及语义引用 | 指导动态场景实现 |
+| `ProductionScript` | 脚本层 | 选定方向、时间线、可选关键事件锚点、文字及语义引用 | 指导动态场景实现 |
 | `AnimationManifest` | 动画层 | 动画片段、时间范围、脚本引用及资源索引 | 支持预览、修订和导出 |
 | `RevisionRequest` | 反馈发起方 / 协调器 | 修改目标、原版本、对象锚点、反馈与保留要求 | 定位问题并控制修订范围 |
 
@@ -66,14 +66,14 @@ flowchart TD
 
 当前知识包允许在 `knowledge_units[]` 中使用 `verification_status = needs_review` 保留待处理线索，但**候选方向和脚本只能引用 `verified` 知识**。内部 ResearchStore 可保留更丰富的研究草稿；对外引用权限由现行契约决定。
 
-当前知识层以 `${KNOWLEDGE_EXPORT_DIR}/{artifact_id}-r{revision}.json` 交付具体版本。写入使用原子发布并在运行完成前重新读取和校验；版本内容不可被静默覆盖。脚本消费者应使用协调器发布的精确 `ArtifactRef`，不读取知识层 SQLite。仓库目前没有实现工作流协调器或脚本服务，因此知识层准备文件后，跨阶段状态发布仍需后续集成完成。
+知识层以 `${KNOWLEDGE_EXPORT_DIR}/{artifact_id}-r{revision}.json` 交付具体版本。写入使用原子发布并在运行完成前重新读取和校验；版本内容不可被静默覆盖。脚本消费者应使用协调器发布的精确 `ArtifactRef`，不读取知识层 SQLite。当前仓库还没有脚本生成执行器或工作流协调器；提示词文件只提供可复用写作约束，尚不能执行端到端脚本生成。
 
 ## 四、目录到模块的映射
 
 | 仓库位置 | 规划中的职责 | 当前情况 |
 | --- | --- | --- |
-| `backend/src/knowledge/` | 研究、创意探索、知识管理、事实核验与知识包交付 | 首版与联调前修订已在独立分支实现并验证，尚待集成 |
-| `backend/src/script/` | 选材、叙事主线、场景事件、时间规划和脚本输出 | 业务待实现 |
+| `backend/src/knowledge/` | 研究、创意探索、知识管理、事实核验与知识包交付 | 首版与 16:9 配置已进入 `main` |
+| `backend/src/script/` | 选材、叙事主线、场景事件、时间规划和脚本输出 | 有 v0.3 提示词和跨层契约；生成执行器待实现 |
 | `backend/src/workflow/` | 跨层项目状态、执行编排、版本与修订路由 | 业务待实现 |
 | `backend/src/api/` | 前后端入口；具体协议待定 | 占位目录 |
 | `backend/src/common/` | 确需共享的后端基础逻辑 | 占位目录 |
@@ -106,6 +106,6 @@ PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests/knowledge -q
 .venv/bin/python contracts/validate_contracts.py
 ```
 
-联调前修订分支已运行知识层测试、契约校验，并以真实 DeepSeek 请求验收基础定义、进阶自注意力机制和带 `focus` / `must_include` 的骰子概率主题。契约脚本验证公开数据的结构、引用和部分时间/版本关系，**不能代替事实核验、创意质量、脚本可看性、动画播放及最终观感检查**。实际运行和产物状态以对应模块的真实测试为准。
+当前整合分支的 83 项知识层测试通过；契约脚本覆盖五类公开对象、十三种负例、非推荐方向、锚点类型与 Mock 消费关联。四份历史脚本通过 ProductionScript Schema。另以本机已发布知识包和固定 ProjectState / ProductionScript Mock 完成 16:9 版本引用 Smoke，未调用在线 API；它不代表真实脚本生成已接通。实际动画运行时尚未实现，因此播放是否命中锚点仍待运行时测试；契约校验也**不能代替事实核验、创意质量、脚本可看性或最终观感检查**。
 
 分工与协作规则见 `docs/work/目录结构与分工.md` 和 `docs/work/workflow.md`。

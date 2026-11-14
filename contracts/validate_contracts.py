@@ -138,6 +138,20 @@ def check_links(objects):
                 check(event_map.get(id_)==sid,'internal event references foreign script event')
             clip_events[ev['id']]=clip['clip_id'];last=ev['offset_ms']
     check(cursor==am['total_duration_ms'],'clips do not cover whole animation')
+    anchor_points=[]
+    for scene in scenes:
+        for event in scene['events']:
+            if event.get('anchor') is True:
+                absolute_ms=scene['start_ms']+event['offset_ms']
+                forwarded=any(
+                    clip['scene_id']==scene['scene_id'] and any(
+                        event['id'] in internal.get('script_event_refs',[])
+                        for internal in clip.get('internal_events',[])
+                    )
+                    for clip in clips
+                )
+                check(forwarded,f"anchored event {event['id']} at {absolute_ms}ms is not mapped to an animation internal event")
+                anchor_points.append((scene['scene_id'],event['id'],absolute_ms))
     # Feedback targets may refer to older historical artifact. This bundled example targets current.
     check(feedback['base_project_revision']<=project['revision'],'feedback based on future project revision')
     targets={'project_state':project,'knowledge_package':kp,'production_script':script,'animation_manifest':am}
@@ -152,6 +166,7 @@ def check_links(objects):
         if kind=='time_range':
             check(anchor['start_ms']<anchor['end_ms']<=am['total_duration_ms'],'invalid feedback time range')
         if kind=='whole_artifact':check('id' not in anchor,'whole_artifact must not contain id')
+    return anchor_points
 
 
 def main():
@@ -167,6 +182,8 @@ def main():
       'unknown timed text anchor':lambda d:d['revision-request']['anchors'].append({'kind':'timed_text','id':'T_UNKNOWN'}),
       'bad status':lambda d:d['knowledge-package']['knowledge_units'][0].update(verification_status='maybe'),
       'invalid duration fit':lambda d:d['knowledge-package']['directions'][0]['duration_fit'].update(status='perfect'),
+      'event anchor must be boolean':lambda d:d['production-script']['scenes'][2]['events'][1].update(anchor='true'),
+      'unknown event field remains rejected':lambda d:d['production-script']['scenes'][2]['events'][1].update(unapproved_field=True),
     }
     for name,mutate in negatives.items():
         d=copy.deepcopy(originals);mutate(d)
@@ -183,6 +200,13 @@ def main():
         for event in scene['events']:
             if 'knowledge_refs' in event:event['knowledge_refs']=[]
     check_schemas(switched);check_links(switched)
+    anchorless=copy.deepcopy(originals)
+    for scene in anchorless['production-script']['scenes']:
+        for event in scene['events']:event.pop('anchor',None)
+    check_schemas(anchorless);check_links(anchorless)
+    explicit_false=copy.deepcopy(originals)
+    explicit_false['production-script']['scenes'][2]['events'][1]['anchor']=False
+    check_schemas(explicit_false);check_links(explicit_false)
     invalid_internal_review=copy.deepcopy(originals)
     invalid_internal_review['knowledge-package']['evidence'].append({
         'id':'E_INTERNAL_INVALID','kind':'internal_review','title':'内部检查'
@@ -203,6 +227,15 @@ def main():
         pass
     else:
         raise AssertionError('internal_review with blank details must fail')
-    print('PASS: five schemas, five linked examples, cross-stage checks, eleven negative cases, alternate direction')
+    anchor_points=check_links(originals)
+    check(bool(anchor_points),'linked example does not exercise an anchored event')
+    print('PASS: five schemas, five linked examples, cross-stage checks, thirteen negative cases, optional anchors, alternate direction')
+    project,kp,script,_,_=(originals[x] for x in NAMES)
+    summary=', '.join(f'{event_id}@{absolute_ms}ms' for _,event_id,absolute_ms in anchor_points)
+    print(
+        f"SMOKE: {project['project_id']} {project['brief']['effective']['aspect_ratio']} -> "
+        f"{kp['artifact_id']}-r{kp['revision']} -> {script['artifact_id']}-r{script['revision']} "
+        f"direction={script['direction_id']}; anchors={summary}; fixture=Mock; API calls=0"
+    )
 
 if __name__=='__main__':main()
