@@ -121,6 +121,9 @@ test("real task UI resumes a published script and waits for animation", async ({
       }),
     }),
   );
+  await page.route("**/api/projects/P_E2E/animations/status", (route) =>
+    route.fulfill({ json: { preview: { status: "not_ready" }, job: null } }),
+  );
   await page.route("**/api/projects/P_E2E/production-script**", (route) =>
     route.fulfill({
       status: 200,
@@ -153,6 +156,7 @@ test("real task UI resumes a published script and waits for animation", async ({
     page.getByRole("heading", { name: "两枚骰子的点数和有不同的组合数。" }),
   ).toBeVisible();
   await expect(page.getByRole("button", { name: /预览|工作台/ })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "开始制作动画 →" })).toBeVisible();
   const stored = await page.evaluate(() =>
     sessionStorage.getItem("knowledge-show:active-task"),
   );

@@ -254,6 +254,7 @@ export default function App() {
             jobId={jobId}
             topic={draft.topic}
             hasApiKey={connection.connected && Boolean(connection.key)}
+            apiKey={connection.key}
             onBack={() => {
               clearTask();
               navigate("composing");

@@ -1,3 +1,4 @@
+import { AnimationHandoff } from './AnimationHandoff';
 import { useEffect, useState } from "react";
 import {
   getJob,
@@ -18,6 +19,7 @@ export function TaskProgress({
   jobId,
   topic,
   hasApiKey,
+  apiKey,
   onBack,
   onRetry,
   onOpenSettings,
@@ -25,6 +27,7 @@ export function TaskProgress({
   jobId: string;
   topic: string;
   hasApiKey: boolean;
+  apiKey?: string | null;
   onBack: () => void;
   onRetry: () => void;
   onOpenSettings: () => void;
@@ -139,11 +142,7 @@ export function TaskProgress({
           </p>
         </section>
       )}
-      {ready && (
-        <p className="quiet">
-          脚本已正式保存，当前项目还没有可播放的动画资源，因此不能进入视频预览或工作台。
-        </p>
-      )}
+      {ready && job && <AnimationHandoff projectId={job.project_id} apiKey={apiKey} />}
       <div className="progress-actions">
         <button className="secondary" onClick={onBack}>
           {failed ? "返回修改" : "返回创作页"}
