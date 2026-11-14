@@ -1,0 +1,107 @@
+{
+  "project_id": "P002",
+  "artifact_id": "KP002",
+  "revision": 1,
+  "brief_revision": 1,
+  "directions": [
+    {
+      "id": "D01",
+      "title": "同一道势垒，两个方向",
+      "core_question": "给 PN 结加上正向电压为什么就导通，反向为什么几乎不通？",
+      "hook": "同一个结，换个方向接，一边通一边断。",
+      "learning_goal": "能用势垒高度和载流子的运动解释单向导电。",
+      "knowledge_refs": ["K01", "K02", "K03", "K04", "K05", "K06"],
+      "visual_potential": {
+        "level": "high",
+        "reason": "势垒高度可以被外电压直接调节，载流子可以画成可观察的流动。"
+      },
+      "duration_fit": {
+        "status": "adequate",
+        "reason": "一个核心机制加两个方向的对照，两分半左右可以讲清。"
+      }
+    }
+  ],
+  "recommended_direction_id": "D01",
+  "knowledge_units": [
+    {
+      "id": "K01",
+      "type": "concept",
+      "content": "PN 结是 P 型半导体与 N 型半导体接触形成的结构。",
+      "explanation": "P 型一侧空穴多，N 型一侧电子多；接触面上会形成空间电荷区。",
+      "importance": "core",
+      "verification_status": "verified",
+      "evidence_refs": ["E01"]
+    },
+    {
+      "id": "K02",
+      "type": "concept",
+      "content": "P 型以空穴为多数载流子，N 型以电子为多数载流子。",
+      "explanation": "多数载流子的浓度由掺杂决定，远高于另一类载流子。",
+      "importance": "core",
+      "verification_status": "verified",
+      "depends_on": ["K01"],
+      "evidence_refs": ["E01"]
+    },
+    {
+      "id": "K03",
+      "type": "principle",
+      "content": "接触处形成从 N 指向 P 的内建电场和势垒。",
+      "explanation": "载流子扩散后留下不能移动的离子，形成空间电荷区与内建电场；电场阻碍进一步扩散。",
+      "importance": "core",
+      "verification_status": "verified",
+      "depends_on": ["K01"],
+      "evidence_refs": ["E01", "E02"]
+    },
+    {
+      "id": "K04",
+      "type": "principle",
+      "content": "正向偏压降低势垒，多数载流子扩散形成较大的正向电流。",
+      "explanation": "P 接正、N 接负时，外电场与内建电场方向相反，势垒变矮，多子更容易越过。",
+      "importance": "core",
+      "verification_status": "verified",
+      "depends_on": ["K02", "K03"],
+      "evidence_refs": ["E02"]
+    },
+    {
+      "id": "K05",
+      "type": "principle",
+      "content": "反向偏压抬高势垒，只剩少量少子漂移形成很小的反向电流。",
+      "explanation": "P 接负、N 接正时势垒变高，多子几乎无法越过；反向电流主要来自少子。",
+      "importance": "core",
+      "verification_status": "verified",
+      "depends_on": ["K02", "K03"],
+      "evidence_refs": ["E02"]
+    },
+    {
+      "id": "K06",
+      "type": "application",
+      "content": "单向导电性被用作整流，把交流变成单向脉动。",
+      "explanation": "正半周导通、负半周截止，输出方向单一。",
+      "importance": "supporting",
+      "verification_status": "verified",
+      "depends_on": ["K04", "K05"],
+      "evidence_refs": ["E01"]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E01",
+      "kind": "external_source",
+      "title": "半导体物理教材中的 PN 结章节",
+      "locator": "刘恩科《半导体物理》第 6 章"
+    },
+    {
+      "id": "E02",
+      "kind": "mathematical_derivation",
+      "title": "势垒高度随外加偏压线性变化",
+      "details": "设内建电势为 Vbi，外加偏压为 V（正偏为正），则势垒高度约为 Vbi - V；载流子越过势垒的概率随势垒高度指数下降。"
+    }
+  ],
+  "constraints": {
+    "required_knowledge_refs": ["K04", "K05"],
+    "must_not_misrepresent": [
+      "不要把反向电流说成零。",
+      "不要用『电子穿过绝缘体』解释正向导通。"
+    ]
+  }
+}

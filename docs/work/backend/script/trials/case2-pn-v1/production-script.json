@@ -1,0 +1,476 @@
+{
+  "project_id": "P002",
+  "artifact_id": "PS001",
+  "revision": 1,
+  "brief_revision": 1,
+  "knowledge_package_ref": {"artifact_id": "KP002", "revision": 1},
+  "direction_id": "D01",
+  "total_duration_ms": 165000,
+  "core_message": "PN 结的单向导电，来自外电压只在调节势垒高度：压低时多数载流子涌过，抬高时多数载流子被挡，只剩极少的反向电流。",
+  "scenes": [
+    {
+      "scene_id": "S01",
+      "start_ms": 0,
+      "duration_ms": 25000,
+      "role": "hook",
+      "objective": "观众看清同一个结在两种接法下表现相反：正向灯亮、反向灯灭，并想知道差别从哪来。",
+      "visual_notes": [
+        "竖屏 9:16；结用同一块竖向方块，P 侧在左、N 侧在右，P 用橙色、N 用蓝色，全片不换色。",
+        "两种接法的电路图共用同一套电池与灯泡图形，只改电源极性，避免看起来像两个不同的器件。",
+        "画面中段用上下分屏而不是左右分屏，适配竖屏构图。"
+      ],
+      "events": [
+        {
+          "id": "EV01",
+          "offset_ms": 0,
+          "duration_ms": 6000,
+          "description": "一块 PN 结方块立在画面中央，左半渐染成橙色并标 P，右半渐染成蓝色并标 N",
+          "knowledge_refs": ["K01"]
+        },
+        {
+          "id": "EV02",
+          "offset_ms": 6000,
+          "duration_ms": 7000,
+          "description": "画面被横向切成上下两半，各接一套电池和灯泡：上半 P 连正极，下半 P 连负极；上半的灯泡先亮起",
+          "knowledge_refs": ["K04"]
+        },
+        {
+          "id": "EV03",
+          "offset_ms": 13000,
+          "duration_ms": 6000,
+          "description": "下半灯泡熄掉，两半的电流表指针一个大幅偏转、一个几乎不动，两处读数被方框圈出对照",
+          "knowledge_refs": ["K05"]
+        },
+        {
+          "id": "EV04",
+          "offset_ms": 19000,
+          "duration_ms": 5000,
+          "description": "两套电路缩小退到画面边角，中间的结重新放大占满画面，短暂静止"
+        }
+      ],
+      "timed_text": [
+        {
+          "id": "T01",
+          "offset_ms": 0,
+          "duration_ms": 3500,
+          "text": "同一个结，两个方向",
+          "kind": "title"
+        },
+        {
+          "id": "T02",
+          "offset_ms": 4000,
+          "duration_ms": 5000,
+          "text": "P 接正，灯亮；P 接负，灯灭",
+          "kind": "subtitle"
+        },
+        {
+          "id": "T03",
+          "offset_ms": 9500,
+          "duration_ms": 5500,
+          "text": "只换了电源极性，结果差这么远",
+          "kind": "subtitle"
+        },
+        {
+          "id": "T04",
+          "offset_ms": 15500,
+          "duration_ms": 5000,
+          "text": "先看结里到底有什么",
+          "kind": "subtitle"
+        }
+      ],
+      "knowledge_refs": ["K01", "K04", "K05"],
+      "semantic_constraints": [
+        "正向与反向用的是同一个结，唯一变化是电源极性。",
+        "反向时灯熄灭不等于电流完全为零，画面不要画成绝对静止的零。"
+      ],
+      "audio_intent": "低频脉冲铺底，灯泡亮起时一声轻响，熄灭后留白"
+    },
+    {
+      "scene_id": "S02",
+      "start_ms": 25000,
+      "duration_ms": 35000,
+      "role": "explain",
+      "objective": "观众理解交界处的空间电荷区与内建电场，并把势垒看成一堵平时就立着的墙。",
+      "visual_notes": [
+        "沿用 S01 的橙/蓝配色；空穴画成橙色空心圆，电子画成蓝色实心点。",
+        "固定离子用方块表示，和可动载流子在形状上明确区分，且自始至终钉在原地。",
+        "势垒统一画成横跨交界的同一道墙，后续场景只升降这道墙。",
+        "内建电场用一支从 N 侧指向 P 侧的箭头表示，箭头样式全片复用。"
+      ],
+      "events": [
+        {
+          "id": "EV05",
+          "offset_ms": 0,
+          "duration_ms": 6000,
+          "description": "镜头推近交界面：左半满屏橙色空穴，右半满屏蓝色电子，两侧密度差并排呈现",
+          "knowledge_refs": ["K01", "K02"]
+        },
+        {
+          "id": "EV06",
+          "offset_ms": 6500,
+          "duration_ms": 6500,
+          "description": "交界附近的空穴与电子向对面移动并相遇，靠近交界两侧的粒子数量明显变少",
+          "knowledge_refs": ["K02"]
+        },
+        {
+          "id": "EV07",
+          "offset_ms": 13500,
+          "duration_ms": 7000,
+          "description": "交界线上留下一列固定方块：P 侧标负号、N 侧标正号，排列成一条窄带",
+          "knowledge_refs": ["K03"]
+        },
+        {
+          "id": "EV08",
+          "offset_ms": 20500,
+          "duration_ms": 6500,
+          "description": "一支箭头从 N 侧指向 P 侧出现，仍在越界的粒子逐个停住并退回",
+          "knowledge_refs": ["K03"]
+        },
+        {
+          "id": "EV09",
+          "offset_ms": 27000,
+          "duration_ms": 6000,
+          "description": "一道墙的轮廓在交界处升起并定格，两侧粒子静止，画面保持不动",
+          "knowledge_refs": ["K03"]
+        }
+      ],
+      "timed_text": [
+        {
+          "id": "T05",
+          "offset_ms": 0,
+          "duration_ms": 4500,
+          "text": "左边空穴多，右边电子多",
+          "kind": "subtitle"
+        },
+        {
+          "id": "T06",
+          "offset_ms": 5000,
+          "duration_ms": 5000,
+          "text": "靠近交界，两边都想往对面跑",
+          "kind": "subtitle"
+        },
+        {
+          "id": "T07",
+          "offset_ms": 10500,
+          "duration_ms": 5500,
+          "text": "跑过的位置留下带电离子，堆成一条带",
+          "kind": "subtitle"
+        },
+        {
+          "id": "T08",
+          "offset_ms": 16500,
+          "duration_ms": 5500,
+          "text": "内建电场由 N 指向 P，把后来者挡住",
+          "kind": "subtitle"
+        },
+        {
+          "id": "T09",
+          "offset_ms": 23000,
+          "duration_ms": 5000,
+          "text": "这道墙就是势垒",
+          "kind": "subtitle"
+        },
+        {
+          "id": "T10",
+          "offset_ms": 29000,
+          "duration_ms": 4000,
+          "text": "现在给它加电压",
+          "kind": "subtitle"
+        }
+      ],
+      "knowledge_refs": ["K01", "K02", "K03"],
+      "semantic_constraints": [
+        "空间电荷区由固定不动的离子构成，不是载流子停在原地的堆积。",
+        "内建电场方向是从 N 指向 P，墙阻挡的是多数载流子继续向对面扩散。"
+      ],
+      "audio_intent": "安静的低鸣，粒子相遇处有细微点击声，墙升起时音高下行后停住"
+    },
+    {
+      "scene_id": "S03",
+      "start_ms": 60000,
+      "duration_ms": 35000,
+      "role": "explain",
+      "objective": "观众看到外电场与内建电场相反、势垒被压低，多数载流子连续越过，正向电流随之出现。",
+      "visual_notes": [
+        "电池极性必须与 S01 上半一致：P 接正极、N 接负极。",
+        "外电场箭头与 S02 的内建电场箭头同款但反向，两箭头对顶时用长度差表示强弱。",
+        "墙的升降用同一道墙，只改变顶面高度，不换造型。"
+      ],
+      "events": [
+        {
+          "id": "EV10",
+          "offset_ms": 0,
+          "duration_ms": 6000,
+          "description": "电池重新接上，P 侧导线接到正极、N 侧接到负极，一支从 P 指向 N 的箭头出现",
+          "knowledge_refs": ["K04"]
+        },
+        {
+          "id": "EV11",
+          "offset_ms": 6500,
+          "duration_ms": 7000,
+          "description": "两支箭头在交界上方对顶，外电场那支更长，内建电场那支变暗，墙顶开始下降",
+          "knowledge_refs": ["K04"]
+        },
+        {
+          "id": "EV12",
+          "offset_ms": 14000,
+          "duration_ms": 4000,
+          "description": "墙降到很低，最先几颗空穴与电子从墙顶翻过去",
+          "knowledge_refs": ["K04"]
+        },
+        {
+          "id": "EV13",
+          "offset_ms": 18000,
+          "duration_ms": 9000,
+          "anchor": true,
+          "description": "越界处连成一条宽流带，灯泡亮起，电流表指针大幅偏到右侧",
+          "knowledge_refs": ["K04"]
+        },
+        {
+          "id": "EV14",
+          "offset_ms": 27500,
+          "duration_ms": 6000,
+          "description": "宽流带保持稳定，两侧不断有新的空穴与电子补进流里",
+          "knowledge_refs": ["K04"]
+        }
+      ],
+      "timed_text": [
+        {
+          "id": "T11",
+          "offset_ms": 0,
+          "duration_ms": 4500,
+          "text": "P 接正，N 接负",
+          "kind": "subtitle"
+        },
+        {
+          "id": "T12",
+          "offset_ms": 5000,
+          "duration_ms": 5500,
+          "text": "外电场和那道墙的箭头方向相反",
+          "kind": "subtitle"
+        },
+        {
+          "id": "T13",
+          "offset_ms": 11000,
+          "duration_ms": 5500,
+          "text": "两股力相抵，墙被压低",
+          "kind": "subtitle"
+        },
+        {
+          "id": "T14",
+          "offset_ms": 17500,
+          "duration_ms": 5000,
+          "text": "多数载流子一批接一批翻过去",
+          "kind": "subtitle"
+        },
+        {
+          "id": "T15",
+          "offset_ms": 23000,
+          "duration_ms": 4500,
+          "text": "灯亮，指针大幅偏转",
+          "kind": "subtitle"
+        },
+        {
+          "id": "T16",
+          "offset_ms": 28500,
+          "duration_ms": 4000,
+          "text": "这就是正向导通",
+          "kind": "subtitle"
+        }
+      ],
+      "knowledge_refs": ["K04"],
+      "semantic_constraints": [
+        "正向导通靠的是势垒降低、多数载流子扩散增强，不是击穿，也不是载流子穿过绝缘层。",
+        "外电场方向与内建电场相反，所以势垒高度下降。"
+      ],
+      "audio_intent": "音高随墙下降而抬升，宽流出现时转为持续的中频流动声"
+    },
+    {
+      "scene_id": "S04",
+      "start_ms": 95000,
+      "duration_ms": 35000,
+      "role": "explain",
+      "objective": "观众看到反向时势垒被抬高、多数载流子被挡回，同时明白仍有少量少子漂移形成的很小的反向电流。",
+      "visual_notes": [
+        "电池极性与 S03 完全翻转：P 接负极、N 接正极。",
+        "少子沿用 S02 里数量稀少的粒子标记，画得更小，避免与多数载流子混淆。",
+        "墙继续用同一道，只升到比 S02 更高的位置。",
+        "整体画面亮度压低，与正向场景形成冷暖对照。"
+      ],
+      "events": [
+        {
+          "id": "EV15",
+          "offset_ms": 0,
+          "duration_ms": 6000,
+          "description": "电池极性翻转：P 侧导线移到负极、N 侧移到正极，外电场箭头掉头，与内建电场箭头同向",
+          "knowledge_refs": ["K05"]
+        },
+        {
+          "id": "EV16",
+          "offset_ms": 6500,
+          "duration_ms": 6000,
+          "description": "两支同向箭头叠在一起，墙顶被顶高，超过 S02 的高度",
+          "knowledge_refs": ["K05"]
+        },
+        {
+          "id": "EV17",
+          "offset_ms": 13000,
+          "duration_ms": 5000,
+          "description": "交界前的空穴与电子被推回两侧堆住，原先的宽流带消失",
+          "knowledge_refs": ["K05"]
+        },
+        {
+          "id": "EV18",
+          "offset_ms": 16000,
+          "duration_ms": 8000,
+          "anchor": true,
+          "description": "墙长到最高，只有几颗零星小点从墙顶滑落，电流表指针只偏出一小格",
+          "knowledge_refs": ["K05"]
+        },
+        {
+          "id": "EV19",
+          "offset_ms": 25000,
+          "duration_ms": 7000,
+          "description": "画面压暗，墙保持高耸，零星小点持续缓慢滑落，灯泡保持熄灭",
+          "knowledge_refs": ["K05"]
+        }
+      ],
+      "timed_text": [
+        {
+          "id": "T17",
+          "offset_ms": 0,
+          "duration_ms": 4500,
+          "text": "反过来接，P 接负，N 接正",
+          "kind": "subtitle"
+        },
+        {
+          "id": "T18",
+          "offset_ms": 5000,
+          "duration_ms": 5000,
+          "text": "外电场和墙同向，墙被抬高",
+          "kind": "subtitle"
+        },
+        {
+          "id": "T19",
+          "offset_ms": 11000,
+          "duration_ms": 5000,
+          "text": "多数载流子堵在墙外，过不去",
+          "kind": "subtitle"
+        },
+        {
+          "id": "T20",
+          "offset_ms": 17000,
+          "duration_ms": 6000,
+          "text": "但电流不是零，还有少量少子漂下来",
+          "kind": "subtitle"
+        },
+        {
+          "id": "T21",
+          "offset_ms": 24000,
+          "duration_ms": 5500,
+          "text": "这股反向电流很细很小",
+          "kind": "subtitle"
+        },
+        {
+          "id": "T22",
+          "offset_ms": 30500,
+          "duration_ms": 4000,
+          "text": "灯不亮，指针只微微动",
+          "kind": "subtitle"
+        }
+      ],
+      "knowledge_refs": ["K05"],
+      "semantic_constraints": [
+        "反向时多数载流子几乎无法越过，但反向电流不为零，来自少量少子的漂移。",
+        "反向是势垒升高，不能说成结被关断成断路。"
+      ],
+      "audio_intent": "音乐变闷、音量收窄，只留零星滴答声；不出现完全静音"
+    },
+    {
+      "scene_id": "S05",
+      "start_ms": 130000,
+      "duration_ms": 35000,
+      "role": "payoff",
+      "objective": "观众用势垒高度把两个方向对齐比较，并能说出这种单向导电如何被用来整流。",
+      "visual_notes": [
+        "两个结的配色与墙的造型必须与前面完全一致。",
+        "并排比较改为上下排列，适配竖屏；墙高用同一把标尺同时量出。",
+        "输入正弦波与输出脉动波用同一支笔触与同一颜色，负半周位置留空不画线。"
+      ],
+      "events": [
+        {
+          "id": "EV20",
+          "offset_ms": 0,
+          "duration_ms": 8000,
+          "description": "上下并排两个同样的结：上面墙矮、宽流穿过；下面墙高、细流缓慢；一把标尺同时量出两处墙高",
+          "knowledge_refs": ["K04", "K05"]
+        },
+        {
+          "id": "EV21",
+          "offset_ms": 9000,
+          "duration_ms": 10000,
+          "description": "上下画面收拢成一个结，输入端接入一条上下摆动的正弦波",
+          "knowledge_refs": ["K06"]
+        },
+        {
+          "id": "EV22",
+          "offset_ms": 20000,
+          "duration_ms": 8000,
+          "anchor": true,
+          "description": "输出端出现一串同方向的半波脉冲，正弦波负半周对应的位置空着没有波形",
+          "knowledge_refs": ["K06"]
+        },
+        {
+          "id": "EV23",
+          "offset_ms": 28500,
+          "duration_ms": 5500,
+          "description": "输入与输出两条波形上下对齐定格，正负摆动与单向脉动的差异保持可见",
+          "knowledge_refs": ["K06"]
+        }
+      ],
+      "timed_text": [
+        {
+          "id": "T23",
+          "offset_ms": 0,
+          "duration_ms": 5000,
+          "text": "正偏墙矮，反偏墙高",
+          "kind": "subtitle"
+        },
+        {
+          "id": "T24",
+          "offset_ms": 5500,
+          "duration_ms": 4500,
+          "text": "同一个结，只换方向",
+          "kind": "subtitle"
+        },
+        {
+          "id": "T25",
+          "offset_ms": 10500,
+          "duration_ms": 5000,
+          "text": "接上交流，另一半被挡住",
+          "kind": "subtitle"
+        },
+        {
+          "id": "T26",
+          "offset_ms": 16000,
+          "duration_ms": 5500,
+          "text": "输出只剩单向的脉动",
+          "kind": "subtitle"
+        },
+        {
+          "id": "T27",
+          "offset_ms": 28500,
+          "duration_ms": 4500,
+          "text": "这就是整流",
+          "kind": "subtitle"
+        }
+      ],
+      "knowledge_refs": ["K04", "K05", "K06"],
+      "semantic_constraints": [
+        "整流是正半周导通、负半周截止，输出单向脉动，不是把交流变成恒定直流。",
+        "两个结的差别只来自偏压方向造成的势垒高度不同。"
+      ],
+      "audio_intent": "音乐回到开头的脉冲主题，输出波形出现时节奏收束，最后一段留白"
+    }
+  ]
+}

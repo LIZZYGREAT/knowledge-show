@@ -1,0 +1,105 @@
+{
+  "project_id": "P003",
+  "artifact_id": "KP003",
+  "revision": 1,
+  "brief_revision": 1,
+  "directions": [
+    {
+      "id": "D01",
+      "title": "三个动作，三种错位",
+      "core_question": "比喻、拟人、通感明明都是『拿一个说另一个』，为什么是三种不同的修辞？",
+      "hook": "三句话里，被换掉的东西根本不是同一样。",
+      "learning_goal": "能判断一个句子换掉的到底是物、是人，还是感觉通道。",
+      "knowledge_refs": ["K01", "K02", "K03", "K04", "K05", "K06"],
+      "visual_potential": {
+        "level": "medium",
+        "reason": "错位关系本身抽象，但对错位的『位置』可以做统一的空间化处理。"
+      },
+      "duration_fit": {
+        "status": "adequate",
+        "reason": "三种修辞各自一个动作，再加一次并置对照，两分半左右。"
+      }
+    }
+  ],
+  "recommended_direction_id": "D01",
+  "knowledge_units": [
+    {
+      "id": "K01",
+      "type": "concept",
+      "content": "比喻是拿另一类事物的相似点来描述本体。",
+      "explanation": "本体和喻体本质不同，靠相似性连接。",
+      "importance": "core",
+      "verification_status": "verified",
+      "evidence_refs": ["E01"]
+    },
+    {
+      "id": "K02",
+      "type": "concept",
+      "content": "拟人是把人的特征、动作或情感赋予非人事物。",
+      "explanation": "被换掉的是『施动者』的身份，让物做出人的行为。",
+      "importance": "core",
+      "verification_status": "verified",
+      "evidence_refs": ["E01"]
+    },
+    {
+      "id": "K03",
+      "type": "concept",
+      "content": "通感是把一种感官通道的描述挪去写另一种感官。",
+      "explanation": "被换掉的是感觉通道本身，比如用听觉词写视觉。",
+      "importance": "core",
+      "verification_status": "verified",
+      "evidence_refs": ["E01"]
+    },
+    {
+      "id": "K04",
+      "type": "principle",
+      "content": "三者的区别在于『被换掉的东西』处于不同位置：事物类别、施动身份、感觉通道。",
+      "explanation": "三种修辞都发生了替换，但替换的槽位不同，这才是区分的根据，而不是句子长度或华丽程度。",
+      "importance": "core",
+      "verification_status": "verified",
+      "depends_on": ["K01", "K02", "K03"],
+      "evidence_refs": ["E01"]
+    },
+    {
+      "id": "K05",
+      "type": "application",
+      "content": "『月光如流水』是比喻，『月亮在笑』是拟人，『甜美的声音』是通感。",
+      "explanation": "三句分别替换了事物类别、施动身份、感觉通道。",
+      "importance": "core",
+      "verification_status": "verified",
+      "depends_on": ["K04"],
+      "evidence_refs": ["E01", "E02"]
+    },
+    {
+      "id": "K06",
+      "type": "principle",
+      "content": "混淆多发生在『跨界』的句子：既有物也有人、既有视也有听时，要判断被换掉的那个槽位。",
+      "explanation": "一个句子里可能同时有多种修饰，但要找的是主要替换发生在哪一槽。",
+      "importance": "supporting",
+      "verification_status": "verified",
+      "depends_on": ["K04"],
+      "evidence_refs": ["E01"]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E01",
+      "kind": "external_source",
+      "title": "现代汉语教材的修辞章节",
+      "locator": "黄伯荣、廖序东《现代汉语》修辞部分"
+    },
+    {
+      "id": "E02",
+      "kind": "user_material",
+      "title": "三个典型例句",
+      "details": "『月光如流水』『月亮在笑』『甜美的声音』，分别对应三种修辞。"
+    }
+  ],
+  "constraints": {
+    "required_knowledge_refs": ["K04", "K05"],
+    "must_not_misrepresent": [
+      "不要把拟人说成一种特殊的比喻。",
+      "不要用『都是把人比作物』概括三种修辞。"
+    ]
+  }
+}

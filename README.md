@@ -1,6 +1,6 @@
 # knowledge-show
 
-> 面向普通创作者的 AI 知识短视频制作项目。当前 `main` 仍以基础骨架和接口契约为主；知识层首版、体验修订和联调前最小修订分别位于 `feat/knowledge-layer-implementation`、`feat/knowledge-cost-efficiency-ux`、`feat/knowledge-handoff-readiness`，尚未集成脚本、动画和共享工作流。
+> 面向普通创作者的 AI 知识短视频制作项目。`main` 已通过 PR #5 集成知识层与 16:9 首版配置，并通过 PR #6 纳入 v0.3 脚本写作提示词和可选事件锚点契约。当前前端功能在独立任务分支开发；脚本生成执行器、共享工作流、动画运行时和视频导出仍未实现。
 
 ## 项目目标
 
@@ -19,7 +19,7 @@
 
 ## 当前可运行范围
 
-仓库已包含五类 **跨阶段数据契约**、连贯 Mock 示例及校验脚本。知识层工作分支可运行完整研究、创意、核验与知识包交付，也提供本地检验页；新增的独立前端可运行创作入口、设置抽屉与明确标识的流程演示，启动和验证见 [前端说明](frontend/README.md)。脚本层、真实生成接口、动画预览、跨层工作流和视频导出仍未集成。以 [STATUS.md](STATUS.md) 为准。
+仓库已包含五类 **跨阶段数据契约**、连贯 Mock 示例及校验脚本。知识层可运行完整研究、创意、核验与 KnowledgePackage JSON 交付，并提供本地检验页。当前前端分支提供创作入口、设置抽屉和明确标注的流程演示，启动说明见 [前端说明](frontend/README.md)。脚本层已有可复用的 v0.3 写作提示词和 ProductionScript 契约，但尚无生成执行器；真实生成接口、动画预览、跨层工作流和视频导出仍未集成。以 [STATUS.md](STATUS.md) 为准。
 
 在仓库根目录激活 `.venv` 后，可运行知识层测试和契约校验：
 
@@ -34,7 +34,7 @@ PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests/knowledge -q
 PYTHONPATH=backend/src STREAMLIT_SERVER_ADDRESS=127.0.0.1 STREAMLIT_SERVER_PORT=8501 .venv/bin/python -m streamlit run backend/src/knowledge/devtools/review_app.py
 ```
 
-联调前修订分支的 79 项知识层测试和契约校验已通过；真实 API 验收覆盖基础定义、进阶自注意力机制和带 `focus` / `must_include` 的骰子概率主题。脚本、动画、工作流协调器、全链路应用启动和视频导出尚未实现。
+当前集成分支的 83 项知识层测试通过；契约校验覆盖五类 Schema、连贯样例、十三种负例和非推荐方向切换。四份历史 ProductionScript 也通过新版 Schema 校验。真实 API 验收覆盖基础定义、进阶自注意力机制和带 `focus` / `must_include` 的骰子概率主题。本次跨层消费 Smoke 使用已发布知识包和固定 ProjectState / ProductionScript Mock，不调用 API；它检查版本引用、方向、时间轴及锚点事件映射，不代表真实脚本生成或动画播放已打通。前端分支已记录生产构建、7 项逻辑测试和 8 项 Chromium 浏览器测试通过。
 
 ## 目录与文档入口
 
