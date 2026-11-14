@@ -115,6 +115,13 @@ def create_app(
             return _error(422, "missing_key", "请先填写 API Key。")
         return _error(422, "invalid_input", "请求内容不完整或格式不正确，请检查后重试。")
 
+    from animation.api import install_animation_routes
+    animation_runtime = install_animation_routes(
+        app, projects=projects, candidates=manifests, revisions=revisions,
+        services_factory=services_factory, active_tasks=active_tasks,
+        knowledge_export_dir=knowledge_export_dir, script_export_dir=script_export_dir,
+    )
+
     @app.get("/api/health")
     async def health():
         return {"status": "ok"}
@@ -337,6 +344,8 @@ def create_app(
             return _error(404, "invalid_input", "没有找到这个创作项目。")
         except ProjectStateError:
             return _error(422, "invalid_input", "项目编号无效。")
+        if project["artifacts"].get("animation_manifest") is not None:
+            return animation_runtime.preview(project)
         if project["artifacts"].get("animation_manifest") is None:
             if manifests.has_candidate(project_id):
                 return {
