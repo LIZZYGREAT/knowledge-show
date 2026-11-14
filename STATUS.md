@@ -39,8 +39,8 @@
 
 ## 活动任务
 
-- 前端任务：`docs/tasks/open/frontend/前端视觉重新确立方向设计方案.md`，分支 `feat/frontend-organic-flow`，基于 `main@03de6c9` 创建。已完成流场与装饰重做、设计文档同步、构建和 10 项逻辑/15 项 Chromium E2E 验证，并审阅截图及录屏；视觉效果待负责人验收，任务仍在 `open/`。
-- 跨层任务：`docs/tasks/open/backend/knowledge-show-main-跨层契约修订与分支整合执行方案.md` 的实现已通过 PR #6 进入 `main`；任务仍留在 `open/`，等待负责人确认后关闭。
+- 前端任务：`docs/tasks/open/frontend/前端视觉重新确立方向设计方案.md`，分支 `feat/frontend-organic-flow`，基于 `main@03de6c9` 创建。已重做流场形态、丝状纹理、连续运动与多处装饰，并同步设计说明。构建、10 项逻辑测试和 15 项 Chromium E2E 通过，五种屏宽及关键姿态截图、实际录屏已检查；视觉效果待用户确认，任务保留在 `open/`。
+- 跨层任务：`docs/tasks/open/backend/跨层契约修订与分支整合执行方案.md` 的实现已通过 PR #6 进入 `main`；任务仍留在 `open/`，等待负责人确认后关闭。
 - 当前任务：`docs/tasks/open/backend/编辑器元件定位契约修订方案.md`，分支 `fix/editor-element-selection-contract` 从 `main@03de6c9` 创建，PR #10 已向 `main` 提交审核。共享契约语义已获确认；本轮落实稳定元件 ID 索引与精确版本锚点。当前无动画运行时，因此真实 bbox 联调仍待实现。
 - 前序知识层任务已按 PR #5 集成进 `main`；脚本提示词源分支仅定向引入了所需文件，没有合并其余历史提交。
 
