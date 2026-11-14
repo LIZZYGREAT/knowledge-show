@@ -105,6 +105,28 @@ export function startScriptJob(
   );
 }
 
+export async function startAnimationJob(
+  projectId: string,
+  apiKey: string,
+  artPreference: string,
+) {
+  const handoff = await request<{ project_revision: number }>(
+    `/api/projects/${encodeURIComponent(projectId)}/handoff/animation`,
+  );
+  return request<{ job_id: string; status: "queued" | "running" }>(
+    `/api/projects/${encodeURIComponent(projectId)}/animations`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        expected_project_revision: handoff.project_revision,
+        style_id: "auto",
+        art_preference: artPreference,
+        api_key: apiKey,
+      }),
+    },
+  );
+}
+
 export function getJob(jobId: string) {
   return request<JobSnapshot>(`/api/jobs/${encodeURIComponent(jobId)}`);
 }

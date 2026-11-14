@@ -25,7 +25,7 @@ export function CreationConfirm({
       {draft.focus && <p className="confirm-focus">特别想讲：{draft.focus}</p>}
       {draft.creative_mode === "custom" && <p>{draft.creative_mode_notes}</p>}
       <p className="quiet">
-        连续制作会运行研究、脚本和动画生成，可能产生模型费用。你可以先看脚本，再决定是否制作动画。
+        连续制作会按需运行研究、脚本或动画生成，可能产生模型费用；已有成果会在适用时复用。你也可以先看脚本。
       </p>
       {error && (
         <p className="error" role="alert">

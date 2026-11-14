@@ -95,11 +95,52 @@ test("key stays out of persistent browser storage and cannot fake connection", a
   await expect(page.getByLabel("API Key", { exact: true })).toHaveValue("");
 });
 
+test("script-only confirmation stops before animation generation", async ({ page }) => {
+  let animationStarts = 0;
+  await prepareConnectedPage(page);
+  await page.route("**/api/projects", (route) =>
+    route.fulfill({ status: 201, json: { project_id: "P_SCRIPT_ONLY", project_revision: 1, project: { project_id: "P_SCRIPT_ONLY", revision: 1 } } }),
+  );
+  await page.route("**/api/projects/P_SCRIPT_ONLY/jobs", (route) =>
+    route.fulfill({ status: 202, json: { job_id: "JOB_SCRIPT_ONLY", status: "running" } }),
+  );
+  await page.route("**/api/jobs/JOB_SCRIPT_ONLY", (route) =>
+    route.fulfill({ json: {
+      job_id: "JOB_SCRIPT_ONLY", project_id: "P_SCRIPT_ONLY", status: "script_ready",
+      current_stage: "animation", stages: { knowledge: "completed", script: "completed", animation: "pending" },
+      message: "脚本准备完成。", project_revision: 4,
+      artifacts: { knowledge_package: { artifact_id: "KP_SCRIPT_ONLY", revision: 1 }, production_script: { artifact_id: "PS_SCRIPT_ONLY", revision: 1 } },
+      error_code: null,
+    } }),
+  );
+  await page.route("**/api/projects/P_SCRIPT_ONLY/production-script**", (route) =>
+    route.fulfill({ json: { core_message: "先看脚本，再决定动画。", total_duration_ms: 30000, scenes: [{ scene_id: "SC01", objective: "先看主线" }] } }),
+  );
+  await page.route("**/api/projects/P_SCRIPT_ONLY/animations/status", (route) =>
+    route.fulfill({ json: { preview: { status: "not_ready" }, job: null } }),
+  );
+  await page.route("**/api/projects/P_SCRIPT_ONLY/animations", (route) => {
+    if (route.request().method() === "POST") animationStarts += 1;
+    return route.fallback();
+  });
+
+  await page.getByRole("button", { name: "开始创作" }).click();
+  await page.getByLabel("你想让大家了解什么？").fill("先看脚本");
+  await page.getByRole("button", { name: "开始创作", exact: false }).click();
+  await page.getByRole("button", { name: "先看脚本" }).click();
+  await expect(page.getByRole("heading", { name: "讲述主线已经准备好。" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "开始制作动画 →" })).toBeVisible();
+  expect(animationStarts).toBe(0);
+  expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem("knowledge-show:active-task") ?? "{}").continueToPreview)).toBe(false);
+});
+
 test("real task UI continues from script to preview without a second confirmation", async ({
   page,
 }) => {
   const secret = "sk-e2e-only-secret";
   let animationStarts = 0;
+  let animationRunningReads = 0;
+  let animationJobReads = 0;
   await page.route("**/api/model/test", (route) =>
     route.fulfill({
       status: 200,
@@ -151,7 +192,12 @@ test("real task UI continues from script to preview without a second confirmatio
   );
   await page.route("**/api/projects/P_E2E/animations/status", (route) =>
     route.fulfill({
-      json: animationStarts
+      json: animationStarts && animationRunningReads < 2
+        ? (animationRunningReads++, {
+            preview: { status: "not_ready" },
+            job: { status: "running", message: "正在制作动画。" },
+          })
+        : animationStarts
         ? {
             preview: {
               status: "ready",
@@ -171,6 +217,14 @@ test("real task UI continues from script to preview without a second confirmatio
     animationStarts += 1;
     expect(route.request().postDataJSON().api_key).toBe(secret);
     return route.fulfill({ status: 202, json: { job_id: "ANIM_E2E", status: "queued" } });
+  });
+  await page.route("**/api/projects/P_E2E/animations/jobs/ANIM_E2E", (route) => {
+    const running = animationJobReads < 2;
+    if (running) animationJobReads += 1;
+    return route.fulfill({ json: running
+      ? { job_id: "ANIM_E2E", status: "running", message: "正在制作动画。" }
+      : { job_id: "ANIM_E2E", status: "completed", message: "动画已完成。" },
+    });
   });
   await page.route("**/api/projects/P_E2E/animations/AM_E2E/r1/bundle", (route) =>
     route.fulfill({ json: { valid: true } }),
@@ -199,6 +253,13 @@ test("real task UI continues from script to preview without a second confirmatio
   await page.getByRole("button", { name: "本次使用" }).click();
   await page.getByRole("button", { name: "确认并连续制作到预览" }).click();
 
+  await expect(
+    page.getByRole("heading", { name: "动画正在制作。" }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "动画正在制作。" }),
+  ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "预览已经准备好。" }),
   ).toBeVisible();

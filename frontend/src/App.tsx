@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   createProject,
   getProject,
+  startAnimationJob,
   startScriptJob,
   testModelConnection,
 } from "./common/api";
@@ -10,6 +11,7 @@ import {
   fromUserInput,
   initialDraft,
   sameUserInput,
+  sameUserInputExceptArtStyle,
   toUserInput,
 } from "./common/creation";
 import { LandingHero } from "./features/landing/LandingHero";
@@ -26,6 +28,9 @@ type TaskSession = {
   jobId: string;
   topic: string;
   continueToPreview: boolean;
+  artStyle?: string;
+  styleChangePending?: boolean;
+  animationJobId?: string;
 };
 const TASK_SESSION_KEY = "knowledge-show:active-task";
 
@@ -42,6 +47,9 @@ function readTaskSession(): TaskSession | null {
       topic: value.topic,
       // Old sessions stop at the script instead of unexpectedly starting paid work.
       continueToPreview: value.continueToPreview === true,
+      artStyle: typeof value.artStyle === "string" ? value.artStyle : undefined,
+      styleChangePending: value.styleChangePending === true,
+      animationJobId: typeof value.animationJobId === "string" ? value.animationJobId : undefined,
     };
   } catch {
     return null;
@@ -80,6 +88,7 @@ export default function App() {
       .then((project) => {
         if (!active) return;
         const restored = fromUserInput(project.brief.user_input);
+        if (typeof session.artStyle === "string") restored.art_style = session.artStyle;
         setDraft(restored);
         setProjectId(project.project_id);
         setTaskSession((current) => {
@@ -183,9 +192,56 @@ export default function App() {
     setError("");
     try {
       const userInput = toUserInput(draft);
+      const requestedArtStyle = typeof userInput.art_style === "string" ? userInput.art_style : "";
       let targetProjectId = projectId;
       if (targetProjectId) {
         const current = await getProject(targetProjectId);
+        const savedArtStyle = (
+          taskSession?.artStyle ??
+          (typeof current.brief.user_input.art_style === "string" ? current.brief.user_input.art_style : "")
+        ).trim();
+        const artStyleChanged = requestedArtStyle !== savedArtStyle;
+        if (sameUserInputExceptArtStyle(current.brief.user_input, userInput) && jobId) {
+          const alreadyRequested = taskSession?.animationJobId && taskSession.artStyle?.trim() === requestedArtStyle;
+          if (alreadyRequested || (!artStyleChanged && !(taskSession?.styleChangePending && continueToPreview))) {
+            setConfirm(false);
+            setError("");
+            navigate("working");
+            return;
+          }
+          if (continueToPreview) {
+            const started = await startAnimationJob(targetProjectId, connection.key, requestedArtStyle);
+            const next: TaskSession = {
+              projectId: targetProjectId,
+              jobId,
+              topic: draft.topic,
+              continueToPreview: true,
+              artStyle: requestedArtStyle,
+              styleChangePending: false,
+              animationJobId: started.job_id,
+            };
+            persistTask(next);
+            setJobId(jobId);
+            setConfirm(false);
+            setError("");
+            navigate("working");
+            return;
+          }
+          const next: TaskSession = {
+            projectId: targetProjectId,
+            jobId,
+            topic: draft.topic,
+            continueToPreview: false,
+            artStyle: requestedArtStyle,
+            styleChangePending: true,
+          };
+          persistTask(next);
+          setJobId(jobId);
+          setConfirm(false);
+          setError("");
+          navigate("working");
+          return;
+        }
         if (!sameUserInput(current.brief.user_input, userInput)) {
           targetProjectId = "";
         }
@@ -196,13 +252,14 @@ export default function App() {
         setProjectId(targetProjectId);
       }
       setJobId("");
-      persistTask({ projectId: targetProjectId, jobId: "", topic: draft.topic, continueToPreview });
+      persistTask({ projectId: targetProjectId, jobId: "", topic: draft.topic, continueToPreview, artStyle: draft.art_style });
       const started = await startScriptJob(targetProjectId, connection.key);
       const next = {
         projectId: targetProjectId,
         jobId: started.job_id,
         topic: draft.topic,
         continueToPreview,
+        artStyle: draft.art_style,
       };
       setProjectId(targetProjectId);
       setJobId(started.job_id);
@@ -228,7 +285,7 @@ export default function App() {
     try {
       const started = await startScriptJob(projectId, connection.key);
       setJobId(started.job_id);
-      persistTask({ projectId, jobId: started.job_id, topic: draft.topic, continueToPreview: taskSession?.continueToPreview === true });
+      persistTask({ ...taskSession, projectId, jobId: started.job_id, topic: draft.topic, continueToPreview: taskSession?.continueToPreview === true });
     } catch (cause) {
       setError((cause as Error).message || "暂时无法重试任务，请稍后重试。");
     } finally {
@@ -324,6 +381,7 @@ export default function App() {
             onChange={setDraft}
             onSubmit={review}
             onDemo={() => navigate("demo")}
+            onNewProject={projectId ? startFreshProject : undefined}
             error={error}
           />
         ) : page === "demo" ? (
@@ -340,8 +398,19 @@ export default function App() {
             apiKey={connection.key}
             continueToPreview={taskSession?.continueToPreview === true}
             onBack={() => {
-              clearTask();
               navigate("composing");
+            }}
+            artPreference={taskSession?.artStyle}
+            styleChangePending={taskSession?.styleChangePending === true}
+            animationJobId={taskSession?.animationJobId}
+            onAnimationJobCreated={(animationJobId) => {
+              if (!taskSession) return;
+              persistTask({
+                ...taskSession,
+                animationJobId,
+                styleChangePending: false,
+                continueToPreview: true,
+              });
             }}
             onRetry={() => void retryCurrentTask()}
             onOpenSettings={() => setSettings(true)}

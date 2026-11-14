@@ -21,18 +21,26 @@ export function TaskProgress({
   hasApiKey,
   apiKey,
   continueToPreview,
+  artPreference,
+  styleChangePending,
+  animationJobId,
   onBack,
   onRetry,
   onOpenSettings,
+  onAnimationJobCreated,
 }: {
   jobId: string;
   topic: string;
   hasApiKey: boolean;
   apiKey?: string | null;
   continueToPreview: boolean;
+  artPreference?: string;
+  styleChangePending: boolean;
+  animationJobId?: string;
   onBack: () => void;
   onRetry: () => void;
   onOpenSettings: () => void;
+  onAnimationJobCreated: (jobId: string) => void;
 }) {
   const [job, setJob] = useState<JobSnapshot | null>(null);
   const [jobError, setJobError] = useState("");
@@ -185,7 +193,11 @@ export function TaskProgress({
           apiKey={apiKey}
           hasApiKey={hasApiKey}
           continueToPreview={continueToPreview}
+          artPreference={artPreference}
+          styleChangePending={styleChangePending}
+          animationJobId={animationJobId}
           onOpenSettings={onOpenSettings}
+          onJobCreated={onAnimationJobCreated}
           onState={(phase, message) => {
             setAnimationPhase(phase);
             setAnimationMessage(message);

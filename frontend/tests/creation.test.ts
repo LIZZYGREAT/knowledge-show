@@ -3,6 +3,7 @@ import {
   fromUserInput,
   initialDraft,
   sameUserInput,
+  sameUserInputExceptArtStyle,
   toUserInput,
 } from "../src/common/creation";
 import {
@@ -77,6 +78,8 @@ describe("brief user_input boundary", () => {
     expect(sameUserInput(userInput, { ...userInput, focus: "热力学第二定律" })).toBe(
       false,
     );
+    expect(sameUserInputExceptArtStyle(userInput, { ...userInput, art_style: "现代图形" })).toBe(true);
+    expect(sameUserInputExceptArtStyle(userInput, { ...userInput, focus: "另一个主题重点" })).toBe(false);
   });
 });
 describe("truthful event progress", () => {
