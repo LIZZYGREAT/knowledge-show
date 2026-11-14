@@ -1,0 +1,325 @@
+{
+  "project_id": "P003",
+  "artifact_id": "PS001",
+  "revision": 1,
+  "brief_revision": 1,
+  "knowledge_package_ref": {"artifact_id": "KP003", "revision": 1},
+  "direction_id": "D01",
+  "total_duration_ms": 165000,
+  "core_message": "三种修辞都在替换，区别只在于被换掉的那个槽位：事物类别、施动身份，还是感觉通道。",
+  "scenes": [
+    {
+      "scene_id": "S01",
+      "start_ms": 0,
+      "duration_ms": 22000,
+      "objective": "观众看到三句并排摆出的句子，并意识到各自被换掉的部分未必是同一样东西，带着这个疑问继续看。",
+      "role": "hook",
+      "visual_notes": [
+        "全片使用同一个竖向句子框：圆角矩形、细描边，例句以普通文本行出现，不做成定义卡或背诵卡。",
+        "圈选统一使用同一种手绘感虚线圈，颜色在第一场先不定，留到后面按槽位着色。",
+        "竖屏 9:16，顶部与底部各留出安全区，例句不贴边。"
+      ],
+      "events": [
+        {
+          "id": "EV01",
+          "offset_ms": 0,
+          "duration_ms": 6000,
+          "description": "竖屏中央浮出一个空的句子框，第一句「月光如流水」从左滑入框内上沿，随后「流水」两字被一圈虚线框住。"
+        },
+        {
+          "id": "EV02",
+          "offset_ms": 6000,
+          "duration_ms": 6000,
+          "description": "第二句「月亮在笑」滑入框内中部，「笑」字被同样的虚线圈住，与前一个圈上下对齐。"
+        },
+        {
+          "id": "EV03",
+          "offset_ms": 11000,
+          "duration_ms": 6000,
+          "description": "第三句「甜美的声音」滑入框内下沿，「甜美」两字被圈住；三个圈同时缩放到同一大小。"
+        },
+        {
+          "id": "EV04",
+          "offset_ms": 17000,
+          "duration_ms": 5000,
+          "description": "三个圈同时闪动一次，各自拉出一条虚线向上汇聚到框顶的一个问号，句子框随即微微缩小并停住。"
+        }
+      ],
+      "timed_text": [
+        {"id": "T01", "offset_ms": 0, "duration_ms": 4000, "text": "月光如流水。", "kind": "subtitle"},
+        {"id": "T02", "offset_ms": 4000, "duration_ms": 4000, "text": "月亮在笑。", "kind": "subtitle"},
+        {"id": "T03", "offset_ms": 8000, "duration_ms": 4000, "text": "甜美的声音。", "kind": "subtitle"},
+        {"id": "T04", "offset_ms": 12000, "duration_ms": 5000, "text": "三句都在拿一个说另一个。", "kind": "subtitle"},
+        {"id": "T05", "offset_ms": 17500, "duration_ms": 4000, "text": "但被换掉的，是同一类东西吗？", "kind": "subtitle"}
+      ],
+      "audio_intent": "低频环境声铺底，每句出现时各有一声轻点；问号亮起时留半秒空白。",
+      "knowledge_refs": [],
+      "semantic_constraints": [
+        "本场只并置三句，不给出任何分类结论。",
+        "不得暗示拟人是比喻的一种。"
+      ]
+    },
+    {
+      "scene_id": "S02",
+      "start_ms": 22000,
+      "duration_ms": 32000,
+      "objective": "观众理解比喻替换的是事物类别：本体与喻体本不是一类，靠相似点连接。",
+      "role": "explain",
+      "visual_notes": [
+        "句子框沿用 S01 的样式；本场进入第一句「月光如流水」。",
+        "右侧固定出现三个槽位图标，顺序为事物类别、施动身份、感觉通道；本场只让「事物类别」亮起琥珀色。",
+        "「月光」与「流水」各占一张卡片，卡片样式全片复用。"
+      ],
+      "events": [
+        {
+          "id": "EV05",
+          "offset_ms": 0,
+          "duration_ms": 8000,
+          "description": "句子框向两侧拉开成两栏，左栏亮起「月光」卡片，右栏亮起「流水」卡片，其余例句淡出。"
+        },
+        {
+          "id": "EV06",
+          "offset_ms": 8000,
+          "duration_ms": 8000,
+          "description": "两张卡片下各浮出一枚类别标签「光」与「水」，两枚标签之间画出一条断开的折线，断口处闪一下。"
+        },
+        {
+          "id": "EV07",
+          "offset_ms": 16000,
+          "duration_ms": 8000,
+          "description": "一条弧桥从「流水」卡片跨到「月光」卡片，桥面上依次冒出「流泻」「柔」两个词，月光卡片表面浮起水的流纹。",
+          "knowledge_refs": ["K01"]
+        },
+        {
+          "id": "EV08",
+          "offset_ms": 24000,
+          "duration_ms": 8000,
+          "description": "画面收拢回单框，框顶浮出高亮标签「被换掉：事物类别」，右侧第一枚槽位图标转为琥珀色并放大一档。",
+          "knowledge_refs": ["K01"]
+        }
+      ],
+      "timed_text": [
+        {"id": "T06", "offset_ms": 0, "duration_ms": 4500, "text": "月光不是水。", "kind": "subtitle"},
+        {"id": "T07", "offset_ms": 4500, "duration_ms": 5000, "text": "但它流泻、柔软的样子，和水相似。", "kind": "subtitle"},
+        {"id": "T08", "offset_ms": 9500, "duration_ms": 4000, "text": "比喻借的，是另一类事物的相似点。", "kind": "subtitle"},
+        {"id": "T09", "offset_ms": 14000, "duration_ms": 5000, "text": "本体：月光｜喻体：流水", "kind": "annotation"},
+        {"id": "T10", "offset_ms": 20000, "duration_ms": 5000, "text": "本体和喻体，本来就不同类。", "kind": "subtitle"},
+        {"id": "T11", "offset_ms": 25000, "duration_ms": 5000, "text": "连起它们的是相似，不是相同。", "kind": "subtitle"}
+      ],
+      "audio_intent": "桥出现时加一条轻微上扬的持续音；断线处一声短促的停顿感。",
+      "knowledge_refs": ["K01"],
+      "semantic_constraints": [
+        "本体与喻体本质不同，靠相似点连接；相似不等于相同。",
+        "不得把本体和喻体说成同一个事物，也不得把比喻说成换掉施动者或感觉通道。"
+      ]
+    },
+    {
+      "scene_id": "S03",
+      "start_ms": 54000,
+      "duration_ms": 29000,
+      "objective": "观众理解拟人替换的是施动者的身份，让人以外的对象做出人的动作。",
+      "role": "explain",
+      "visual_notes": [
+        "句子框样式不变，本场换到第二句「月亮在笑」。",
+        "动作卡「笑」全片只用这一个样式，之后 S05 再出现时必须同形。",
+        "右侧三个槽位图标顺序不变，本场只让「施动身份」亮起青色。"
+      ],
+      "events": [
+        {
+          "id": "EV09",
+          "offset_ms": 0,
+          "duration_ms": 7000,
+          "description": "「月亮在笑」放大到框内中央，「笑」字下方浮出一张动作卡，卡片里一个简笔人形做出嘴角上扬的弧度。"
+        },
+        {
+          "id": "EV10",
+          "offset_ms": 7000,
+          "duration_ms": 8000,
+          "description": "动作卡从人形上脱离，沿一条直线滑到「月亮」两字上方并落下，月亮圆盘被压出一圈人的笑纹。"
+        },
+        {
+          "id": "EV11",
+          "offset_ms": 15000,
+          "duration_ms": 7000,
+          "description": "月亮圆盘下的身份标签由「人」翻成「月亮」，标签条整条转青；旁边浮出槽位名「施动身份」。",
+          "knowledge_refs": ["K02"]
+        },
+        {
+          "id": "EV12",
+          "offset_ms": 22000,
+          "duration_ms": 7000,
+          "description": "右侧三枚槽位图标出现，第一枚保持暗色，第二枚转青并放大一档。",
+          "knowledge_refs": ["K02"]
+        }
+      ],
+      "timed_text": [
+        {"id": "T13", "offset_ms": 0, "duration_ms": 4000, "text": "月亮在笑。", "kind": "subtitle"},
+        {"id": "T14", "offset_ms": 4000, "duration_ms": 5000, "text": "笑，本来是人做的动作。", "kind": "subtitle"},
+        {"id": "T15", "offset_ms": 9000, "duration_ms": 5000, "text": "这里，做动作的换成了月亮。", "kind": "subtitle"},
+        {"id": "T16", "offset_ms": 15000, "duration_ms": 5000, "text": "被换掉的，是施动者的身份。", "kind": "subtitle"},
+        {"id": "T17", "offset_ms": 21000, "duration_ms": 4500, "text": "物 → 人的行为", "kind": "annotation"}
+      ],
+      "audio_intent": "动作卡滑落时一声轻柔的落点；身份翻牌时一声薄薄的翻页声。",
+      "knowledge_refs": ["K02"],
+      "semantic_constraints": [
+        "拟人是把人的特征、动作或情感赋予非人事物。",
+        "不得把拟人说成一种特殊的比喻，也不得说成把人比作物。"
+      ]
+    },
+    {
+      "scene_id": "S04",
+      "start_ms": 83000,
+      "duration_ms": 32000,
+      "objective": "观众理解通感替换的是感觉通道：一个词从一条感官通道被挪去描述另一条通道。",
+      "role": "explain",
+      "visual_notes": [
+        "句子框样式不变，本场换到第三句「甜美的声音」。",
+        "五条纵向通道全片只出现这一次，顺序固定：视觉、听觉、味觉、触觉、嗅觉。",
+        "右侧三个槽位图标顺序不变，本场只让「感觉通道」亮起紫色。"
+      ],
+      "events": [
+        {
+          "id": "EV13",
+          "offset_ms": 0,
+          "duration_ms": 8000,
+          "description": "「甜美的声音」缩到框内上方，框下展开五条纵向通道，每条通道里各放一枚代表图形：光斑、声波、水滴、绒毛、烟雾。"
+        },
+        {
+          "id": "EV14",
+          "offset_ms": 8000,
+          "duration_ms": 8000,
+          "description": "「甜」这个字从句子中脱出，悬到半空，原本所在的味觉通道整格变暗。"
+        },
+        {
+          "id": "EV15",
+          "offset_ms": 16000,
+          "duration_ms": 9000,
+          "description": "「甜」沿一条弧线滑进听觉通道，落在声波图形上；听觉那一格亮起，其余通道保持原样。"
+        },
+        {
+          "id": "EV16",
+          "offset_ms": 25000,
+          "duration_ms": 7000,
+          "description": "五条通道向中间收成一条窄带，窄带上方浮出「被换掉：感觉通道」，右侧第三枚槽位图标转紫并放大一档。",
+          "knowledge_refs": ["K03"]
+        }
+      ],
+      "timed_text": [
+        {"id": "T18", "offset_ms": 0, "duration_ms": 4000, "text": "甜美的声音。", "kind": "subtitle"},
+        {"id": "T19", "offset_ms": 4000, "duration_ms": 5000, "text": "甜，是味觉的说法。", "kind": "subtitle"},
+        {"id": "T20", "offset_ms": 9000, "duration_ms": 5000, "text": "声音，走的是听觉通道。", "kind": "subtitle"},
+        {"id": "T21", "offset_ms": 14500, "duration_ms": 5000, "text": "这一个词，跨了一条通道。", "kind": "subtitle"},
+        {"id": "T22", "offset_ms": 20000, "duration_ms": 5000, "text": "通感换掉的，是感觉通道本身。", "kind": "subtitle"},
+        {"id": "T23", "offset_ms": 26000, "duration_ms": 4000, "text": "味觉词 → 听觉", "kind": "annotation"}
+      ],
+      "audio_intent": "词滑过通道时一条细细的滑音，落定时收掉。",
+      "knowledge_refs": ["K03"],
+      "semantic_constraints": [
+        "通感是感觉通道之间的挪用，被换掉的是通道本身。",
+        "不得把通感说成夸张或普通比喻；「甜美」的替换发生在通道，不在事物类别或施动者。"
+      ]
+    },
+    {
+      "scene_id": "S05",
+      "start_ms": 115000,
+      "duration_ms": 30000,
+      "objective": "观众一眼看清三种修辞的替换分别发生在三个不同的位置，这是把它们区分开的根据。",
+      "role": "payoff",
+      "visual_notes": [
+        "三句纵向排列成三行，句子框沿用第一场的样式，三行共用左侧同一条对齐线。",
+        "三个被换掉的部件分别用之前出现过的圈选样式：流水与 S02 同形、笑与 S03 的动作卡同形、甜美与 S04 的字块同形。",
+        "槽位颜色固定：事物类别琥珀、施动身份青、感觉通道紫，本场三色同时出现。"
+      ],
+      "events": [
+        {
+          "id": "EV17",
+          "offset_ms": 0,
+          "duration_ms": 7000,
+          "description": "三句话自上而下排成三行，每行右侧各有一张盖住的小卡，卡片边缘露出一点颜色。",
+          "knowledge_refs": ["K05"]
+        },
+        {
+          "id": "EV18",
+          "offset_ms": 7000,
+          "duration_ms": 8000,
+          "description": "三张小卡同时翻开，露出「流水」「笑」「甜美」，三处圈选分别落在句尾、动作位、修饰位，位置互不重合。",
+          "knowledge_refs": ["K05"]
+        },
+        {
+          "id": "EV19",
+          "offset_ms": 15000,
+          "duration_ms": 8000,
+          "anchor": true,
+          "description": "三处圈选同时亮起三种颜色，画面右侧浮出三个槽位名，三条高亮线分别指向三行里不同的位置。",
+          "knowledge_refs": ["K04", "K05"]
+        },
+        {
+          "id": "EV20",
+          "offset_ms": 23000,
+          "duration_ms": 7000,
+          "description": "画面停止新增内容，三组高亮缓慢变暗到只剩轮廓，三行字保持静止。",
+          "knowledge_refs": ["K04"]
+        }
+      ],
+      "timed_text": [
+        {"id": "T24", "offset_ms": 0, "duration_ms": 4500, "text": "同样的三句，摆在一起。", "kind": "subtitle"},
+        {"id": "T25", "offset_ms": 4500, "duration_ms": 4500, "text": "被换掉的部分，位置各不相同。", "kind": "subtitle"},
+        {"id": "T26", "offset_ms": 9500, "duration_ms": 4500, "text": "一个换在事物类别。", "kind": "subtitle"},
+        {"id": "T27", "offset_ms": 14000, "duration_ms": 4500, "text": "一个换在施动身份。", "kind": "subtitle"},
+        {"id": "T28", "offset_ms": 18500, "duration_ms": 4500, "text": "还有一个，换在感觉通道。", "kind": "subtitle"}
+      ],
+      "audio_intent": "三张卡翻开时三个短音依次落下，之后完全静音，只留底噪，撑住最后七秒。",
+      "knowledge_refs": ["K04", "K05"],
+      "semantic_constraints": [
+        "三者都发生了替换，区别在替换的槽位，不在句子长短或华丽程度。",
+        "被换掉的三样必须落在三个不同的位置，不能画成同一处。"
+      ]
+    },
+    {
+      "scene_id": "S06",
+      "start_ms": 145000,
+      "duration_ms": 20000,
+      "objective": "观众拿到一个可操作的判断顺序：遇到跨界句，先找被换掉的那一个槽位，而不是数特征。",
+      "role": "other",
+      "visual_notes": [
+        "三句缩成小字保留在画面上方，作为检查对象，不换新例子。",
+        "槽位颜色与顺序沿用前场，三个色块最后必须落在同一条横轴的不同刻度上。"
+      ],
+      "events": [
+        {
+          "id": "EV21",
+          "offset_ms": 0,
+          "duration_ms": 7000,
+          "description": "三句缩成三行小字退到画面上方，中央腾出一个空句子框，框内亮起几个待填的小槽位。"
+        },
+        {
+          "id": "EV22",
+          "offset_ms": 7000,
+          "duration_ms": 7000,
+          "description": "一枚圆形放大镜沿着三行字横向移动，依次停在句尾、动作位、修饰位，每停一次，旁边浮出一个问号。",
+          "knowledge_refs": ["K06"]
+        },
+        {
+          "id": "EV23",
+          "offset_ms": 14000,
+          "duration_ms": 6000,
+          "anchor": true,
+          "description": "放大镜定住，三处圈选收缩成三个色块，落到画面底部同一条横轴的不同刻度上，横轴上方浮出「位置不同」。",
+          "knowledge_refs": ["K04", "K06"]
+        }
+      ],
+      "timed_text": [
+        {"id": "T30", "offset_ms": 0, "duration_ms": 4000, "text": "一个句子里，可能又有物、又有人。", "kind": "subtitle"},
+        {"id": "T31", "offset_ms": 4500, "duration_ms": 4500, "text": "也可能视觉和听觉混在一起。", "kind": "subtitle"},
+        {"id": "T32", "offset_ms": 9500, "duration_ms": 4500, "text": "别数它像了几样，先找被换掉的那一格。", "kind": "subtitle"},
+        {"id": "T33", "offset_ms": 14500, "duration_ms": 4500, "text": "换在哪个位置，就是哪种修辞。", "kind": "subtitle"}
+      ],
+      "audio_intent": "回到开场的底噪，收紧后收尾；最后一个色块落位时一声轻点，不拖尾。",
+      "knowledge_refs": ["K04", "K06"],
+      "semantic_constraints": [
+        "判断跨界句时找主要替换发生的那个槽位，不靠数修饰的数量。",
+        "不得用「都是把人比作物」概括三种修辞。"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,480 @@
+{
+  "project_id": "P002",
+  "artifact_id": "PS001",
+  "revision": 1,
+  "brief_revision": 1,
+  "knowledge_package_ref": {
+    "artifact_id": "KP002",
+    "revision": 1
+  },
+  "direction_id": "D01",
+  "total_duration_ms": 165000,
+  "core_message": "同一个结，外加电压压低势垒就导通，抬高势垒就几乎不通——这就是单向导电。",
+  "scenes": [
+    {
+      "scene_id": "S01",
+      "start_ms": 0,
+      "duration_ms": 15000,
+      "role": "hook",
+      "objective": "观众先看到同一个结构在两种接法下的极端反差，一边粒子成流、一边几乎不动，并带着「为什么」继续看。",
+      "visual_notes": [
+        "结本体固定在画面中央，两端引线长度不变；两种接法之间只允许整体旋转 180°，结构本身不得变形。",
+        "左右两个状态用同一套红蓝粒子与同一台仪表；指针摆幅必须极端，一侧接近满偏，另一侧接近零但仍有一丝微小可见偏转。",
+        "结尾推近界面时画面保持朦胧，不提前露出势垒形状；势垒留到下一场才成形。"
+      ],
+      "events": [
+        {
+          "id": "EV01",
+          "offset_ms": 0,
+          "duration_ms": 6000,
+          "description": "一块两端带引线的结居中，红色与蓝色粒子从左侧引线成串涌入，右侧仪表指针迅速摆到接近满偏。"
+        },
+        {
+          "id": "EV02",
+          "offset_ms": 6000,
+          "duration_ms": 4000,
+          "description": "两端极性整体旋转 180°，同一批粒子冲向界面后停在原地并弹回，仪表指针落回接近零，但仍有一丝可见的微小偏转。"
+        },
+        {
+          "id": "EV03",
+          "offset_ms": 10000,
+          "duration_ms": 5000,
+          "description": "两个状态并排定格，镜头缓慢推近接触面；界面细节仍然模糊，画面停在推近中途。"
+        }
+      ],
+      "timed_text": [
+        {
+          "id": "T01",
+          "offset_ms": 9500,
+          "duration_ms": 1900,
+          "text": "同一个结，两个方向",
+          "kind": "subtitle"
+        }
+      ],
+      "knowledge_refs": [],
+      "semantic_constraints": [
+        "不得暗示两种接法是两个不同的结。",
+        "此时不得给出势垒或载流子的解释。",
+        "反向一侧的电流可以极小，但不可画成完全为零。"
+      ],
+      "audio_intent": "低频持续音随流量增大而变厚；反向时骤降到几乎静音但保留极轻底噪；翻面时一声短促的机械咔哒。"
+    },
+    {
+      "scene_id": "S02",
+      "start_ms": 15000,
+      "duration_ms": 28000,
+      "role": "setup",
+      "objective": "观众看清两侧多数载流子不同、接触处形成空间电荷区与内建电场，并看到势垒在没有任何外加电压时就已经立在那里。",
+      "visual_notes": [
+        "左侧 P 区填充暖红色圆点表示空穴，右侧 N 区填充冷蓝色圆点表示电子；两侧同色点都在各自一侧占多数。",
+        "空间电荷区是接缝处的一条窄带，带内固定的加减号钉住不动，与可移动圆点明确区分。",
+        "势垒画成从 N 侧向 P 侧隆起的地形，不是一堵平面墙；同一结的地形轮廓在全片保持一致。",
+        "本场结束时两端引线断开，没有任何电池接入。"
+      ],
+      "events": [
+        {
+          "id": "EV04",
+          "offset_ms": 0,
+          "duration_ms": 6000,
+          "description": "左侧 P 区先铺满暖红色圆点，右侧 N 区铺满冷蓝色圆点，两块随后向中间滑动并合成一个整体，只在接缝处留下一条细窄过渡带。",
+          "knowledge_refs": ["K01", "K02"]
+        },
+        {
+          "id": "EV05",
+          "offset_ms": 6000,
+          "duration_ms": 8000,
+          "description": "接缝附近的少数红点与蓝点越过接缝向对侧扩散，越过后窄带两侧留下固定不动的加减符号；符号钉在原地，扩散的圆点继续散开，窄带上方长出一支由 N 指向 P 的细箭头。",
+          "knowledge_refs": ["K03"]
+        },
+        {
+          "id": "EV06",
+          "offset_ms": 14000,
+          "duration_ms": 8000,
+          "description": "窄带连同箭头一起向上隆起成一个小丘；靠近的红蓝点爬上坡面一小段后滑回两侧。",
+          "knowledge_refs": ["K03"]
+        },
+        {
+          "id": "EV07",
+          "offset_ms": 23000,
+          "duration_ms": 5000,
+          "description": "画面停住：小丘立着，两端的粒子重新分布成安静的队列，引线空着，没有接入任何电源。",
+          "knowledge_refs": ["K03"]
+        }
+      ],
+      "timed_text": [
+        {
+          "id": "T02",
+          "offset_ms": 0,
+          "duration_ms": 2500,
+          "text": "PN 结",
+          "kind": "title"
+        },
+        {
+          "id": "T03",
+          "offset_ms": 2500,
+          "duration_ms": 3000,
+          "text": "P",
+          "kind": "annotation"
+        },
+        {
+          "id": "T04",
+          "offset_ms": 2500,
+          "duration_ms": 3000,
+          "text": "N",
+          "kind": "annotation"
+        },
+        {
+          "id": "T05",
+          "offset_ms": 5500,
+          "duration_ms": 2500,
+          "text": "空穴",
+          "kind": "annotation"
+        },
+        {
+          "id": "T06",
+          "offset_ms": 5500,
+          "duration_ms": 2500,
+          "text": "电子",
+          "kind": "annotation"
+        },
+        {
+          "id": "T07",
+          "offset_ms": 16000,
+          "duration_ms": 4000,
+          "text": "势垒",
+          "kind": "annotation"
+        },
+        {
+          "id": "T08",
+          "offset_ms": 24000,
+          "duration_ms": 2400,
+          "text": "不加电压，势垒也在",
+          "kind": "subtitle"
+        }
+      ],
+      "knowledge_refs": ["K01", "K02", "K03"],
+      "semantic_constraints": [
+        "空间电荷区由不能移动的离子形成，不是绝缘层。",
+        "内建电场方向为 N 指向 P。",
+        "势垒在无外加电压时已经存在。",
+        "两侧载流子数量差异来自掺杂，不得表现为随机分布。"
+      ],
+      "audio_intent": "粒子落位的细碎声逐渐稀疏；势垒隆起时用缓慢上扬的低频滑音；结尾留白。"
+    },
+    {
+      "scene_id": "S03",
+      "start_ms": 43000,
+      "duration_ms": 34000,
+      "role": "explain",
+      "objective": "观众看到 P 接正、N 接负时外电场与内建电场方向相反、势垒被压低，多数载流子成片越过，形成明显的大电流。",
+      "visual_notes": [
+        "电池符号长线为正、短线为负；本场正端接 P 侧、负端接 N 侧，接线位置要一眼可辨。",
+        "内建电场用实线箭头（N 指向 P），外加电场用虚线箭头（P 指向 N），两箭头并排相对，靠线型区分。",
+        "势垒下沉但保留坡度，不压成完全平地；粒子越过时必须连续移动，不能瞬移。"
+      ],
+      "events": [
+        {
+          "id": "EV08",
+          "offset_ms": 0,
+          "duration_ms": 6000,
+          "description": "两端引线接上电池，正端贴近 P 侧、负端贴近 N 侧；一支虚线箭头从 P 指向 N，出现在实线箭头的对面。",
+          "knowledge_refs": ["K04"]
+        },
+        {
+          "id": "EV09",
+          "offset_ms": 6000,
+          "duration_ms": 12000,
+          "description": "两支箭头相互顶住，坡顶开始一格一格下沉，原本立着的小丘逐渐变矮。",
+          "knowledge_refs": ["K04"]
+        },
+        {
+          "id": "EV10",
+          "offset_ms": 18000,
+          "duration_ms": 6000,
+          "anchor": true,
+          "description": "坡顶降到很低时，成片的红点与蓝点翻过坡顶涌向对面，右侧仪表指针迅速摆向满偏。",
+          "knowledge_refs": ["K04"]
+        },
+        {
+          "id": "EV11",
+          "offset_ms": 24000,
+          "duration_ms": 6000,
+          "description": "镜头稍微后拉，跨越界面的粒子连成一条持续不断的粗流，对面一侧的粒子随之散开。",
+          "knowledge_refs": ["K04"]
+        },
+        {
+          "id": "EV12",
+          "offset_ms": 30000,
+          "duration_ms": 4000,
+          "description": "画面停住：坡顶保持低矮，粗流稳定通过，除了粒子流动没有新的变化。",
+          "knowledge_refs": ["K04"]
+        }
+      ],
+      "timed_text": [
+        {
+          "id": "T09",
+          "offset_ms": 6500,
+          "duration_ms": 2200,
+          "text": "正向",
+          "kind": "annotation"
+        },
+        {
+          "id": "T10",
+          "offset_ms": 18500,
+          "duration_ms": 1900,
+          "text": "不是穿过绝缘层",
+          "kind": "subtitle"
+        }
+      ],
+      "knowledge_refs": ["K04"],
+      "semantic_constraints": [
+        "正向偏压是 P 接正、N 接负。",
+        "外电场与内建电场方向相反，势垒降低。",
+        "多数载流子扩散形成较大的正向电流。",
+        "不得把导通解释为电子穿过绝缘体。",
+        "表现势垒降低，不要画成完全消失的平地。"
+      ],
+      "audio_intent": "势垒下沉配下行滑音；粒子越过时加入密集细流声；仪表满偏的短促提示音精确落在锚点。"
+    },
+    {
+      "scene_id": "S04",
+      "start_ms": 77000,
+      "duration_ms": 36000,
+      "role": "explain",
+      "objective": "观众看到极性反接后势垒抬高、多数载流子被挡在坡脚，只有少量少子形成细小但确实存在的反向电流。",
+      "visual_notes": [
+        "本场正端接 N 侧、负端接 P 侧，与上一场正好相反，接线变化要看得清。",
+        "势垒高度必须明显高于第二场的初始高度，高出量要让观众可直接比较。",
+        "少子是各自区域里的少数：P 区内少量蓝色小点、N 区内少量红色小点，采用更小或半透明样式，不引入新色系。",
+        "多子在坡脚堆积、爬升后滑回，是反复的失败动作；少子从坡顶另一侧滑下并穿过，形成细流。"
+      ],
+      "events": [
+        {
+          "id": "EV13",
+          "offset_ms": 0,
+          "duration_ms": 6000,
+          "description": "电池整体反接：正端移到 N 侧、负端移到 P 侧，虚线箭头翻向，与实线箭头指向同一方向。",
+          "knowledge_refs": ["K05"]
+        },
+        {
+          "id": "EV14",
+          "offset_ms": 6000,
+          "duration_ms": 10000,
+          "description": "两支同向箭头叠在一起，坡顶持续抬高，明显高过第二场开头的高度。",
+          "knowledge_refs": ["K05"]
+        },
+        {
+          "id": "EV15",
+          "offset_ms": 16000,
+          "duration_ms": 8000,
+          "description": "大量红点与蓝点挤在坡脚，爬上坡面一小段就被推回，反复堆积，几乎没有粒子翻过去。",
+          "knowledge_refs": ["K05"]
+        },
+        {
+          "id": "EV16",
+          "offset_ms": 24000,
+          "duration_ms": 6000,
+          "anchor": true,
+          "description": "坡顶另一侧，几个更小更淡的红点与蓝点顺着坡面滑下并穿过界面，汇成一条极细的流；仪表指针只偏出很小一格。",
+          "knowledge_refs": ["K05"]
+        },
+        {
+          "id": "EV17",
+          "offset_ms": 30000,
+          "duration_ms": 6000,
+          "description": "画面停住：高坡立着，坡脚挤满失败的多子，细流持续穿过，其余元素保持不动。",
+          "knowledge_refs": ["K05"]
+        }
+      ],
+      "timed_text": [
+        {
+          "id": "T11",
+          "offset_ms": 6500,
+          "duration_ms": 2200,
+          "text": "反向",
+          "kind": "annotation"
+        },
+        {
+          "id": "T12",
+          "offset_ms": 17000,
+          "duration_ms": 2500,
+          "text": "多子",
+          "kind": "annotation"
+        },
+        {
+          "id": "T13",
+          "offset_ms": 24500,
+          "duration_ms": 3000,
+          "text": "少子",
+          "kind": "annotation"
+        },
+        {
+          "id": "T14",
+          "offset_ms": 28500,
+          "duration_ms": 1800,
+          "text": "反向电流不是零",
+          "kind": "subtitle"
+        }
+      ],
+      "knowledge_refs": ["K05"],
+      "semantic_constraints": [
+        "反向偏压是 P 接负、N 接正。",
+        "势垒升高，多数载流子几乎无法越过。",
+        "反向电流由少量少子漂移形成，数值很小但绝不为零。"
+      ],
+      "audio_intent": "势垒抬升配上行滑音；多数粒子滑回时零散轻响；少子细流只用极轻的高频丝声，听起来不能像彻底断开。"
+    },
+    {
+      "scene_id": "S05",
+      "start_ms": 113000,
+      "duration_ms": 20000,
+      "role": "payoff",
+      "objective": "观众把两个方向的同一结构并排对照，确认差别就来自势垒高低，从而接受单向导电的解释。",
+      "visual_notes": [
+        "左右分屏共用同一水平基线与同一高度比例尺，两个坡顶高度可直接用眼睛比。",
+        "两栏的结几何完全一致，只有极性、坡高和流量不同，不要让两栏看起来像两种不同器件。",
+        "左栏对应正向：低坡、粗流、指针接近满偏；右栏对应反向：高坡、细流、指针几乎不动。",
+        "流量差异用粒子密度与流的粗细表达，不使用数字。"
+      ],
+      "events": [
+        {
+          "id": "EV18",
+          "offset_ms": 0,
+          "duration_ms": 7000,
+          "description": "画面一分为二：左边低坡配粗流，右边高坡配细流，两个结以同一条基线并排立起。",
+          "knowledge_refs": ["K04", "K05"]
+        },
+        {
+          "id": "EV19",
+          "offset_ms": 7000,
+          "duration_ms": 6000,
+          "description": "一支水平标记从左侧坡顶滑到右侧坡顶，两坡的高度差被一段高亮竖线标出；两边的仪表指针一高一低。",
+          "knowledge_refs": ["K04", "K05"]
+        },
+        {
+          "id": "EV20",
+          "offset_ms": 13000,
+          "duration_ms": 7000,
+          "description": "两边画面同时定格，只剩粒子流在原位缓慢运动，其余元素静止。",
+          "knowledge_refs": ["K04", "K05"]
+        }
+      ],
+      "timed_text": [
+        {
+          "id": "T15",
+          "offset_ms": 8000,
+          "duration_ms": 1900,
+          "text": "高低，决定通不通",
+          "kind": "subtitle"
+        }
+      ],
+      "knowledge_refs": ["K04", "K05"],
+      "semantic_constraints": [
+        "两个方向的差异只来自势垒高度与可越过载流子数量。",
+        "不得把反向电流画成零。",
+        "两侧结结构必须相同。"
+      ],
+      "audio_intent": "左右声场分开（左正向、右反向）；高度标记移动时一声轻点；定格后音乐收薄。"
+    },
+    {
+      "scene_id": "S06",
+      "start_ms": 133000,
+      "duration_ms": 20000,
+      "role": "other",
+      "objective": "观众看到交流信号经过这个结后负半周被削掉，只剩单向脉动，理解单向导电的实际用途。",
+      "visual_notes": [
+        "输入正弦与输出脉动共用同一条时间轴，逐点对齐，便于看出哪半周被保留。",
+        "输出只保留上方的波峰，下方被压平成直线，不是把负半周翻到上方。",
+        "结本体沿用前面的造型，坡顶随输入正负半周低、高切换，与波形同步。"
+      ],
+      "events": [
+        {
+          "id": "EV21",
+          "offset_ms": 0,
+          "duration_ms": 6000,
+          "description": "一条平滑正弦波从左侧写入并向右延伸，进入结本体；结的坡顶随波形起伏低、高交替。",
+          "knowledge_refs": ["K06"]
+        },
+        {
+          "id": "EV22",
+          "offset_ms": 6000,
+          "duration_ms": 8000,
+          "description": "右侧输出端只画出正弦的上半部分，向下的半周被压成一条平直线。",
+          "knowledge_refs": ["K06"]
+        },
+        {
+          "id": "EV23",
+          "offset_ms": 14000,
+          "duration_ms": 6000,
+          "description": "镜头后拉，输入正弦与输出半波并排显示；输出下方的小箭头全部指向同一方向。",
+          "knowledge_refs": ["K06"]
+        }
+      ],
+      "timed_text": [
+        {
+          "id": "T16",
+          "offset_ms": 500,
+          "duration_ms": 2500,
+          "text": "整流",
+          "kind": "title"
+        },
+        {
+          "id": "T17",
+          "offset_ms": 3500,
+          "duration_ms": 3000,
+          "text": "交流",
+          "kind": "annotation"
+        },
+        {
+          "id": "T18",
+          "offset_ms": 9000,
+          "duration_ms": 3000,
+          "text": "单向",
+          "kind": "annotation"
+        }
+      ],
+      "knowledge_refs": ["K06"],
+      "semantic_constraints": [
+        "正半周导通、负半周截止。",
+        "输出为单向脉动，不是把负半周翻成正值。",
+        "整流利用的是单向导电性。"
+      ],
+      "audio_intent": "输入段节奏规整；输出段只保留正半周的脉冲节奏，形成可听的单向。"
+    },
+    {
+      "scene_id": "S07",
+      "start_ms": 153000,
+      "duration_ms": 12000,
+      "role": "other",
+      "objective": "画面回到单个结，观众用刚建立的势垒视角把整个现象收束成可复述的一幕。",
+      "visual_notes": [
+        "回到单结居中构图，与第一场呼应，但此时坡的形态清晰可见。",
+        "两次极性翻转要慢到可读；翻转之间坡的升降方向不能反。",
+        "最后断开电源，坡保持站立，画面静止，不再引入新对象。"
+      ],
+      "events": [
+        {
+          "id": "EV24",
+          "offset_ms": 0,
+          "duration_ms": 6000,
+          "description": "画面回到单个结居中，极性缓慢翻转一次：坡顶下沉、粒子成流；再翻回：坡顶抬高、流变细。",
+          "knowledge_refs": ["K04", "K05"]
+        },
+        {
+          "id": "EV25",
+          "offset_ms": 6000,
+          "duration_ms": 6000,
+          "description": "电源被断开，引线空出；坡顶停在原位，几颗粒子缓慢漂移，画面静止收尾。",
+          "knowledge_refs": ["K04", "K05"]
+        }
+      ],
+      "timed_text": [],
+      "knowledge_refs": ["K04", "K05"],
+      "semantic_constraints": [
+        "势垒随极性升降的方向不能反。",
+        "结束时不得暗示存在持续的外加电流。"
+      ],
+      "audio_intent": "机械咔哒两次后彻底静音，只留极轻的环境底噪。"
+    }
+  ]
+}
