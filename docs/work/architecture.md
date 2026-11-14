@@ -1,6 +1,6 @@
 # knowledge-show 系统架构与数据流
 
-> 本文描述已确定的**概念架构与仓库模块边界**。`main` 已包含 PR #5 知识层、PR #6 跨层脚本契约、PR #7 React 创作入口、PR #8 独立时间轴原型和 PR #9 视觉重构。当前 `feat/non-animation-mainline` 分支实现了脚本生成/发布和知识包到脚本的最小工作流；HTTP API 与动画运行时仍未接通。动画首幕 P0 预览在独立分支 `feat/animation-runtime-workbench`。字段及类型由 `contracts/` 中的现行定义负责。
+> 本文描述已确定的**概念架构与仓库模块边界**。`main` 已包含 PR #5 知识层、PR #6 跨层脚本契约、PR #7 React 创作入口、PR #8 独立时间轴原型和 PR #9 视觉重构。当前 `feat/non-animation-mainline` 已集成脚本生成/发布、知识包到脚本的最小工作流，以及固定 PN 结 S01 的独立动画 P0 预览；HTTP API、AnimationManifest 发布与工作台联动仍未接通。字段及类型由 `contracts/` 中的现行定义负责。
 
 ## 一、整体工作流
 
@@ -23,7 +23,7 @@ flowchart TB
     W -.-> A
 ```
 
-生产主线为 **知识 → 脚本 → 动画**。协调器维护共享需求、当前产物引用和修订路由。用户可提前选择方向，也可直接采用系统推荐生成首版。知识层内部不限制单向研究流程：知识发现与创意构想互相提出问题，经过必要核验后再收敛为公开的 `KnowledgePackage`。当前分支已贯通知识包读取、方向选择、脚本生成和版本发布；此处通向动画的后续链路仍是目标架构，未由当前分支实现。
+生产主线为 **知识 → 脚本 → 动画**。协调器维护共享需求、当前产物引用和修订路由。用户可提前选择方向，也可直接采用系统推荐生成首版。知识层内部不限制单向研究流程：知识发现与创意构想互相提出问题，经过必要核验后再收敛为公开的 `KnowledgePackage`。当前分支已贯通知识包读取、方向选择、脚本生成和版本发布；动画 P0 仅独立消费固定脚本样例，尚未连接该工作流或形成完整下游链路。
 
 **共同创作目标**：最终作品应围绕值得观看的知识主线，建立真实可感知的视觉对象、清楚的观看重心和自然连续的变化。纯标题、公式、静态卡片和图表的轮流切换不构成合格的主要动画表达。这是三层共同保障的产品目标，不能靠单一层的字段或 Schema 自动验收。
 
@@ -79,10 +79,10 @@ flowchart TD
 | `backend/src/common/` | 确需共享的后端基础逻辑 | 占位目录 |
 | `frontend/src/features/creation/` | 需求表达与提交确认 | 独立前端已实现表单、偏好和确认，待接任务 API |
 | `frontend/src/features/landing/`、`progress/`、`settings/` | 品牌入口、阶段展示、会话连接设置 | 视觉骨架和显式流程演示已实现，真实连接与事件流待接入 |
-| `frontend/src/features/preview/` | 动态预览与产物查看 | 占位目录，真实媒体与工作台待实现 |
+| `frontend/src/features/preview/` | 动态预览与产物查看 | P0 独立研发入口 `/animation-preview.html`；完整产物与工作台待实现 |
 | `frontend/src/features/revision/` | 用户反馈入口及修订结果呈现 | 含独立 HTML 时间轴原型；不是 React 产品路由，仍用演示数据 |
-| `frontend/src/animation/runtime/` | 动画播放、场景装配和渲染运行时 | 占位目录；当前无真实预览与元件包围盒查询 |
-| `frontend/src/animation/scenes/` | 场景实现与必要复用 | 占位目录 |
+| `frontend/src/animation/runtime/` | 动画播放、场景装配和渲染运行时 | P0 单场景播放器：Seek、播放暂停、元件边界、资源清理；Manifest 与工作台适配待 P1 |
+| `frontend/src/animation/scenes/` | 场景实现与必要复用 | 固定 PN v2 S01（15s）可执行场景，独立视频美术 |
 | `contracts/` | 独立于业务代码的机器契约和 Mock | 已建立 |
 
 业务目录是否已出现实际功能由 `STATUS.md`、代码和运行结果确认；本文不将设计描述视为已实施。
@@ -107,6 +107,6 @@ PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests/knowledge -q
 .venv/bin/python contracts/validate_contracts.py
 ```
 
-当前分支的脚本测试 10 项、工作流集成测试 3 项、知识层测试 83 项通过；契约校验和前端生产构建通过，前端单测 10 项通过。Playwright E2E 因运行环境缺少 Chromium 所需的 `libnspr4.so` 未能启动。契约脚本覆盖五类公开对象、可选元件索引、`render_element` 版本与 ID 校验、历史 Manifest 兼容和负例。真实模型验收尚未进行；另有历史固定 Mock Smoke，它不代表真实脚本生成质量。实际动画运行时尚未集成到当前分支，因此帧包围盒、高亮与锚点播放仍待运行时测试；契约校验也**不能代替事实核验、创意质量、脚本可看性或最终观感检查**。
+当前分支的脚本测试 10 项、工作流集成测试 3 项、知识层测试 83 项通过；契约校验、前端生产构建和前端单测 10 项通过。Playwright 19 项 E2E 全部通过，覆盖 P0 的确定性 Seek、稳定对象身份、当前帧边界、样式隔离、快速 Seek 取消和播放暂停，以及既有创作页回归；本机需通过 `LD_LIBRARY_PATH` 提供 Chromium 系统库。契约脚本覆盖五类公开对象、可选元件索引、`render_element` 版本与 ID 校验、历史 Manifest 兼容和负例。真实模型验收尚未进行；历史固定 Mock Smoke 不代表真实脚本生成质量。当前预览未接入完整脚本工作流、工作台或 AnimationManifest，因此多场景、工作台联动、正式 Manifest 元件索引和锚点播放仍待实现；契约校验也**不能代替事实核验、创意质量、脚本可看性或最终观感检查**。
 
 分工与协作规则见 `docs/work/目录结构与分工.md` 和 `docs/work/workflow.md`。
