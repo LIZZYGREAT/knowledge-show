@@ -210,7 +210,7 @@ def test_auto_profile_uses_script_topic_and_preserves_explicit_choice():
     assert preferred_profile_id('敦煌风格的视觉表达',{'core_message':'概率','scenes':[]})=='modern-graphic'
 
 @pytest.mark.anyio
-async def test_formal_generation_job_publishes_only_after_renderer_receipt(runtime,tmp_path):
+async def test_formal_generation_job_publishes_only_after_renderer_receipt(runtime,tmp_path,monkeypatch):
     projects,project,script,service=runtime
     created=[]
     class Services:
@@ -221,9 +221,15 @@ async def test_formal_generation_job_publishes_only_after_renderer_receipt(runti
         value=Services();created.append(value);return value
     app=create_app(state_store=projects,job_store=JobStore(tmp_path/'jobs'),revision_store=RevisionRequestStore(tmp_path/'requests'),animation_manifest_store=service.candidates,knowledge_export_dir=tmp_path/'knowledge',script_export_dir=tmp_path/'script',services_factory=factory)
     app.state.animation_runtime.validator=lambda *_:{'status':'validated'}
+    captured=[]
+    original=app.state.animation_runtime.generate
+    async def capture(*args,**kwargs):
+        captured.append(kwargs)
+        return await original(*args,**kwargs)
+    monkeypatch.setattr(app.state.animation_runtime,'generate',capture)
     base=f"/api/projects/{project['project_id']}"
     async with AsyncClient(transport=ASGITransport(app=app),base_url='http://testclient') as client:
-        response=await client.post(base+'/animations',json={'expected_project_revision':project['revision'],'api_key':'TRANSIENT_TEST_KEY'})
+        response=await client.post(base+'/animations',json={'expected_project_revision':project['revision'],'api_key':'TRANSIENT_TEST_KEY','style_id':'paper-editorial','art_preference':'纸层更有纤维感'})
         assert response.status_code==202
         job=response.json()['job_id']
         for _ in range(100):
@@ -231,6 +237,8 @@ async def test_formal_generation_job_publishes_only_after_renderer_receipt(runti
             if state['status'] not in ['queued','running']: break
             await asyncio.sleep(.01)
         assert state['status']=='completed'
+        assert captured[0]['style_id']=='paper-editorial'
+        assert captured[0]['art_preference']=='纸层更有纤维感'
         assert created[0].closed
         ready=(await client.get(base+'/preview')).json()
         assert ready['status']=='ready'
