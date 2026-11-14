@@ -1,6 +1,6 @@
 # knowledge-show
 
-> 面向普通创作者的 AI 知识短视频制作项目。`main` 已包含知识层首版（PR #5）、跨层脚本契约（PR #6）、React 创作入口（PR #7）、独立时间轴编辑器原型（PR #8）和前端视觉重构（PR #9）。当前 `feat/non-animation-mainline` 已集成脚本生成、ProjectState 到脚本的工作流，以及固定 PN 结 S01 的动画 P0 预览。HTTP API、前端真实任务接入、多场景 Manifest、工作台联动和视频导出仍待实现。
+> 面向普通创作者的 AI 知识短视频制作项目。`main` 已包含知识层首版（PR #5）、跨层脚本契约（PR #6）、React 创作入口（PR #7）、独立时间轴编辑器原型（PR #8）、前端视觉重构（PR #9）以及脚本工作流和动画 P0 预览（PR #12）。当前工作分支 `feat/non-animation-mainline` 在此基础上已打通本地任务 API、React 创作页到知识→脚本生成的任务流程、精确脚本动画交接，以及动画 Manifest 候选校验和修订请求接收。候选 Manifest 尚不发布为项目当前动画；通用播放器、工作台、自动修订和视频导出仍待实现。
 
 ## 项目目标
 
@@ -19,7 +19,7 @@
 
 ## 当前可运行范围
 
-仓库已包含五类 **跨阶段数据契约**、连贯 Mock 示例及校验脚本。知识层可运行完整研究、创意、核验与 KnowledgePackage JSON 交付，并提供本地检验页。脚本层可调用 DeepSeek Responses API，也支持注入 Fake LLM；生成结果经 Schema、跨层引用和时间线校验，最多进行一次受限修复，再以不可覆盖版本文件发布。工作流可持久化 ProjectState、读取精确知识包版本并运行至脚本完成。动画 P0 预览播放固定 PN 结 S01（15 秒），支持 Seek 和元件边界检查；它尚未连接工作台，也未发布完整 AnimationManifest。HTTP API 和前端真实任务接入仍待实现；脚本尚未进行真实模型验收。独立时间轴编辑器仍使用演示数据。启动说明见 [前端说明](frontend/README.md)，状态以 [STATUS.md](STATUS.md) 为准。
+仓库已包含五类 **跨阶段数据契约**、连贯 Mock 示例及校验脚本。知识层可运行完整研究、创意、核验与 KnowledgePackage JSON 交付，并提供本地检验页。脚本层可调用 DeepSeek Responses API，也支持注入 Fake LLM；生成结果经 Schema、跨层引用和时间线校验，最多进行一次受限修复，再以不可覆盖版本文件发布。工作流与本地 HTTP API 可创建项目、持久化并查询任务，按精确版本运行至脚本完成；React 创作页已消费该任务接口，并在刷新后恢复项目和任务。动画交接返回当前 ProductionScript；Manifest 只通过结构、引用和本地资源校验后作为候选保存，通用播放器未接入前不会成为当前项目动画，也不会开放正式预览。固定 PN 结 S01 的 15 秒 P0 预览仍是独立研发入口，独立时间轴编辑器仍使用演示数据。当前分支尚未进行真实模型脚本验收，修订请求也尚未执行自动修改。启动说明见 [API 对接文档](docs/work/contracts/API.md) 与 [前端说明](frontend/README.md)，状态以 [STATUS.md](STATUS.md) 为准。
 
 在仓库根目录激活 `.venv` 后，可运行知识层测试和契约校验：
 
@@ -28,11 +28,20 @@ PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests/knowledge -q
 .venv/bin/python contracts/validate_contracts.py
 ```
 
-当前开发分支的脚本与工作流离线检查：
+当前开发分支的 API、脚本与工作流离线检查：
 
 ```bash
-PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests/script backend/tests/integration -q
+PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests/api backend/tests/script backend/tests/integration -q
 ```
+
+本地启动任务 API 和 React 创作页（分别在两个终端运行）：
+
+```bash
+PYTHONPATH=backend/src .venv/bin/python -m uvicorn api.app:app --host 127.0.0.1 --port 8000
+cd frontend && npm run dev
+```
+
+API 端点、状态语义和本地安全边界见 [API 对接文档](docs/work/contracts/API.md)。
 
 知识层本地检验页在仓库根目录 `.env` 配有密钥时默认使用 Real API，并要求确认本次在线生成可能产生调用费用；没有密钥时只提供明确标注的固定主题离线示例。页面打开不会自动调用模型。开发者诊断可手动切换 Mock 与 Real API。密钥由 `python-dotenv` 自动加载，不提交到版本控制：
 
@@ -42,7 +51,7 @@ PYTHONPATH=backend/src STREAMLIT_SERVER_ADDRESS=127.0.0.1 STREAMLIT_SERVER_PORT=
 
 `main` 上的知识层已有 83 项测试通过；契约校验覆盖五类 Schema、连贯样例、负例、旧版本兼容和非推荐方向切换。四份历史 ProductionScript 也通过新版 Schema 校验。既有真实 API 验收覆盖基础定义、进阶自注意力机制和带 `focus` / `must_include` 的骰子概率主题。本次跨层消费 Smoke 使用已发布知识包和固定 ProjectState / ProductionScript Mock，不调用 API；它检查版本引用、方向、时间轴及锚点事件映射。PR #9 的首轮视觉重构通过了生产构建、7 项逻辑测试和 11 项 Chromium 浏览器测试。青绿流场与创作页装饰分支通过生产构建、10 项逻辑测试和 15 项 Chromium 浏览器测试，并检查了五种屏宽、关键姿态及实际开场录屏。
 
-合并后的脚本测试 10 项、工作流集成测试 3 项、知识层 83 项、契约校验、包含 P0 预览页的前端生产构建和 10 项前端单测均通过。Playwright 的 19 项 E2E 也通过；本机需通过 `LD_LIBRARY_PATH` 提供 Chromium 系统库，未配置时浏览器无法启动。
+此前脚本测试 10 项、工作流集成测试 3 项、知识层 83 项、契约校验、前端生产构建和 10 项前端单测均通过。本次交接补全另运行 API、脚本和工作流测试共 21 项、契约校验、前端生产构建、10 项前端单测及 20 项 Playwright E2E，均通过；Uvicorn 本地健康检查返回 `{"status":"ok"}`。Playwright 本机需通过 `LD_LIBRARY_PATH` 提供 Chromium 系统库。真实模型脚本验收尚未执行。
 
 ## 目录与文档入口
 
@@ -51,15 +60,15 @@ PYTHONPATH=backend/src STREAMLIT_SERVER_ADDRESS=127.0.0.1 STREAMLIT_SERVER_PORT=
 | `AGENTS.md` | Agent 接手、授权、修改与交付约定 |
 | `STATUS.md` | 当前状态、负责人、阻塞及下次集成 |
 | `backend/src/knowledge/`、`backend/src/script/` | 知识层和脚本层；当前分支已有脚本生成与正式版本发布 |
-| `backend/src/workflow/` | ProjectState 版本存储与知识包到脚本的最小编排 |
-| `backend/src/api/` | HTTP 服务尚未实现 |
+| `backend/src/workflow/` | ProjectState 版本存储、知识包到脚本编排、Manifest 候选和修订请求的校验接收 |
+| `backend/src/api/` | 本地任务 API：项目、任务、产物、方向、动画交接、预览状态和修订请求 |
 | `frontend/src/features/`、`frontend/src/animation/` | 用户流程与动画实现；含固定 PN S01 的独立动画研发预览 |
 | `frontend/src/features/revision/editor-layout.html` | 独立时间轴 UI 原型，演示数据与真实动画运行时未连接 |
 | `contracts/schemas/` | **唯一机器可读契约**（五类 JSON Schema） |
 | `contracts/examples/` | Mock 联调样例 |
 | `contracts/validate_contracts.py` | Schema 与跨对象一致性校验 |
 | `contracts/接口契约与协作规范.md` | 跨阶段接口、权限、修订语义的权威说明 |
-| `docs/work/contracts/API.md` | 对接入口与传输 API 的登记处（HTTP 端点尚未实现） |
+| `docs/work/contracts/API.md` | 对接入口、已实现端点与状态语义 |
 | `docs/work/architecture.md` | 当前系统边界和数据流 |
 | `docs/work/design-principles.md` | 稳定的产品与设计原则 |
 | `docs/work/design/产品理念与工作流共识.md` | 较完整的产品体验与流程共识 |
@@ -70,4 +79,4 @@ PYTHONPATH=backend/src STREAMLIT_SERVER_ADDRESS=127.0.0.1 STREAMLIT_SERVER_PORT=
 | `docs/tasks/open/`、`docs/tasks/closed/` | 待执行与已确认完成的任务 |
 | `docs/playbooks/` | 按需使用的操作手册 |
 
-知识层实现和本地开发环境见技术栈路线；其余模块的技术栈、服务接口和部署方式尚未确定，不预先写入虚构命令。
+知识层实现和本地开发环境见技术栈路线；当前 API 仅供本机开发使用，不是公开部署或多用户服务。
