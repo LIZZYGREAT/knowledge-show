@@ -5,11 +5,13 @@ export function CreationConfirm({
   onClose,
   onConfirm,
   error,
+  busy = false,
 }: {
   draft: Draft;
   onClose: () => void;
   onConfirm: () => void;
   error: string;
+  busy?: boolean;
 }) {
   return (
     <Modal title="准备把这个问题变成动画" onClose={onClose}>
@@ -31,8 +33,8 @@ export function CreationConfirm({
         <button className="secondary" onClick={onClose}>
           返回修改
         </button>
-        <button className="primary" onClick={onConfirm}>
-          确认，开始制作 →
+        <button className="primary" onClick={onConfirm} disabled={busy}>
+          {busy ? "正在启动…" : "确认，开始制作 →"}
         </button>
       </div>
     </Modal>

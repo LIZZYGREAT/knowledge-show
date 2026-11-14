@@ -117,8 +117,7 @@ export function ApiSettingsDrawer({
           </span>
         </label>
         <p className="setting-hint">
-          刷新后需重新填写。接入本地服务后，请求经本机进程发送至
-          DeepSeek，调用可能产生费用。
+          测试连接会实际请求 DeepSeek；开始创作会进行知识研究和脚本生成，可能产生模型与搜索费用。密钥只保留在当前页面会话和本机请求内存中，刷新后需重新填写。
         </p>
         <div className="settings-actions">
           <button
@@ -166,7 +165,7 @@ export function ApiSettingsDrawer({
           </button>
         )}
         <aside className="integration-hint">
-          当前为前端联调版本，本地 API 连接与真实生成尚未开放。
+          本地创作 API 已接入。脚本完成后会等待动画制作；当前尚无真实视频预览。
         </aside>
       </div>
     </Modal>

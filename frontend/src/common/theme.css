@@ -733,6 +733,27 @@ summary span {
   min-height: 52px;
   font-size: 15px;
 }
+.real-progress-scene .event-bubble {
+  animation: none;
+}
+.script-overview {
+  max-width: 680px;
+  margin: 30px auto;
+  padding: 24px;
+  border: 1px solid var(--ks-line);
+  border-radius: 12px;
+  background: var(--ks-surface-soft);
+  text-align: left;
+}
+.script-overview h2 {
+  font-size: 19px;
+  line-height: 1.6;
+}
+.script-overview p:last-child {
+  color: var(--ks-muted);
+  font-size: 13px;
+  margin-top: 10px;
+}
 .progress-actions {
   display: flex;
   gap: 15px;

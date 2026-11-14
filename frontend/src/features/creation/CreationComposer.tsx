@@ -183,7 +183,7 @@ export function CreationComposer({
         )}
       </form>
       <aside className="development-note">
-        <span>开发联调</span> 生成服务尚未接入。可以先体验界面。
+        <span>创作流程</span> 将真实生成知识方向与制作脚本；动画资源尚未接入。
         <button className="text-button" onClick={onDemo}>
           查看流程演示 ↗
         </button>
