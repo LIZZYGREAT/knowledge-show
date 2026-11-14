@@ -7,6 +7,7 @@ import pytest
 from knowledge.brief import build_brief
 from knowledge.mock_data import MockFixtureNotFound
 from knowledge.package import validate_knowledge_package
+from knowledge.search_client import FetchPage, SearchHit
 from knowledge.service import RunOptions, generate_knowledge_package
 from knowledge.store import ResearchStore
 
@@ -204,11 +205,14 @@ class CreativeResearchLoopClient:
 
 
 class VerifierRevisionClient:
-    def __init__(self, *, stubborn=False):
+    def __init__(self, *, required_unsupported=False, problem_category="fact_problem", low_risk=False):
         self.calls = []
         self.refinement_data = None
         self.creative_feedback = []
-        self.stubborn = stubborn
+        self.required_unsupported = required_unsupported
+        self.problem_category = problem_category
+        self.low_risk = low_risk
+        self.verifier_calls = 0
 
     async def generate_json(self, *, role, **kwargs):
         self.calls.append(role)
@@ -242,16 +246,11 @@ class VerifierRevisionClient:
             if "verification_feedback" in kwargs["data"]:
                 self.refinement_data = kwargs["data"]
                 self.creative_feedback.append(kwargs["data"]["verification_feedback"])
-                if kwargs["data"]["verification_feedback"].get("final_verified_only"):
-                    claim_indices = [0]
-                elif self.stubborn:
-                    claim_indices = [0, 1]
-                else:
-                    claim_indices = [0]
-                required = claim_indices if self.stubborn else [0]
+                claim_indices = [0]
+                required = [0]
             else:
                 claim_indices = [0, 1]
-                required = claim_indices if self.stubborn else [0]
+                required = [0, 1] if self.required_unsupported else [0]
             value = {
                 "candidates": [
                     {
@@ -271,14 +270,155 @@ class VerifierRevisionClient:
                 "summary": "候选围绕等可能结果。",
             }
         else:
+            self.verifier_calls += 1
             indexes = [item["index"] for item in kwargs["data"]["claims"]]
+            reviews = []
+            for index in indexes:
+                review = {"claim_index": index, "decision": "pass"}
+                if self.required_unsupported and index == 1 and self.verifier_calls == 1:
+                    if self.problem_category == "fact_problem":
+                        review.update(
+                            decision="revise",
+                            category="fact_problem",
+                            issue="This required claim has an incorrect causal explanation.",
+                            suggested_correction="Remove the unsupported causal claim.",
+                            risk_level="high",
+                        )
+                    elif self.low_risk:
+                        review["risk_level"] = "low"
+                reviews.append(review)
             value = {
-                "reviews": [{"claim_index": index, "decision": "pass"} for index in indexes],
+                "reviews": reviews,
                 "summary": "核对每条方向主张。",
             }
         return SimpleNamespace(
             value=value,
             usage={"input_tokens": 10, "output_tokens": 5, "total_tokens": 15},
+        )
+
+
+class TargetedEvidenceClient:
+    claim = "The measured precession period in the documented setup is 2.0 seconds."
+    excerpt = "The experiment's measured period was 2.0 seconds."
+
+    def __init__(self, *, omit_targeted_search_task=False):
+        self.calls = []
+        self.verifier_calls = 0
+        self.omit_targeted_search_task = omit_targeted_search_task
+
+    async def generate_json(self, *, role, **kwargs):
+        self.calls.append(role)
+        data = kwargs["data"]
+        if role == "research" and "research_task" in data:
+            value = {
+                "summary": "A targeted source is needed for the measurement.",
+                "claims": [
+                    {
+                        "content": self.claim,
+                        "explanation": "The value is specific to the documented setup.",
+                        "conditions": [],
+                        "related_concepts": [],
+                        "depends_on": [],
+                        "provenance": "external_source",
+                        "derivation_steps": "",
+                    }
+                ],
+                "search_tasks": [] if self.omit_targeted_search_task else [
+                    {
+                        "question": "documented bicycle wheel gyroscope measured precession period",
+                        "purpose": "Verify the measured value in the described setup.",
+                        "claim_indices": [0],
+                    }
+                ],
+                "discoveries": [],
+            }
+        elif role == "research" and "source_pages" in data:
+            value = {
+                "summary": "The fetched source contains the measured value.",
+                "reviews": [
+                    {
+                        "claim_index": 0,
+                        "source_index": 0,
+                        "relation": "supports",
+                        "excerpt": self.excerpt,
+                        "locator": "Results section",
+                    }
+                ],
+            }
+        elif role == "research":
+            value = {
+                "summary": "A specific measured value needs an actual source.",
+                "claims": [
+                    {
+                        "content": self.claim,
+                        "explanation": "The value is specific to the documented setup.",
+                        "conditions": [],
+                        "related_concepts": [],
+                        "depends_on": [],
+                        "provenance": "model_generated",
+                        "derivation_steps": "",
+                    }
+                ],
+                "search_tasks": [],
+                "discoveries": [],
+            }
+        elif role == "creative":
+            value = {
+                "candidates": [
+                    {
+                        "title": "How long does this wheel take to precess?",
+                        "core_question": "What period did this setup actually measure?",
+                        "hook": "A real measurement can anchor the experiment.",
+                        "learning_goal": "Distinguish a measured result from a generic claim.",
+                        "claim_indices": [0],
+                        "required_claim_indices": [0],
+                        "recommendation_reason": "The value is the core of this narrow question.",
+                        "duration_fit": {"status": "thin", "reason": "One measured result anchors the explanation."},
+                        "visual_potential": {"level": "medium", "reason": "A repeating motion has a measurable period."},
+                        "recommended": True,
+                    }
+                ],
+                "research_tasks": [],
+                "summary": "One direction depends on a concrete measured value.",
+            }
+        else:
+            self.verifier_calls += 1
+            value = {
+                "reviews": [
+                    {
+                        "claim_index": 0,
+                        "decision": "pass",
+                        "category": "none",
+                        "risk_level": "high",
+                    }
+                ],
+                "summary": "The measured value is supported." if self.verifier_calls > 1 else "A source is needed.",
+            }
+        return SimpleNamespace(value=value, usage={"input_tokens": 10, "output_tokens": 5, "total_tokens": 15})
+
+
+class TargetedEvidenceSearch:
+    def __init__(self):
+        self.search_calls = []
+        self.fetch_calls = []
+
+    async def search(self, query, **kwargs):
+        self.search_calls.append(query)
+        return [
+            SearchHit(
+                title="University laboratory experiment notes",
+                url="https://example.edu/gyroscope-results",
+                summary="A source records the experiment's measured period.",
+                query=query,
+            )
+        ]
+
+    async def fetch(self, url):
+        self.fetch_calls.append(url)
+        return FetchPage(
+            title="University laboratory experiment notes",
+            content=f"Results. {TargetedEvidenceClient.excerpt}",
+            url=url,
         )
 
 
@@ -336,6 +476,59 @@ def test_real_workflow_keeps_model_only_claims_unverified(tmp_path):
     assert "未形成正式知识包" in events[-1]["summary"]
 
 
+def test_high_risk_required_claim_gets_one_targeted_evidence_attempt(tmp_path):
+    events = []
+    llm = TargetedEvidenceClient()
+    search = TargetedEvidenceSearch()
+    package = asyncio.run(
+        generate_knowledge_package(
+            "P_TARGETED_EVIDENCE",
+            build_brief({"topic": "a specific measured gyroscope result"}),
+            on_event=events.append,
+            run_options=RunOptions(
+                mode="real",
+                max_searches=1,
+                max_fetches=1,
+                max_model_calls=8,
+                clients={"llm": llm, "search": search},
+                store=ResearchStore(tmp_path / "knowledge.sqlite3"),
+            ),
+        )
+    )
+
+    validate_knowledge_package(package)
+    assert llm.calls == ["research", "creative", "verifier", "research", "research", "research", "verifier"]
+    assert len(search.search_calls) == len(search.fetch_calls) == 1
+    assert len(package["knowledge_units"]) == 1
+    assert package["evidence"][0]["kind"] == "external_source"
+    assert sum(event["phase"] == "creative" and event["event_type"] == "started" for event in events) == 1
+
+
+def test_verifier_gap_gets_targeted_search_even_if_research_omits_search_task(tmp_path):
+    events = []
+    llm = TargetedEvidenceClient(omit_targeted_search_task=True)
+    search = TargetedEvidenceSearch()
+    package = asyncio.run(
+        generate_knowledge_package(
+            "P_TARGETED_EVIDENCE_FALLBACK",
+            build_brief({"topic": "a specific measured gyroscope result"}),
+            on_event=events.append,
+            run_options=RunOptions(
+                mode="real",
+                max_searches=1,
+                max_fetches=1,
+                max_model_calls=8,
+                clients={"llm": llm, "search": search},
+                store=ResearchStore(tmp_path / "knowledge.sqlite3"),
+            ),
+        )
+    )
+
+    validate_knowledge_package(package)
+    assert len(search.search_calls) == len(search.fetch_calls) == 1
+    assert package["knowledge_units"][0]["verification_status"] == "verified"
+
+
 def test_creative_research_gap_runs_one_targeted_research_and_refinement(tmp_path):
     events = []
     store = ResearchStore(tmp_path / "knowledge.sqlite3")
@@ -364,7 +557,7 @@ def test_creative_research_gap_runs_one_targeted_research_and_refinement(tmp_pat
 
 
 def test_verifier_feedback_causes_one_local_creative_revision(tmp_path):
-    llm = VerifierRevisionClient()
+    llm = VerifierRevisionClient(required_unsupported=True)
     package = asyncio.run(
         generate_knowledge_package(
             "P_VERIFIER_REVISION",
@@ -380,30 +573,55 @@ def test_verifier_feedback_causes_one_local_creative_revision(tmp_path):
     )
 
     assert llm.calls == ["research", "creative", "verifier", "creative", "verifier"]
-    assert llm.refinement_data["verification_feedback"]["unverified_claims"][0]["index"] == 1
+    assert llm.refinement_data["verification_feedback"]["unverified_claims"][0]["category"] == "fact_problem"
     assert len(package["knowledge_units"]) == 1
     assert package["knowledge_units"][0]["content"] == "A fair coin has two equally likely outcomes."
 
 
-def test_final_recovery_runs_only_when_no_candidate_is_deliverable(tmp_path):
-    llm = VerifierRevisionClient(stubborn=True)
+def test_unverified_optional_claim_does_not_trigger_creative_rewrite(tmp_path):
+    llm = VerifierRevisionClient()
     package = asyncio.run(
         generate_knowledge_package(
-            "P_FINAL_RECOVERY",
+            "P_OPTIONAL_CLAIM",
             build_brief({"topic": "公平硬币的概率"}),
             run_options=RunOptions(
                 mode="real",
                 allow_search=False,
                 clients={"llm": llm, "search": None},
                 store=ResearchStore(tmp_path / "knowledge.sqlite3"),
-                export_dir=str(tmp_path / "exports"),
             ),
         )
     )
 
-    assert llm.calls == ["research", "creative", "verifier", "creative", "verifier", "creative", "verifier"]
-    assert llm.creative_feedback[-1]["final_verified_only"] is True
+    assert llm.calls == ["research", "creative", "verifier"]
+    assert package["knowledge_units"][0]["content"] == "A fair coin has two equally likely outcomes."
     assert len(package["knowledge_units"]) == 1
+
+
+def test_low_risk_claim_reports_contract_limit_without_retrying_or_faking_evidence(tmp_path):
+    events = []
+    llm = VerifierRevisionClient(
+        required_unsupported=True, problem_category="none", low_risk=True
+    )
+    with pytest.raises(ValueError, match="No candidate direction"):
+        asyncio.run(
+            generate_knowledge_package(
+                "P_INTERNAL_REVIEW_LIMIT",
+                build_brief({"topic": "公平硬币的概率"}),
+                on_event=events.append,
+                run_options=RunOptions(
+                    mode="real",
+                    allow_search=False,
+                    clients={"llm": llm, "search": None},
+                    store=ResearchStore(tmp_path / "knowledge.sqlite3"),
+                ),
+            )
+        )
+
+    assert llm.calls == ["research", "creative", "verifier"]
+    limitation = next(event for event in events if event.get("stats", {}).get("category") == "contract_limitation")
+    assert "没有可记录内部复核" in limitation["issue"]
+    assert events[-1]["event_type"] == "failed"
 
 
 def test_missing_api_key_is_reported_as_a_research_phase_failure(monkeypatch):

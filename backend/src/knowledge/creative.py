@@ -166,16 +166,12 @@ class CreativeAgent:
         if verification_feedback is not None:
             data["verification_feedback"] = verification_feedback
         prompt = (
-            "Final bounded recovery: no candidate from the previous revision has all essential claims "
-            "verified. Build a coherent candidate using only the supplied verified_claim_indices; every "
-            "claim_indices and required_claim_indices value must be in that set. Preserve the topic and "
-            "a useful learning arc, but do not mention unsupported details. Do not create research_tasks. "
-            "Return one or more candidates with exactly one recommendation."
-            if verification_feedback is not None and verification_feedback.get("final_verified_only")
-            else "Revise the existing candidate directions using the verifier feedback. Keep the valuable "
-            "core question where possible, but remove or reframe every unverified claim so the direction "
-            "uses only verified claim indices. Preserve the viewer's learning arc with the remaining facts. "
-            "Do not start another research task. Return the same candidate JSON shape and one recommendation."
+            "Revise only the affected candidate using the verifier feedback. Preserve its useful core. "
+            "Correct a fact_problem with the smallest necessary change; remove or weaken a minor_or_optional "
+            "detail without changing the whole direction. Do not invent evidence or start another research "
+            "task. Keep required_claim_indices to the minimum claims essential to the core question; "
+            "unverified optional claims may remain outside that list or be removed. Return the same candidate "
+            "JSON shape and exactly one recommendation."
             if verification_feedback is not None
             else "Refine the existing candidate directions using the newly resolved research tasks. "
             "Keep their useful core question and viewing value when the new evidence still supports it. "
@@ -187,8 +183,10 @@ class CreativeAgent:
             "the user's topic and focus, honor must_include and must_avoid, and use the actual "
             "knowledge relationships as the source of interest. For each direction give a core "
             "question, hook, learning goal, recommendation reason, duration fit, visual potential, "
-            "all related claim indices, and which claims are essential. A candidate must have at "
-            "least one essential claim. You may propose a concrete research_tasks item only for a "
+            "all relevant claim indices, and which claims are essential. Mark only the minimum claims "
+            "needed for the core question in required_claim_indices; supporting or optional claims "
+            "must not become essential merely because they are related. A candidate must have at least "
+            "one essential claim. You may propose a concrete research_tasks item only for a "
             "specific fact gap that materially affects a candidate; include its claim indices. Do "
             "not write a scene list, script, timing, character, shot, or animation method. Mark "
             "exactly one direction recommended. Return JSON with candidates, research_tasks, summary. "

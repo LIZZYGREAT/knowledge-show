@@ -107,6 +107,11 @@ class Issue(InternalRecord):
     assigned_to: str = Field(pattern="^(research|creative|verifier)$")
     status: str = Field(default="open", pattern="^(open|resolved|rejected)$")
     resolution: str = ""
+    category: str = Field(
+        default="other",
+        pattern="^(fact_problem|needs_evidence|minor_or_optional|contract_limitation|other)$",
+    )
+    risk_level: str = Field(default="high", pattern="^(low|medium|high)$")
 
 
 class Run(InternalRecord):

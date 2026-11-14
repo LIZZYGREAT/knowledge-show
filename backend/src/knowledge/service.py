@@ -17,9 +17,9 @@ from .creative import CreativeAgent
 from .config import load_settings
 from .llm_client import DeepSeekClient
 from .mock_data import make_mock_package
-from .models import Run, RunEvent
+from .models import ResearchTask, Run, RunEvent
 from .package import assemble_knowledge_package, validate_knowledge_package
-from .research import ResearchAgent
+from .research import ResearchAgent, stable_id
 from .search_client import DeepSeekSearchClient
 from .store import ResearchStore
 from .verifier import VerifierAgent
@@ -228,30 +228,46 @@ async def generate_knowledge_package(
                         resolved_tasks=completed_tasks,
                     )
                     creative_usage = _sum_usage(creative_usage, creative.usage)
+            verifier_agent = VerifierAgent(llm, on_event=emit, run_id=run_id, store=store)
             current_phase = "verifier"
-            verification = await VerifierAgent(
-                llm, on_event=emit, run_id=run_id, store=store
-            ).verify(project_id, research, creative)
+            verification = await verifier_agent.verify(project_id, research, creative)
             verification_usage = dict(verification.usage)
-            if _recommended_direction_needs_revision(creative, verification):
-                feedback = _verification_feedback(creative, verification)
-                current_phase = "creative"
-                creative = await creative_agent.propose(
-                    project_id,
-                    brief,
-                    research,
-                    existing=creative,
-                    verification_feedback=feedback,
-                )
-                creative_usage = _sum_usage(creative_usage, creative.usage)
-                current_phase = "verifier"
-                verification = await VerifierAgent(
-                    llm, on_event=emit, run_id=run_id, store=store
-                ).verify(project_id, research, creative)
-                verification_usage = _sum_usage(verification_usage, verification.usage)
+
             if not _has_eligible_candidate(creative, verification):
+                evidence_gap = _recommended_evidence_gap(creative, verification)
+                if (
+                    evidence_gap is not None
+                    and options.allow_search
+                    and research_agent.search is not None
+                    and research.search_count < research_agent.max_searches
+                ):
+                    task = ResearchTask(
+                        id=stable_id("TASK_", project_id, f"{run_id}:{evidence_gap.id}"),
+                        project_id=project_id,
+                        question=f"Verify this required claim: {evidence_gap.content}",
+                        initiated_by="verifier",
+                        purpose="补充推荐方向关键主张所需的可靠依据；优先复用缓存，不能找到时保留未核验状态。",
+                        related_claim_ids=[evidence_gap.id],
+                    )
+                    research.tasks.append(task)
+                    current_phase = "research"
+                    resolved = await research_agent.resolve_creative_tasks(
+                        project_id, brief, research, [task]
+                    )
+                    if resolved:
+                        current_phase = "verifier"
+                        verification = await verifier_agent.verify(
+                            project_id, research, creative
+                        )
+                        verification_usage = _sum_usage(
+                            verification_usage, verification.usage
+                        )
+
+            if (
+                not _has_eligible_candidate(creative, verification)
+                and _recommended_direction_needs_revision(creative, verification)
+            ):
                 feedback = _verification_feedback(creative, verification)
-                feedback["final_verified_only"] = True
                 current_phase = "creative"
                 creative = await creative_agent.propose(
                     project_id,
@@ -262,9 +278,7 @@ async def generate_knowledge_package(
                 )
                 creative_usage = _sum_usage(creative_usage, creative.usage)
                 current_phase = "verifier"
-                verification = await VerifierAgent(
-                    llm, on_event=emit, run_id=run_id, store=store
-                ).verify(project_id, research, creative)
+                verification = await verifier_agent.verify(project_id, research, creative)
                 verification_usage = _sum_usage(verification_usage, verification.usage)
             for issue in [
                 *[
@@ -284,7 +298,11 @@ async def generate_knowledge_package(
                         "summary": issue["issue"],
                         "issue": issue["issue"],
                         "recommendation": issue["recommendation"],
-                        "stats": {"status": issue["status"]},
+                        "stats": {
+                            "status": issue["status"],
+                            "category": issue.get("category", "other"),
+                            "risk_level": issue.get("risk_level", "high"),
+                        },
                     }
                 )
             current_phase = "delivery"
@@ -373,11 +391,31 @@ def _recommended_direction_needs_revision(creative: Any, verification: Any) -> b
     candidate = next((item for item in creative.candidates if item.recommended), None)
     if candidate is None:
         return False
+    required = candidate.required_claim_indices or candidate.claim_indices
+    issues = {item["claim_id"]: item for item in verification.public_issues}
+    actionable = {"fact_problem", "minor_or_optional"}
     return any(
-        index >= len(verification.claims)
-        or verification.claims[index].status.value != "verified"
-        for index in candidate.claim_indices
+        0 <= index < len(verification.claims)
+        and verification.claims[index].status.value != "verified"
+        and issues.get(verification.claims[index].id, {}).get("category") in actionable
+        for index in required
     )
+
+
+def _recommended_evidence_gap(creative: Any, verification: Any) -> Any | None:
+    candidate = next((item for item in creative.candidates if item.recommended), None)
+    if candidate is None:
+        return None
+    required = candidate.required_claim_indices or candidate.claim_indices
+    issues = {item["claim_id"]: item for item in verification.public_issues}
+    for index in required:
+        if not 0 <= index < len(verification.claims):
+            continue
+        claim = verification.claims[index]
+        issue = issues.get(claim.id, {})
+        if issue.get("category") == "needs_evidence":
+            return claim
+    return None
 
 
 def _has_eligible_candidate(creative: Any, verification: Any) -> bool:
@@ -407,7 +445,8 @@ def _verification_feedback(creative: Any, verification: Any) -> dict[str, Any]:
         )
     unverified = []
     if candidate is not None:
-        for index in candidate.claim_indices:
+        required = candidate.required_claim_indices or candidate.claim_indices
+        for index in required:
             if index >= len(verification.claims):
                 unverified.append({"index": index, "status": "missing"})
                 continue
@@ -419,6 +458,14 @@ def _verification_feedback(creative: Any, verification: Any) -> dict[str, Any]:
                         "claim_id": claim.id,
                         "content": claim.content,
                         "status": claim.status.value,
+                        "category": next(
+                            (
+                                issue["category"]
+                                for issue in verification.public_issues
+                                if issue["claim_id"] == claim.id
+                            ),
+                            "other",
+                        ),
                         "issues": issues_by_claim.get(claim.id, []),
                     }
                 )

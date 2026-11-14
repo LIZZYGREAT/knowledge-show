@@ -36,14 +36,43 @@ def test_verifier_normalizes_null_optional_text_fields():
     assert parsed.reviews[0].suggested_correction == ""
 
 
+def test_verifier_accepts_missing_or_null_summary_without_losing_claim_reviews():
+    missing = _parse_output({"reviews": [{"index": 0, "decision": "pass"}]})
+    explicit_null = _parse_output(
+        {"reviews": [{"index": 0, "decision": "pass"}], "summary": None}
+    )
+
+    assert missing.summary == explicit_null.summary
+    assert missing.reviews[0].decision == "pass"
+
+
+def test_verifier_normalizes_common_decision_labels_and_keeps_unknown_unverified():
+    parsed = _parse_output(
+        {
+            "reviews": [
+                {"index": 0, "decision": "supported"},
+                {"index": 1, "decision": "needs review"},
+                {"index": 2, "decision": "mostly okay"},
+            ],
+            "summary": "Review complete.",
+        }
+    )
+
+    assert [item.decision for item in parsed.reviews] == ["pass", "revise", "revise"]
+    assert parsed.reviews[2].category == "needs_evidence"
+    assert "remains unverified" in parsed.reviews[2].issue
+
+
 def test_verifier_shape_error_does_not_include_model_response_text():
     with pytest.raises(ValueError) as exc:
         _parse_output(
             {
-                "reviews": [{"index": 0, "decision": "private model response text"}],
+                "reviews": [
+                    {"claim_index": "private model response text", "decision": "pass"}
+                ],
                 "summary": "private model response text",
             }
         )
 
     assert "private model response text" not in str(exc.value)
-    assert "reviews.0.decision" in str(exc.value)
+    assert "reviews.0.claim_index" in str(exc.value)

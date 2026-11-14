@@ -186,7 +186,10 @@ class ResearchAgent:
             "claim include: content, explanation, conditions (array), related_concepts (array), "
             "depends_on (array of zero-based integer indices into this claims array), provenance "
             "(model_generated or derivation), and derivation_steps. A derivation is not a citation; "
-            "show checkable steps. For facts needing a source, create focused search_tasks with "
+            "show checkable steps. Do not create external searches for stable, low-risk definitions "
+            "or basic mechanisms. Create focused search_tasks only for a concrete number, experiment, "
+            "historical/current fact, disputed claim, or other evidence gap that materially affects the "
+            "candidate direction. For those facts, create search_tasks with "
             "question (1-128 characters), purpose, and claim_indices (integer indices). Do not search "
             "just to repeat a basic definition. Include user must_include and must_avoid constraints. "
             "Use exactly this JSON shape and key spelling; do not add fields: "
@@ -312,13 +315,24 @@ class ResearchAgent:
             supported = bool(matched_ids)
             if not supported:
                 prior_claims = self._load_prior_claims(project_id, task.question)
+                task_priority = (
+                    "This is a verifier-requested high-risk evidence gap. First reuse any reliable "
+                    "saved evidence for the related claim. If the claim is still valid, preserve its "
+                    "wording and conditions and attach a focused search task to that same claim; do not "
+                    "replace it with a nearby but different claim. If no reliable evidence is available, "
+                    "leave it unsupported. "
+                    if task.initiated_by == "verifier"
+                    else ""
+                )
                 output = await self.llm.generate_json(
                     role="research",
                     prompt=(
-                        "Resolve this specific Creative research gap. Search relevant saved claims first, "
+                        task_priority
+                        + "Resolve this specific research gap. Search relevant saved claims first, "
                         "then add only the smallest useful knowledge claims. State conditions and show "
                         "reproducible derivation steps where possible. Request external sources only for "
-                        "facts that need them. Do not force evidence to support the proposed direction. "
+                        "important facts that need them; do not search stable basic definitions. "
+                        "Do not force evidence to support the proposed direction. "
                         "Return exactly this JSON shape: {summary, claims, search_tasks, discoveries}. "
                         "Each claim has content, explanation, conditions (array), related_concepts (array), "
                         "depends_on (zero-based indices within claims), provenance (only model_generated or "
@@ -362,6 +376,35 @@ class ResearchAgent:
                             result.internal_evidence.append(internal)
                             result.evidence_by_claim[existing.id].append(public)
                 followup_tasks = self._make_tasks(project_id, plan.search_tasks, new_claims)
+                if task.initiated_by == "verifier":
+                    required_claim_ids = set(task.related_claim_ids)
+                    followup_tasks = [
+                        followup
+                        for followup in followup_tasks
+                        if required_claim_ids.intersection(followup.related_claim_ids)
+                    ]
+                    if not followup_tasks:
+                        required_claim = next(
+                            (
+                                claim
+                                for claim in result.claims
+                                if claim.id in required_claim_ids
+                            ),
+                            None,
+                        )
+                        if required_claim is not None:
+                            followup_tasks = [
+                                ResearchTask(
+                                    id=stable_id(
+                                        "TASK_", project_id, f"{task.id}:direct-search"
+                                    ),
+                                    project_id=project_id,
+                                    question=required_claim.content,
+                                    initiated_by="verifier",
+                                    purpose=task.purpose,
+                                    related_claim_ids=[required_claim.id],
+                                )
+                            ]
                 if self.store is not None:
                     followup_tasks = [self.store.save_task(item) for item in followup_tasks]
                 result.tasks.extend(followup_tasks)
