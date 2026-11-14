@@ -18,7 +18,7 @@
 
 服务入口为 `backend/src/api/app.py` 的 `api.app:app`，本地开发绑定 `127.0.0.1:8000`。Vite 将 `/api` 代理到该地址。服务只允许回环请求，并只接受本地开发 Origin；不用于公开互联网或多用户部署。
 
-API Key 由显式操作提交。模型连接测试会实际请求 DeepSeek；生成任务在知识层 LLM、Search/Fetch 与脚本层客户端中逐请求注入该 Key。密钥不进入 `.env`、ProjectState、Job 快照或前端存储。HTTP 错误只返回有限错误码和用户文案；后台任务日志只记录 Job ID、失败阶段、公开错误码和异常类型，不记录密钥、原始异常内容或 traceback。
+API Key 由显式操作提交。模型连接测试会实际请求 DeepSeek；生成任务在知识层 LLM、Search/Fetch 与脚本层客户端中逐请求注入该 Key。前端只在当前页面内存中暂存密钥；不写入 `.env`、ProjectState、Job 快照、URL 或浏览器存储。HTTP 错误只返回有限错误码和用户文案；后台任务日志只记录 Job ID、失败阶段、公开错误码和异常类型，不记录密钥、原始异常内容或 traceback。
 
 | 对接行为 | 逻辑输入 / 输出 | 传输端点 | 实施状态 |
 | --- | --- | --- | --- |
@@ -34,7 +34,7 @@ API Key 由显式操作提交。模型连接测试会实际请求 DeepSeek；生
 | 动画输入交接 | 项目配置、精确脚本 ArtifactRef 与完整脚本 | `GET /api/projects/{project_id}/handoff/animation` | 已实现；无脚本为 `awaiting_script`，有脚本但无动画为 `awaiting_animation` |
 | 查询预览就绪状态 | 当前 Manifest 与真实可加载资源状态 | `GET /api/projects/{project_id}/preview` | 检查当前精确版本、资源内容和真实播放器检查回执；通过才返回 ready 与工作台/bundle URL |
 | 接收动画 Manifest 候选 | Schema、脚本引用、场景/事件覆盖与本地资源文件 → 候选回执 | `POST /api/projects/{project_id}/animation-manifest` | 仅接收候选，不直接发布当前引用；正式发布使用下列生成入口 |
-| 发起动画制作 | `{expected_project_revision, style_id?, custom_profile?, api_key?}` → 动画任务编号 | `POST /api/projects/{project_id}/animations` | 后台构思/验证/实际渲染，CAS 发布；失败保留旧版 |
+| 发起动画制作 | `{expected_project_revision, style_id?, custom_profile?, art_preference? (≤512字符), api_key?}` → 动画任务编号 | `POST /api/projects/{project_id}/animations` | 后台构思/验证/实际渲染，CAS 发布；失败保留旧版。`art_preference` 覆盖当前请求的美术偏好，不修改项目 Brief |
 | 动画制作状态 | 安全文案、当前预览与任务 | `GET /api/projects/{project_id}/animations/status`、`GET /api/projects/{project_id}/animations/jobs/{job_id}` | 刷新恢复；服务重启标记 interrupted |
 | 获取已检查场景资源 | 精确动画版本 → 内部 bundle | `GET /api/projects/{project_id}/animations/{artifact_id}/r{revision}/bundle` | 重验不可覆盖文件、资源与检查回执；附当前 ProjectState revision 供提交反馈 |
 | 风格档案 | 四套视频独立美术档案 | `GET /api/animation/styles` | 支持 auto/custom，不决定知识对象或事件 |
@@ -44,7 +44,7 @@ API Key 由显式操作提交。模型连接测试会实际请求 DeepSeek；生
 | 导出视频 | `{artifact_ref}` → 导出任务编号 | `POST /api/projects/{project_id}/animations/export` | 当前已检查版本；同一 Player 逐帧截图与 FFmpeg 编码 |
 | 导出进度和下载 | 实际帧数、编码状态、完成后下载 URL | `GET /api/projects/{project_id}/animations/exports/{export_id}`、`GET /api/projects/{project_id}/animations/exports/{export_id}/video` | ffprobe 确认时长和尺寸后才开放 MP4；重启中断需重新导出 |
 
-脚本任务的 `script_ready` 只表示合法 ProductionScript 已发布，动画阶段保持 `pending`，不表示视频已生成。任务响应只含过滤后的用户语义，不回传模型调用明细或 traceback。
+脚本任务的 `script_ready` 只表示合法 ProductionScript 已发布，主 Job 的动画阶段仍保持 `pending`，不表示视频已生成。React 进度页会另查动画状态并聚合显示真实动画进度；默认连续生成，用户也可选择停在脚本阶段。任务响应只含过滤后的用户语义，不回传模型调用明细或 traceback。
 
 本地启动：
 

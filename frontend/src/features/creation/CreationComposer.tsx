@@ -13,12 +13,14 @@ export function CreationComposer({
   onChange,
   onSubmit,
   onDemo,
+  onNewProject,
   error,
 }: {
   draft: Draft;
   onChange: (value: Draft) => void;
   onSubmit: () => void;
   onDemo: () => void;
+  onNewProject?: () => void;
   error: string;
 }) {
   const topicRef = useRef<HTMLTextAreaElement>(null);
@@ -171,6 +173,11 @@ export function CreationComposer({
           <EditorialOrnament variant="hem" className="preference-ornament" />
         </details>
         <div className="form-bottom">
+          {onNewProject && (
+            <button className="text-button" type="button" onClick={onNewProject}>
+              开始新作品
+            </button>
+          )}
           <span className="quiet">16:9 横版 · 约 3 分钟</span>
           <button className="primary" type="submit">
             开始创作 <span>→</span>
@@ -183,7 +190,7 @@ export function CreationComposer({
         )}
       </form>
       <aside className="development-note">
-        <span>创作流程</span> 将真实生成知识方向与制作脚本；动画资源尚未接入。
+        <span>创作流程</span> 会按你的选择完成研究、脚本与动画制作，并生成可预览的作品。
         <button className="text-button" onClick={onDemo}>
           查看流程演示 ↗
         </button>

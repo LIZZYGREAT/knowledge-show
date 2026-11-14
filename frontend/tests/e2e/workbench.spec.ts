@@ -36,6 +36,12 @@ test('selection chips preserve exact manifest version and full revision anchors'
   expect(request.anchors.some((a:any)=>a.kind==='clip'&&a.id==='CL_S02')).toBe(true);
   expect(request.anchors.some((a:any)=>a.kind==='time_range'&&a.start_ms===15000&&a.end_ms===43000)).toBe(true);
 });
+test('feedback without a selected object targets the whole film', async ({ page }) => {
+  await ready(page);
+  const request=await page.evaluate(() => (window as any).workbench.requestFor('整体节奏更轻快'));
+  expect(request.scope).toBe('global');
+  expect(request.anchors).toEqual([]);
+});
 test('scene frames are independent of seek history throughout the 165-second sample', async ({ page }) => {
   await ready(page);
   const snapshots=await page.evaluate(async()=>{

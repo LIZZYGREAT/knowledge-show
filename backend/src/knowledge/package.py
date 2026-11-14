@@ -100,8 +100,8 @@ def assemble_knowledge_package(
     claims_by_id = {claim.id: claim for claim in verification.claims}
     eligible: list[tuple[Any, list[int], list[int]]] = []
     for candidate in creative.candidates:
-        required = candidate.required_claim_indices or candidate.claim_indices
-        required_verified = all(
+        required = candidate.essential_claim_indices
+        required_verified = bool(required) and all(
             0 <= index < len(verification.claims)
             and verification.claims[index].status == ClaimStatus.VERIFIED
             for index in required

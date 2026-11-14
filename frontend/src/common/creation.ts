@@ -94,6 +94,18 @@ export function sameUserInput(
   return JSON.stringify(canonicalize(left)) === JSON.stringify(canonicalize(right));
 }
 
+export function sameUserInputExceptArtStyle(
+  left: Record<string, unknown>,
+  right: Record<string, unknown>,
+): boolean {
+  const contentOnly = (value: Record<string, unknown>) => {
+    const copy = { ...value };
+    delete copy.art_style;
+    return copy;
+  };
+  return sameUserInput(contentOnly(left), contentOnly(right));
+}
+
 export function toUserInput(draft: Draft) {
   if (!draft.topic.trim()) throw new Error("先写下你想讲的主题。");
   if (draft.creative_mode === "custom" && !draft.creative_mode_notes.trim())

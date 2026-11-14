@@ -8,7 +8,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 from api.app import create_app
 from animation.api import child_environment
-from animation.director import PROFILES, direct_scene, resolve_profile, validate_program
+from animation.director import PROFILES, direct_scene, preferred_profile_id, resolve_profile, validate_program
 from animation.seed import seed_pn
 from animation.service import AnimationService
 from workflow.animation import AnimationManifestCandidateStore
@@ -78,6 +78,39 @@ async def test_semantic_feedback_routes_upstream_without_changing_resources(runt
     result=await service.revise(project,request_for(project,first['artifact_ref'],'修改电场方向和知识结论'))
     assert result['status']=='upstream_required'
     assert projects.load(project['project_id'])==project
+
+
+@pytest.mark.anyio
+async def test_unselected_unknown_scope_defaults_to_global_visual_feedback(runtime):
+    projects,project,script,service=runtime
+    first=await service.generate(project,script)
+    current=projects.load(project['project_id'])
+    request=request_for(current,first['artifact_ref'],'整体慢一点')
+    request['anchors']=[]
+    request['scope']='unknown'
+    assert not service.requires_model(current,request)
+    result=await service.revise(current,request)
+    bundle=service.load(project['project_id'],result['artifact_ref'])
+    assert result['status']=='published'
+    assert all(bundle['resources'][clip['resource_ref']]['parameters']['speed']==.5 for clip in bundle['manifest']['clips'])
+
+
+@pytest.mark.anyio
+async def test_camera_turnaround_feedback_is_not_routed_upstream(runtime):
+    projects,project,script,service=runtime
+    script=copy.deepcopy(script)
+    script['scenes'][0]['objective']='A distinct non-sample visual scene.'
+    class Client:
+        async def generate_json(self,**kwargs):
+            return SimpleNamespace(value=program(kwargs['data']['scene']))
+    first=await service.generate(project,script,client=Client())
+    current=projects.load(project['project_id'])
+    request=request_for(current,first['artifact_ref'],'镜头转过来，让画面从另一侧看')
+    request['anchors']=[]
+    request['scope']='global'
+    assert service.requires_model(current,request)
+    result=await service.revise(current,request,client=Client())
+    assert result['status']=='published'
 
 @pytest.mark.anyio
 async def test_model_receives_only_selected_scene_and_can_adjust_appearance(runtime):
@@ -153,6 +186,8 @@ def test_program_checks_text_anchors_geometry_and_executable_payloads(runtime):
     with pytest.raises(ValueError): validate_program(scene,bad)
     bad=copy.deepcopy(valid);bad['objects'][0].update(shape='path',path='<script>alert(1)</script>')
     with pytest.raises(ValueError): validate_program(scene,bad)
+    bad=copy.deepcopy(valid);bad['objects'][0]['html']='<script>alert(1)</script>'
+    with pytest.raises(ValueError,match='不支持的字段'): validate_program(scene,bad)
 
 
 def test_profiles_and_child_environment_are_independent_of_app_secrets(monkeypatch):
@@ -165,6 +200,14 @@ def test_profiles_and_child_environment_are_independent_of_app_secrets(monkeypat
     monkeypatch.setenv('DATABASE_PASSWORD','DO_NOT_PASS')
     assert 'DEEPSEEK_API_KEY' not in child_environment()
     assert 'DATABASE_PASSWORD' not in child_environment()
+
+
+def test_auto_profile_uses_script_topic_and_preserves_explicit_choice():
+    assert resolve_profile('auto',script={'core_message':'用组合数量理解骰子概率','scenes':[]})['id']=='modern-graphic'
+    assert resolve_profile('auto',script={'core_message':'一段古代文明的起源故事','scenes':[]})['id']=='narrative-collage'
+    assert resolve_profile('paper-editorial',script={'core_message':'骰子概率','scenes':[]})['id']=='paper-editorial'
+    assert preferred_profile_id('纤维纸与柔和投影',{'core_message':'概率','scenes':[]})=='paper-editorial'
+    assert preferred_profile_id('敦煌风格的视觉表达',{'core_message':'概率','scenes':[]})=='modern-graphic'
 
 @pytest.mark.anyio
 async def test_formal_generation_job_publishes_only_after_renderer_receipt(runtime,tmp_path):
@@ -234,6 +277,67 @@ async def test_new_subject_uses_model_programs_and_rewrites_only_selected_scene(
     assert calls[-1]['previous_resource'] is not None
     new=service.load(project['project_id'],second['artifact_ref'])
     assert [a['scene_id'] for a,b in zip(old['manifest']['clips'],new['manifest']['clips']) if a['resource_ref']!=b['resource_ref']]==['S02']
+
+
+@pytest.mark.anyio
+async def test_scene_context_includes_verified_knowledge_neighbors_and_prior_object_identity(runtime):
+    projects,project,script,service=runtime
+    script=copy.deepcopy(script)
+    script['scenes'][0]['knowledge_refs']=['K_ATTENTION']
+    script['scenes'][1]['knowledge_refs']=['K_ATTENTION']
+    script['core_message']='缩放点积把 query 与 key 的匹配转成注意力权重。'
+    units={ref:{'id':ref,'verification_status':'verified','content':'已核验的知识内容。','explanation':'内容解释。','conditions':['适用条件。']} for scene in script['scenes'] for ref in scene.get('knowledge_refs',[])}
+    units['K_ATTENTION']={'id':'K_ATTENTION','verification_status':'verified','content':'点积除以 √dₖ 后形成分数。','explanation':'softmax 将分数变成权重。','conditions':['dₖ 是 key 的维度。']}
+    package={'knowledge_units':list(units.values())}
+    captured=[]
+    class Client:
+        async def generate_json(self,**kwargs):
+            captured.append(kwargs['data'])
+            return SimpleNamespace(value=program(kwargs['data']['scene']))
+    await service.generate(project,script,client=Client(),knowledge_package=package,art_preference='像纸雕一样分层')
+    second=next(data for data in captured if data['scene']['scene_id']=='S02')
+    context=second['scene_context']
+    assert context['core_message']==script['core_message']
+    assert context['user_art_preference']=='像纸雕一样分层'
+    assert context['verified_knowledge'][0]['conditions']==['dₖ 是 key 的维度。']
+    assert context['neighboring_scene_goals'][0]['scene_id']=='S01'
+    assert context['stable_object_ids'][0]['id']=='EL_ACTOR'
+    assert 'api_key' not in json.dumps(second)
+
+
+@pytest.mark.anyio
+async def test_invalid_scene_gets_one_bounded_retry_and_valid_scenes_are_cached(runtime):
+    projects,project,script,service=runtime
+    script=copy.deepcopy(script)
+    script['scenes'][0]['objective']='Force a fresh non-sample scene cache entry.'
+    calls=[]
+    class Client:
+        async def generate_json(self,**kwargs):
+            calls.append(kwargs)
+            if kwargs['data']['scene']['scene_id']=='S01' and kwargs['data']['format_feedback'] is None:
+                return SimpleNamespace(value={'objects':[],'anchor_times_ms':[]})
+            return SimpleNamespace(value=program(kwargs['data']['scene']))
+    await service.generate(project,script,client=Client())
+    assert len(calls)==8
+    assert calls[1]['data']['format_feedback']
+    current=projects.load(project['project_id'])
+    await service.generate(current,script,client=Client())
+    assert len(calls)==8
+    cache_path=next((service.root/project['project_id']/'generation-cache').glob('*.json'))
+    damaged=json.loads(cache_path.read_text())
+    damaged['resource']['objects'][0]['label']+=' changed'
+    cache_path.write_text(json.dumps(damaged))
+    current=projects.load(project['project_id'])
+    await service.generate(current,script,client=Client())
+    assert len(calls)==9
+
+
+@pytest.mark.anyio
+async def test_single_object_scene_is_valid(runtime):
+    scene=copy.deepcopy(runtime[2]['scenes'][2])
+    value=program(scene)
+    value['objects']=[obj for obj in value['objects'] if obj['id']=='EL_ACTOR' or obj['id'] in {text['id'] for text in scene['timed_text']}]
+    assert len(validate_program(scene,value))>=1
 
 @pytest.mark.anyio
 async def test_model_local_rewrite_cannot_replace_stable_object_ids(runtime):

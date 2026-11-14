@@ -15,15 +15,42 @@ Use 1600x900 logical coordinates. Each object needs: id (stable EL_... or exact 
 Keyframes need time_ms,x,y,opacity (0..1),scale (>0),rotation. Sorted, include time 0 and scene duration. Values interpolate smoothly and deterministically.
 Objects must be recognizable knowledge actors whose states change continuously in response to the script, not slides of titles. Do not make a field of meaningless particles. Object identity persists across keyframes. Supply every timed_text object with exact ID and exact text; its visibility is enforced by the runtime.
 For every anchor:true event include its exact offset in anchor_times_ms and a keyframe at that offset. Preserve script facts, semantic constraints and all event times. Never silently rewrite upstream content.
-Art profile guides materials, light and motion, not object composition. For a local revision change only requested appearance or animation parameters and preserve object IDs and all required text. No more than 60 objects or 64 keyframes per object. Paths use only SVG path commands and finite numbers.'''
+Use scene_context for the whole-film message, neighboring scene goals, verified facts, prior object identities and the user's visual preference. Keep the facts and stable object meanings consistent across scenes. Respect the user's visual preference while using the art profile as a concrete material and motion reference. Art profile guides materials, light and motion, not object composition. For a local revision change only requested appearance or animation parameters and preserve object IDs and all required text. Use at most 60 objects and 64 keyframes per object. Paths use only SVG path commands and finite numbers.'''
 
 
-def resolve_profile(style_id: str, custom: dict[str, Any] | None = None) -> dict[str, Any]:
+def automatic_profile_id(script: dict[str, Any]) -> str:
+    text=' '.join([str(script.get('core_message',''))]+[
+        ' '.join(str(scene.get(key,'')) for key in ['role','objective'] )
+        for scene in script.get('scenes',[])
+    ])
+    if re.search(r'历史|人物|传说|文明|文学|起源|故事|演变|战争',text):
+        return 'narrative-collage'
+    if re.search(r'概率|统计|数据|比例|分布|增长|趋势|对比|比较|数量|计数',text):
+        return 'modern-graphic'
+    if re.search(r'物理|化学|生物|科学|公式|定理|电流|电场|神经|数学|算法|分子|原子|量子|机制|实验|能量',text):
+        return 'precision-science'
+    return 'paper-editorial'
+
+
+def preferred_profile_id(preference: str, script: dict[str, Any]) -> str:
+    normalized=preference.strip().lower()
+    exact=next((profile['id'] for profile in PROFILES if normalized in {profile['id'].lower(),profile['name'].lower()}),None)
+    if exact: return exact
+    if re.search(r'纸|纸艺|纸张|编辑|剪贴|拼贴|手作',preference):
+        return 'narrative-collage' if re.search(r'剪贴|拼贴|手作|复古',preference) else 'paper-editorial'
+    if re.search(r'现代|图形|扁平|几何|鲜艳|海报',preference): return 'modern-graphic'
+    if re.search(r'精密|科学|实验|理工|科技|金属|仪器',preference): return 'precision-science'
+    if re.search(r'叙事|故事|历史|复古|年代|拼贴',preference): return 'narrative-collage'
+    return automatic_profile_id(script)
+
+
+def resolve_profile(style_id: str, custom: dict[str, Any] | None = None, *, script: dict[str, Any] | None = None) -> dict[str, Any]:
     if style_id == 'custom':
         profile = copy.deepcopy(custom)
         if not isinstance(profile, dict): raise ValueError('请提供自定义美术档案。')
     else:
-        profile = next((copy.deepcopy(p) for p in PROFILES if p['id'] == ('precision-science' if style_id == 'auto' else style_id)), None)
+        resolved_id = automatic_profile_id(script) if style_id == 'auto' and script is not None else 'precision-science' if style_id == 'auto' else style_id
+        profile = next((copy.deepcopy(p) for p in PROFILES if p['id'] == resolved_id), None)
         if profile is None: raise ValueError('未知的视频风格。')
     for key in ['id','name','intent','materials','typography','spatialLanguage','lighting','motionCharacter','decorativeGuidance','consistencyRules','avoid','palette']:
         if key not in profile: raise ValueError('美术档案不完整。')
@@ -42,11 +69,13 @@ def is_pn_script(script: dict[str, Any]) -> bool:
 
 def validate_program(scene: dict[str, Any], program: dict[str, Any]) -> list[dict[str, Any]]:
     if not isinstance(program,dict): raise ValueError('场景方案必须是对象。')
+    if set(program)-{'objects','anchor_times_ms'}: raise ValueError('场景方案包含不支持的字段。')
     objects = program.get('objects')
-    if not isinstance(objects,list) or not 2 <= len(objects) <= 60: raise ValueError('场景需要 2–60 个可检查对象。')
+    if not isinstance(objects,list) or not 1 <= len(objects) <= 60: raise ValueError('场景需要 1–60 个可检查对象。')
     ids: set[str] = set()
     for obj in objects:
         if not isinstance(obj,dict) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,63}',str(obj.get('id',''))) or obj['id'] in ids: raise ValueError('场景对象 ID 无效或重复。')
+        if set(obj)-{'id','label','shape','x','y','width','height','radius','path','text','fill','keyframes'}: raise ValueError('场景对象包含不支持的字段。')
         ids.add(obj['id'])
         if obj.get('shape') not in ['circle','rect','path','text'] or not isinstance(obj.get('label'),str) or not obj['label']: raise ValueError('场景对象类型无效。')
         if not re.fullmatch(r'#[a-fA-F0-9]{6}', str(obj.get('fill',''))): raise ValueError('场景对象颜色无效。')
@@ -61,6 +90,7 @@ def validate_program(scene: dict[str, Any], program: dict[str, Any]) -> list[dic
         previous=-1
         for frame in frames:
             if not isinstance(frame,dict): raise ValueError('关键帧必须是对象。')
+            if set(frame)-{'time_ms','x','y','opacity','scale','rotation'}: raise ValueError('关键帧包含不支持的字段。')
             for key in ['time_ms','x','y','opacity','scale','rotation']:
                 value=frame.get(key)
                 if not isinstance(value,(int,float)) or isinstance(value,bool) or not math.isfinite(value): raise ValueError('关键帧数据无效。')
@@ -76,9 +106,19 @@ def validate_program(scene: dict[str, Any], program: dict[str, Any]) -> list[dic
     return copy.deepcopy(objects)
 
 
-async def direct_scene(client: Any, scene: dict[str,Any], profile: dict[str,Any], *, previous: dict[str,Any] | None=None, feedback: str | None=None) -> dict[str,Any]:
-    response=await client.generate_json(instructions=DIRECTOR,data={'scene':scene,'style_profile':profile,'previous_resource':previous,'feedback':feedback},max_output_tokens=14000)
+class SceneProgramError(ValueError):
+    """The model returned a scene program that failed local contract checks."""
+
+
+async def direct_scene(client: Any, scene: dict[str,Any], profile: dict[str,Any], *, previous: dict[str,Any] | None=None, feedback: str | None=None, scene_context: dict[str,Any] | None=None, format_feedback: str | None=None) -> dict[str,Any]:
+    instructions=DIRECTOR
+    if format_feedback:
+        instructions += '\nCorrect the previous format/validation error and return one complete valid JSON scene program. Do not change the script facts or event schedule.'
+    response=await client.generate_json(instructions=instructions,data={'scene':scene,'scene_context':scene_context or {},'style_profile':profile,'previous_resource':previous,'feedback':feedback,'format_feedback':format_feedback},max_output_tokens=14000)
     program=response.value
-    objects=validate_program(scene,program)
-    if previous and {o['id'] for o in previous.get('objects',[])} != {o['id'] for o in objects}: raise ValueError('局部修订不得替换对象身份。')
+    try:
+        objects=validate_program(scene,program)
+        if previous and {o['id'] for o in previous.get('objects',[])} != {o['id'] for o in objects}: raise ValueError('局部修订不得替换对象身份。')
+    except ValueError as error:
+        raise SceneProgramError(str(error)) from error
     return {'kind':'vector-scene','sceneId':scene['scene_id'],'style':profile,'parameters':{'speed':1},'objects':objects}

@@ -14,7 +14,7 @@ from typing import Any
 from knowledge.config import repository_root
 from workflow.animation import AnimationManifestCandidateStore
 from workflow.state import ProjectStateStore
-from .director import direct_scene, is_pn_script, resolve_profile
+from .director import SceneProgramError, direct_scene, is_pn_script, resolve_profile, validate_program
 
 ROOT = repository_root()
 ID = re.compile(r'^[A-Za-z][A-Za-z0-9_-]{0,63}$')
@@ -73,17 +73,147 @@ class AnimationService:
                 'workbench_url':f"/workbench.html?project_id={project['project_id']}", 'bundle_url':self.bundle_url(project['project_id'],ref)}
 
     @staticmethod
+    def _feedback_text(request: dict[str,Any]) -> str:
+        return request['problem']+'\n'+request.get('desired_change','')
+
+    @classmethod
+    def _requires_upstream(cls, request: dict[str,Any]) -> bool:
+        return bool(re.search(
+            r'知识|事实|结论|脚本|事件时间|时长|删.*场景|改.*结论|讲述重点|解释内容|'
+            r'极性|接法|电场方向|正负|电流方向|knowledge|duration|polarity|reverse.*field',
+            cls._feedback_text(request), re.I,
+        ))
+
+    @staticmethod
+    def _affected_clips(original: dict[str,Any], request: dict[str,Any]) -> list[dict[str,Any]]:
+        anchors=request['anchors']; clip_ids={a['id'] for a in anchors if a['kind']=='clip'}
+        scene_ids={a['id'] for a in anchors if a['kind']=='scene'}
+        ranges=[a for a in anchors if a['kind']=='time_range']
+        element_ids={a['id'] for a in anchors if a['kind']=='render_element'}
+        if element_ids and not clip_ids and not scene_ids and not ranges:
+            clip_ids={c['clip_id'] for c in original['manifest']['clips'] if element_ids.intersection({o['id'] for o in original['resources'][c['resource_ref']].get('objects',[])}) or original['resources'][c['resource_ref']]['kind']=='pn-scene'}
+        scope=request['scope']
+        if scope=='unknown' and not anchors: scope='global'
+        return [c for c in original['manifest']['clips'] if scope=='global' or c['clip_id'] in clip_ids or c['scene_id'] in scene_ids or any(r['start_ms']<c['start_ms']+c['duration_ms'] and r['end_ms']>c['start_ms'] for r in ranges)]
+
+    def requires_model(self, project: dict[str,Any], request: dict[str,Any]) -> bool:
+        """Return whether this edit will actually call the scene model."""
+        if self._requires_upstream(request): return False
+        original=self.load(project['project_id'],self.ref(request['target_artifact']))
+        affected=self._affected_clips(original,request)
+        if not affected: return False
+        text=self._feedback_text(request)
+        deterministic=bool(re.search(r'慢|减速|slower|slow|快|加速|faster|fast',text,re.I))
+        return any(
+            original['resources'][clip['resource_ref']]['kind']!='pn-scene' or not deterministic
+            for clip in affected
+        )
+
+    @staticmethod
     def bundle_url(project_id: str, ref: dict[str,Any]) -> str:
         return f"/api/projects/{project_id}/animations/{ref['artifact_id']}/r{ref['revision']}/bundle"
 
-    async def generate(self, project: dict[str,Any], script: dict[str,Any], *, style_id='auto', custom=None, client=None) -> dict[str,Any]:
-        profile=resolve_profile(style_id, custom)
+    async def generate(self, project: dict[str,Any], script: dict[str,Any], *, style_id='auto', custom=None, client=None, knowledge_package=None, art_preference='') -> dict[str,Any]:
+        profile=resolve_profile(style_id, custom, script=script)
         resources={}
         pn=is_pn_script(script)
         if not pn and client is None: raise ValueError('这份新脚本需要模型构思动画，请提供本次使用的 API Key。')
-        for scene in script['scenes']:
-            resources[scene['scene_id']] = {'kind':'pn-scene','sceneId':scene['scene_id'],'style':profile,'parameters':{'speed':1}} if pn else await direct_scene(client,scene,profile)
+        for index,scene in enumerate(script['scenes']):
+            if pn:
+                resources[scene['scene_id']]={'kind':'pn-scene','sceneId':scene['scene_id'],'style':profile,'parameters':{'speed':1}}
+                continue
+            context=self._scene_context(script,scene,index,resources,knowledge_package,art_preference)
+            cache_path,cache_key=self._scene_cache_identity(project,script,scene,profile,context)
+            resource=self._read_scene_cache(cache_path,cache_key,scene,profile)
+            if resource is None:
+                format_feedback=None
+                for attempt in range(2):
+                    try:
+                        resource=await direct_scene(client,scene,profile,scene_context=context,format_feedback=format_feedback)
+                        break
+                    except SceneProgramError as error:
+                        if attempt==1: raise
+                        format_feedback=str(error)
+                self._write_scene_cache(cache_path,cache_key,resource)
+            resources[scene['scene_id']]=resource
         return await self._publish_async(project,script,resources)
+
+    @staticmethod
+    def _scene_context(script, scene, index, completed, knowledge_package, art_preference=''):
+        scenes=script['scenes']
+        neighbors=[
+            {'scene_id':scenes[position]['scene_id'],'role':scenes[position].get('role'),'objective':scenes[position].get('objective','')}
+            for position in (index-1,index+1) if 0<=position<len(scenes)
+        ]
+        verified=[]
+        if knowledge_package is not None:
+            units={unit['id']:unit for unit in knowledge_package.get('knowledge_units',[])}
+            for ref in scene.get('knowledge_refs',[]):
+                unit=units.get(ref)
+                if unit is None or unit.get('verification_status')!='verified':
+                    raise ValueError(f'动画引用的知识条目 {ref} 不存在或未通过核验。')
+                verified.append({key:unit.get(key) for key in ['id','content','explanation','conditions']})
+        prior=[]
+        stable={}
+        for position in range(max(0,index-2),index):
+            previous_scene=scenes[position]
+            resource=completed.get(previous_scene['scene_id'])
+            if resource is None: continue
+            objects=[{'id':obj['id'],'label':obj['label']} for obj in resource.get('objects',[])[:40]]
+            prior.append({'scene_id':previous_scene['scene_id'],'objective':previous_scene.get('objective',''),'objects':objects})
+            for obj in objects: stable.setdefault(obj['id'],obj['label'])
+        return {
+            'core_message':script.get('core_message',''),
+            'user_art_preference':art_preference,
+            'neighboring_scene_goals':neighbors,
+            'verified_knowledge':verified,
+            'completed_scene_summaries':prior,
+            'stable_object_ids':[{'id':key,'label':label} for key,label in list(stable.items())[:40]],
+        }
+
+    def _scene_cache_identity(self, project, script, scene, profile, context):
+        identity={
+            'project_id':project['project_id'],
+            'script_ref':AnimationService.ref(script),
+            'style_profile':profile,
+            'scene_context':context,
+            'scene_input':scene,
+        }
+        digest=hashlib.sha256(encoded(identity)).hexdigest()
+        return self.root / project['project_id'] / 'generation-cache' / f'{digest}.json',digest
+
+    @staticmethod
+    def _read_scene_cache(path: Path, cache_key: str, scene: dict[str,Any], profile: dict[str,Any]):
+        try:
+            cached=json.loads(path.read_text())
+            resource=cached['resource']
+            if (
+                cached.get('cache_key')!=cache_key
+                or cached.get('resource_sha256')!=hashlib.sha256(encoded(resource)).hexdigest()
+                or set(resource)!={'kind','sceneId','style','parameters','objects'}
+                or resource.get('kind')!='vector-scene'
+                or resource.get('sceneId')!=scene['scene_id']
+                or resource.get('style')!=profile
+                or resource.get('parameters')!={'speed':1}
+            ):
+                return None
+            anchors=sorted({event['offset_ms'] for event in scene['events'] if event.get('anchor')})
+            validate_program(scene,{'objects':resource['objects'],'anchor_times_ms':anchors})
+            return resource
+        except (OSError,ValueError,KeyError,TypeError):
+            return None
+
+    @staticmethod
+    def _write_scene_cache(path: Path, cache_key: str, resource: dict[str,Any]) -> None:
+        path.parent.mkdir(parents=True,exist_ok=True)
+        payload=encoded(resource)
+        fd,name=tempfile.mkstemp(dir=path.parent,prefix='.scene-',suffix='.tmp')
+        try:
+            with os.fdopen(fd,'wb') as file:
+                file.write(encoded({'cache_key':cache_key,'resource_sha256':hashlib.sha256(payload).hexdigest(),'resource':resource})); file.flush(); os.fsync(file.fileno())
+            os.replace(name,path)
+        finally:
+            Path(name).unlink(missing_ok=True)
 
     async def _publish_async(self, project, script, resources):
         cancelled=threading.Event()
@@ -134,16 +264,10 @@ class AnimationService:
 
     async def revise(self, project: dict[str,Any], request: dict[str,Any], *, client=None) -> dict[str,Any]:
         original=self.load(project['project_id'],self.ref(request['target_artifact']))
-        text=request['problem']+'\n'+request.get('desired_change','')
-        if re.search(r'知识|事实|极性|接法|时长|脚本|事件时间|删.*场景|改.*结论|电场方向|正负|电流方向|反转|颠倒|改.*方向|knowledge|duration|polarity|reverse.*field',text,re.I):
+        text=self._feedback_text(request)
+        if self._requires_upstream(request):
             return {'status':'upstream_required','message':'这条意见涉及知识或脚本约束，已保留请求，需要上游确认；当前动画未改变。'}
-        anchors=request['anchors']; clip_ids={a['id'] for a in anchors if a['kind']=='clip'}
-        scene_ids={a['id'] for a in anchors if a['kind']=='scene'}
-        ranges=[a for a in anchors if a['kind']=='time_range']
-        element_ids={a['id'] for a in anchors if a['kind']=='render_element'}
-        if element_ids and not clip_ids and not scene_ids and not ranges:
-            clip_ids={c['clip_id'] for c in original['manifest']['clips'] if element_ids.intersection({o['id'] for o in original['resources'][c['resource_ref']].get('objects',[])}) or original['resources'][c['resource_ref']]['kind']=='pn-scene'}
-        affected=[c for c in original['manifest']['clips'] if request['scope']=='global' or c['clip_id'] in clip_ids or c['scene_id'] in scene_ids or any(r['start_ms']<c['start_ms']+c['duration_ms'] and r['end_ms']>c['start_ms'] for r in ranges)]
+        affected=self._affected_clips(original,request)
         if not affected: raise ValueError('请先选择需要修改的片段或时间范围。')
         resources={c['scene_id']:copy.deepcopy(original['resources'][c['resource_ref']]) for c in original['manifest']['clips']}
         for clip in affected:

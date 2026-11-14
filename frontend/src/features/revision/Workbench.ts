@@ -118,7 +118,7 @@ function requestFor(text: string) {
   if (!selections.length && selected) selections.push(selected);
   if (selections.some(s => !sameRef(s.artifact, ref()))) throw new Error('选择来自旧动画版本，请重新选择后提交。');
   return { project_id: bundle.manifest.project_id, request_id: `RR_${crypto.randomUUID().replaceAll('-', '')}`, base_project_revision: bundle.projectRevision, source: 'user', target_layer: 'animation', target_artifact: { kind: 'animation_manifest', ...ref() },
-    anchors: selections.flatMap(s => [{ kind: s.kind, id: s.id }, { kind: 'clip', id: s.clipId }, { kind: 'time_range', start_ms: Math.floor(s.start), end_ms: Math.ceil(s.end) }]), scope: selections.length ? 'local' : 'unknown', problem: text, desired_change: text, original_user_feedback: text,
+    anchors: selections.flatMap(s => [{ kind: s.kind, id: s.id }, { kind: 'clip', id: s.clipId }, { kind: 'time_range', start_ms: Math.floor(s.start), end_ms: Math.ceil(s.end) }]), scope: selections.length ? 'local' : 'global', problem: text, desired_change: text, original_user_feedback: text,
     preserve: ['保持脚本知识事实与事件时间', '保持未选中片段及逻辑对象身份'] };
 }
 async function submit() {
@@ -133,7 +133,7 @@ async function submit() {
     revisionHistory.push({ ref: ref(), projectRevision: bundle.projectRevision });
     message('新动画版本已完成检查；旧版本仍可回退。'); input.replaceChildren(); chips.clear(); selected = null;
     await openVersion(result.artifact_ref);
-  } catch (e) { message((e as Error).message); } finally { el<HTMLButtonElement>('sendRevision').disabled = false; el<HTMLInputElement>('revisionApiKey').value = ''; }
+  } catch (e) { message((e as Error).message); } finally { el<HTMLButtonElement>('sendRevision').disabled = false; }
 }
 async function openVersion(artifact?: ArtifactRef) {
   bridge?.pause(); unsubscribe?.(); bridge = undefined;
@@ -223,7 +223,7 @@ el<HTMLSelectElement>('styleSelect').onchange = async () => {
     await openVersion(state.artifact_ref);
   } catch (error) {
     message((error as Error).message); selector.value = Object.values(bundle.resources)[0].style.id;
-  } finally { selector.disabled = false; el<HTMLInputElement>('revisionApiKey').value = ''; }
+  } finally { selector.disabled = false; }
 };
 window.addEventListener('keydown', e => { if ((e.target as HTMLElement).isContentEditable || ['INPUT', 'SELECT'].includes((e.target as HTMLElement).tagName)) return; if (e.code === 'Space') { e.preventDefault(); el('playBtn').click(); } if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') void seek(time + (e.key === 'ArrowLeft' ? -1000 : 1000)); });
 resize = new ResizeObserver(fit); resize.observe(stage);

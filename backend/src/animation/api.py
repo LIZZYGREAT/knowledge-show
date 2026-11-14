@@ -13,7 +13,7 @@ from typing import Any, Callable
 from jsonschema import Draft202012Validator
 from fastapi import FastAPI
 from fastapi.responses import FileResponse, JSONResponse
-from .director import PROFILES, is_pn_script, resolve_profile
+from .director import PROFILES, is_pn_script, preferred_profile_id, resolve_profile
 from .service import AnimationService, encoded, ROOT, ID
 from workflow.service import read_knowledge_package, read_production_script, WorkflowError
 from workflow.state import ProjectStateConflict
@@ -45,14 +45,14 @@ def install_animation_routes(app: FastAPI, *, projects, candidates, revisions, s
         project=projects.load(project_id)
         package=read_knowledge_package(project_id,project['artifacts'].get('knowledge_package'),export_dir=knowledge_export_dir)
         script=read_production_script(project_id,project['artifacts'].get('production_script'),project=project,package=package,export_dir=script_export_dir)
-        return project,script
+        return project,package,script
     def job_path(project_id: str, job_id: str):
         if not ID.fullmatch(project_id) or not ID.fullmatch(job_id): raise ValueError('任务编号无效。')
         return service.root/project_id/'jobs'/f'{job_id}.json'
     def write_job(path: Path, value: dict[str,Any]):
         path.parent.mkdir(parents=True,exist_ok=True)
         temporary=path.with_suffix('.tmp'); temporary.write_bytes(encoded(value)); os.replace(temporary,path)
-    async def run_generation(project_id, job_id, project, script, body):
+    async def run_generation(project_id, job_id, project, package, script, body):
         path=job_path(project_id,job_id); clients=None
         write_job(path,{'job_id':job_id,'status':'running','message':'正在构思并制作动画场景。'})
         try:
@@ -61,15 +61,13 @@ def install_animation_routes(app: FastAPI, *, projects, candidates, revisions, s
             if key:
                 clients=services_factory(key); client=clients.script
             style_id=body.get('style_id','auto'); custom=body.get('custom_profile')
-            preference=project['brief']['user_input'].get('art_style','')
+            preference=body.get('art_preference',project['brief']['user_input'].get('art_style',''))
+            if preference and not isinstance(preference,str): raise ValueError('美术偏好格式不正确。')
+            user_art_preference=''
             if style_id=='auto' and preference:
-                match=next((p for p in PROFILES if preference in [p['id'],p['name']]),None)
-                if match: style_id=match['id']
-                elif client is None: raise ValueError('你的美术偏好需要模型构思，请配置本次 API Key。')
-                else:
-                    response=await client.generate_json(instructions='Create one original video art StyleProfile JSON matching the example shape. Obey the user art preference. Use exactly eight #RRGGBB palette keys and plain ASCII CSS font names. Do not define scene layouts or events.',data={'user_preference':preference,'example_shape':PROFILES[0]},max_output_tokens=2200)
-                    custom=resolve_profile('custom',response.value); style_id='custom'
-            result=await service.generate(project,script,style_id=style_id,custom=custom,client=client)
+                user_art_preference=preference
+                style_id=preferred_profile_id(preference,script)
+            result=await service.generate(project,script,style_id=style_id,custom=custom,client=client,knowledge_package=package,art_preference=user_art_preference)
             write_job(path,{**result,'job_id':job_id,'status':'completed','message':'动画已通过实际播放检查并发布。'})
         except asyncio.CancelledError:
             write_job(path,{'job_id':job_id,'status':'interrupted','message':'服务停止，未完成的动画没有替换当前成果。'}); raise
@@ -108,15 +106,16 @@ def install_animation_routes(app: FastAPI, *, projects, candidates, revisions, s
     @app.post('/api/projects/{project_id}/animations',status_code=202)
     async def generate(project_id: str, body: dict[str,Any]):
         try:
-            project,script=script_for(project_id)
+            project,package,script=script_for(project_id)
             if project_id in active: return failure(409,'这个项目正在制作动画，请等待本次任务完成。')
             if body.get('expected_project_revision')!=project['revision']: return failure(409,'项目已更新，请刷新后重新制作。')
             resolve_profile(body.get('style_id','auto'),body.get('custom_profile'))
             if not is_pn_script(script) and not body.get('api_key'): return failure(422,'新脚本的动画构思需要本次使用的 API Key。')
+            if body.get('art_preference') is not None and (not isinstance(body['art_preference'],str) or len(body['art_preference'])>512): return failure(422,'美术偏好格式不正确。')
             if body.get('api_key') is not None and (not isinstance(body['api_key'],str) or not 1<=len(body['api_key'])<=512): return failure(422,'模型凭证格式不正确。')
             job_id=f"AJ_{uuid.uuid4().hex}"; active.add(project_id)
             write_job(job_path(project_id,job_id),{'job_id':job_id,'status':'queued','message':'动画任务已创建。'})
-            task=asyncio.create_task(run_generation(project_id,job_id,project,script,body)); active_tasks.add(task); task.add_done_callback(active_tasks.discard)
+            task=asyncio.create_task(run_generation(project_id,job_id,project,package,script,body)); active_tasks.add(task); task.add_done_callback(active_tasks.discard)
             return {'job_id':job_id,'status':'queued'}
         except (ValueError,LookupError,OSError,WorkflowError): return failure(409,'当前项目尚无可交接的精确脚本，或美术档案无效。')
 
@@ -154,7 +153,7 @@ def install_animation_routes(app: FastAPI, *, projects, candidates, revisions, s
                 if a['kind']=='time_range' and not 0<=a['start_ms']<a['end_ms']<=original['manifest']['total_duration_ms']: raise ValueError('修订时间范围无效。')
             if body.get('api_key') and (not isinstance(body['api_key'],str) or not 1<=len(body['api_key'])<=512): raise ValueError('凭证格式不正确。')
             revisions.accept(project,request,artifact_resolver=artifact_resolver)
-            if body.get('api_key'):
+            if body.get('api_key') and service.requires_model(project,request):
                 if not isinstance(body['api_key'],str) or not 1<=len(body['api_key'])<=512: raise ValueError('凭证格式不正确。')
                 clients=services_factory(body['api_key'])
             result=await service.revise(project,request,client=clients.script if clients else None)

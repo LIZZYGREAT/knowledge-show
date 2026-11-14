@@ -163,6 +163,75 @@ def test_required_claims_keep_core_importance_without_becoming_global_requiremen
     assert package["directions"][1]["knowledge_refs"] == ["CLM_B"]
 
 
+def test_rejected_optional_claim_does_not_block_a_direction_with_verified_core():
+    project_id = "P_OPTIONAL_CLAIM"
+    core = Claim(
+        id="CLM_CORE", project_id=project_id,
+        content="The core mechanism has a verified explanation.",
+        provenance=Provenance.DERIVATION, status=ClaimStatus.VERIFIED,
+    )
+    optional = Claim(
+        id="CLM_OPTIONAL", project_id=project_id,
+        content="A disputed optional historical aside.",
+        provenance=Provenance.MODEL_GENERATED, status=ClaimStatus.REJECTED,
+    )
+    candidate_data = {
+        "title": "Keep the core explanation",
+        "core_question": "How does the mechanism work?",
+        "hook": "A useful contrast.",
+        "learning_goal": "Understand the mechanism.",
+        "claim_indices": [0, 1],
+        "required_claim_indices": [0],
+        "recommendation_reason": "The core claim is verified.",
+        "duration_fit": {"status": "adequate", "reason": "Enough for a short video."},
+        "recommended": True,
+    }
+    creative = CreativeResult(
+        candidates=[CandidateDraft.model_validate(candidate_data)], leads=[], research_tasks=[],
+        usage={"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}, summary="Core remains supported.",
+    )
+    research = ResearchResult(
+        claims=[core, optional],
+        evidence_by_claim={core.id: [{"id": "E_CORE", "kind": "mathematical_derivation", "title": "Derivation", "details": "Reproducible steps."}]},
+        internal_evidence=[], sources=[], source_contents={}, tasks=[],
+    )
+    verification = VerificationResult(
+        claims=[core, optional], issues=[],
+        public_issues=[{"claim_id": optional.id, "category": "minor_or_optional", "issue": "The aside is not reliable.", "recommendation": "Remove it."}],
+        usage={"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}, summary="The optional aside was rejected.",
+    )
+
+    package = assemble_knowledge_package(
+        project_id, build_brief({"topic": "A verified mechanism"}), research, creative, verification
+    )
+
+    assert package["directions"][0]["knowledge_refs"] == [core.id]
+    assert [unit["id"] for unit in package["knowledge_units"]] == [core.id]
+    empty_required = CreativeResult(
+        candidates=[CandidateDraft.model_validate({**candidate_data, "required_claim_indices": []})],
+        leads=[], research_tasks=[], usage={"input_tokens": 0, "output_tokens": 0, "total_tokens": 0},
+        summary="No essential claim was identified.",
+    )
+    with pytest.raises(PackageValidationError, match="all essential claims verified"):
+        assemble_knowledge_package(
+            project_id, build_brief({"topic": "A verified mechanism"}), research, empty_required, verification
+        )
+
+
+def test_missing_required_claims_remain_distinct_from_explicitly_empty():
+    base = {
+        "title": "Direction", "core_question": "Question?", "hook": "Hook",
+        "learning_goal": "Goal", "claim_indices": [0, 1],
+        "recommendation_reason": "Reason",
+        "duration_fit": {"status": "adequate", "reason": "Enough."},
+    }
+    missing = CandidateDraft.model_validate(base)
+    empty = CandidateDraft.model_validate({**base, "required_claim_indices": []})
+
+    assert missing.essential_claim_indices == [0, 1]
+    assert empty.essential_claim_indices == []
+
+
 def test_global_required_knowledge_must_be_available_in_every_direction():
     example = json.loads(
         (Path(__file__).resolve().parents[3] / "contracts" / "examples" / "knowledge-package.example.json").read_text(
