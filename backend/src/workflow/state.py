@@ -111,13 +111,28 @@ class ProjectStateStore:
                     "ProjectState changed before this update could be published"
                 )
             updated = deepcopy(current)
-            changed = False
-            if decisions is not None and decisions != current["decisions"]:
-                updated["decisions"] = deepcopy(decisions)
-                changed = True
-            if artifacts is not None and artifacts != current["artifacts"]:
-                updated["artifacts"] = deepcopy(artifacts)
-                changed = True
+            next_decisions = deepcopy(decisions if decisions is not None else current["decisions"])
+            next_artifacts = deepcopy(artifacts if artifacts is not None else current["artifacts"])
+            direction_changed = current["decisions"].get("direction_id") != next_decisions.get(
+                "direction_id"
+            )
+            knowledge_changed = current["artifacts"].get(
+                "knowledge_package"
+            ) != next_artifacts.get("knowledge_package")
+            script_changed = current["artifacts"].get(
+                "production_script"
+            ) != next_artifacts.get("production_script")
+            if direction_changed or knowledge_changed:
+                next_artifacts.pop("production_script", None)
+                next_artifacts.pop("animation_manifest", None)
+            elif script_changed:
+                next_artifacts.pop("animation_manifest", None)
+            updated["decisions"] = next_decisions
+            updated["artifacts"] = next_artifacts
+            changed = (
+                next_decisions != current["decisions"]
+                or next_artifacts != current["artifacts"]
+            )
             if not changed:
                 return current
             updated["revision"] = current["revision"] + 1
