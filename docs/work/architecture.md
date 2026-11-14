@@ -77,8 +77,9 @@ flowchart TD
 | `backend/src/workflow/` | 跨层项目状态、执行编排、版本与修订路由 | 业务待实现 |
 | `backend/src/api/` | 前后端入口；具体协议待定 | 占位目录 |
 | `backend/src/common/` | 确需共享的后端基础逻辑 | 占位目录 |
-| `frontend/src/features/creation/` | 需求表达与候选浏览 | 占位目录 |
-| `frontend/src/features/preview/` | 动态预览与产物查看 | 占位目录 |
+| `frontend/src/features/creation/` | 需求表达与提交确认 | 独立前端已实现表单、偏好和确认，待接任务 API |
+| `frontend/src/features/landing/`、`progress/`、`settings/` | 品牌入口、阶段展示、会话连接设置 | 视觉骨架和显式流程演示已实现，真实连接与事件流待接入 |
+| `frontend/src/features/preview/` | 动态预览与产物查看 | 占位目录，真实媒体与工作台待实现 |
 | `frontend/src/features/revision/` | 用户反馈入口及修订结果呈现 | 占位目录 |
 | `frontend/src/animation/runtime/` | 动画播放、场景装配和渲染运行时 | 占位目录 |
 | `frontend/src/animation/scenes/` | 场景实现与必要复用 | 占位目录 |
