@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { STAGE_DURATION } from "../../src/features/landing/curiosityMotion";
+import { STAGE_DURATION, SILK_REDRAW_START } from "../../src/features/landing/curiosityMotion";
 
 test("home adapts PN polarity and instrument motion then restores silk", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -15,10 +15,20 @@ test("home adapts PN polarity and instrument motion then restores silk", async (
     expect(await scene.locator('[data-pn-device="main"] [data-pn-assembly]').getAttribute("transform"))
       .toContain(seconds >= 28.5 ? "rotate(180" : "rotate(0");
   }
-  await page.goto(`/?stage-pose=${37.8 / STAGE_DURATION}`);
+  const widths: number[] = [];
+  await page.goto(`/?stage-pose=${36 / STAGE_DURATION}`);
   await expect(page.locator(".stage-pn")).toHaveAttribute("opacity", "0");
-  await expect(page.locator(".stage-silk")).toHaveAttribute("opacity", "1");
-  await expect(page.locator(".stage-silk .flow-body")).toHaveCount(1);
+  await expect(page.locator(".stage-silk")).toHaveAttribute("opacity", "0");
+  for (const offset of [.5, 2, 5.5]) {
+    await page.goto(`/?stage-pose=${(SILK_REDRAW_START + offset) / STAGE_DURATION}`);
+    await expect(page.locator(".stage-silk")).toHaveAttribute("opacity", "1");
+    widths.push((await page.locator(".stage-silk .flow-body").boundingBox())!.width);
+  }
+  expect(widths[0]).toBeLessThan(widths[1]);
+  expect(widths[1]).toBeLessThan(widths[2]);
+  const complete = await page.locator(".flow-body").getAttribute("d");
+  await page.goto("/?stage-pose=1");
+  expect(await page.locator(".flow-body").getAttribute("d")).toBe(complete);
   expect(errors).toEqual([]);
 });
 

@@ -1,5 +1,16 @@
+import { flowState, surfaceAt } from "./flowGeometry";
+
 export const FLOW_DRAW_DURATION = 5.5;
-export const STAGE_DURATION = 40;
+export const STAGE_DURATION = 43;
+export const SILK_REDRAW_START = 36.3;
+export const SILK_ORIGIN = surfaceAt(flowState(0).extent, -.84, 0);
+
+// Draw the introduction once. Later laps start with the finished ribbon so the
+// end can stay complete instead of erasing the drawing to reset the loop.
+export function stageCycle(time: number) {
+  return time <= FLOW_DRAW_DURATION ? Math.max(0, time)
+    : FLOW_DRAW_DURATION + (time - FLOW_DRAW_DURATION) % (STAGE_DURATION - FLOW_DRAW_DURATION);
+}
 export const INK_INTRO = FLOW_DRAW_DURATION + 1.8;
 export const STATIC_STAGE_TIME = INK_INTRO + 8.1;
 export function easeBetween(t: number, a: number, b: number) {
@@ -7,7 +18,7 @@ export function easeBetween(t: number, a: number, b: number) {
   return u * u * (3 - 2 * u);
 }
 export function stageState(time: number) {
-  const phase = ((time % STAGE_DURATION) + STAGE_DURATION) % STAGE_DURATION;
+  const phase = stageCycle(time);
   const t = Math.max(0, Math.min(10.5, phase - INK_INTRO));
   return { t,
     unfold: easeBetween(t, 3.2, 4.2) * (1 - easeBetween(t, 9.3, 10.3)),
@@ -38,15 +49,18 @@ export function combinationState(index: number, time: number) {
 // The original silk folds into the same point that opens the ink reveal.
 // All values settle before the cycle ends, leaving no reset at the seam.
 export function inkState(time: number) {
-  const cycle = ((time % STAGE_DURATION) + STAGE_DURATION) % STAGE_DURATION;
+  const cycle = stageCycle(time);
   const phase = Math.max(0, cycle - FLOW_DRAW_DURATION);
-  const bloom = easeBetween(phase, .65, 2.65) * (1 - easeBetween(cycle, 34.5, 38));
-  const fold = easeBetween(phase, .55, 2.15) * (1 - easeBetween(cycle, 34.5, 38));
-  const silkOpacity = 1 - easeBetween(phase, 1.3, 2.3) * (1 - easeBetween(cycle, 34.5, 37.5));
+  const returning = cycle >= 34;
+  const bloom = easeBetween(phase, .65, 2.65) * (1 - easeBetween(cycle, 34, 36));
+  const fold = easeBetween(phase, .55, 2.15) * (1 - easeBetween(cycle, 35.8, SILK_REDRAW_START));
+  const silkOpacity = returning ? easeBetween(cycle, SILK_REDRAW_START, SILK_REDRAW_START + .3)
+    : 1 - easeBetween(phase, 1.3, 2.3);
   const question = easeBetween(phase, 2.4, 3.1) * (1 - easeBetween(cycle, 16.8, 18));
-  const flowTime = cycle <= FLOW_DRAW_DURATION ? cycle
-    : FLOW_DRAW_DURATION * (1 - easeBetween(cycle, 38.2, STAGE_DURATION));
-  return { bloom, fold, silkOpacity, question, scale: 1 - fold * .94, flowTime };
+  const flowTime = returning ? Math.max(0, Math.min(FLOW_DRAW_DURATION, cycle - SILK_REDRAW_START))
+    : Math.min(cycle, FLOW_DRAW_DURATION);
+  const seedOpacity = returning ? easeBetween(cycle, 35.6, 36) : 1 - bloom;
+  return { bloom, fold, silkOpacity, question, scale: 1 - fold * .94, flowTime, seedOpacity, returning };
 }
 
 export function inkContour(progress: number) {
@@ -68,12 +82,12 @@ export function pnCarrier(index: number) {
   return { x: x * .5, y: 100 + (465 + body * ((i % 5 - 2) * 25 + Math.sin(i * 2.1) * 4)) * .5 };
 }
 export function pnState(time: number) {
-  const cycle = ((time % STAGE_DURATION) + STAGE_DURATION) % STAGE_DURATION;
+  const cycle = stageCycle(time);
   return { cycle,
     transfer: easeBetween(cycle, 16.8, 20.2),
-    opacity: easeBetween(cycle, 19.3, 20.7) * (1 - easeBetween(cycle, 34, 37)),
+    opacity: easeBetween(cycle, 19.3, 20.7) * (1 - easeBetween(cycle, 35.8, 36)),
     carriers: easeBetween(cycle, 20.2, 20.7),
     sceneMs: Math.max(0, Math.min(15000, (cycle - 20.7) / 13.3 * 15000)),
-    exit: easeBetween(cycle, 34, 37),
+    exit: easeBetween(cycle, 34, 36),
   };
 }

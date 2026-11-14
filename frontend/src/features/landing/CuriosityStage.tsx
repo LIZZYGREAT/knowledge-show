@@ -5,7 +5,7 @@ import { FlowArtwork, IdeaSeed } from "./LivingFlowScene";
 import { flowState, surfaceAt } from "./flowGeometry";
 import "./curiosity-stage.css";
 import { useFlowMotion } from "./useFlowMotion";
-import { combinationState, stageState, inkState, inkContour, STAGE_DURATION, STATIC_STAGE_TIME, pnState, pnCarrier, easeBetween } from "./curiosityMotion";
+import { combinationState, stageState, inkState, inkContour, STAGE_DURATION, STATIC_STAGE_TIME, pnState, pnCarrier, easeBetween, stageCycle } from "./curiosityMotion";
 
 export function CuriosityStage({ pose }: { pose?: number }) {
   const ref = useRef<HTMLElement>(null);
@@ -20,12 +20,12 @@ export function CuriosityStage({ pose }: { pose?: number }) {
   const contour = inkContour(ink.bloom);
   const seedU = Math.min(.88, flowState(ink.flowTime).extent);
   const [tipX, tipY] = surfaceAt(seedU, -.84, ink.flowTime);
-  const seedX = 400 - ink.fold * 40 + (tipX - 400) * ink.scale;
-  const seedY = 320 - ink.fold * 15 + (tipY - 320) * ink.scale;
+  const seedX = ink.returning ? tipX : 400 - ink.fold * 40 + (tipX - 400) * ink.scale;
+  const seedY = ink.returning ? tipY : 320 - ink.fold * 15 + (tipY - 320) * ink.scale;
   const seedLeft = motion.compact ? (seedX - 140) / 5.6 : seedX / 8;
   const seedTop = motion.compact ? (seedY - 65) / 4.8 : seedY / 6.4;
   const id = useId().replace(/:/g, "");
-  return <figure ref={ref} className="curiosity-stage" data-time={time.toFixed(3)} data-paused={pose !== undefined || motion.paused} data-pose={((time % STAGE_DURATION) / STAGE_DURATION).toFixed(3)} data-ink={ink.bloom.toFixed(3)} aria-label="知识动画演示：两个公平六面骰子共有36种等可能的有序组合，其中6种点数和为7，比其他点数和的组合都多。随后演示同一个PN结在两种接法下的红蓝粒子与仪表变化，最终回到流纹丝带。">
+  return <figure ref={ref} className="curiosity-stage" data-time={time.toFixed(3)} data-paused={pose !== undefined || motion.paused} data-pose={(stageCycle(time) / STAGE_DURATION).toFixed(3)} data-ink={ink.bloom.toFixed(3)} aria-label="知识动画演示：两个公平六面骰子共有36种等可能的有序组合，其中6种点数和为7，比其他点数和的组合都多。随后演示同一个PN结在两种接法下的红蓝粒子与仪表变化，最终回到流纹丝带。">
     <div className="curiosity-theatre">
       <svg className="curiosity-artwork" viewBox={motion.compact ? "140 65 560 480" : "0 0 800 640"} aria-hidden="true" focusable="false">
         <defs>
@@ -92,7 +92,7 @@ export function CuriosityStage({ pose }: { pose?: number }) {
         </g>
         <PnStage time={time}/>
       </svg>
-      <IdeaSeed style={{ left: `${seedLeft}%`, top: `${seedTop}%`, opacity: 1 - ink.bloom }}/>
+      <IdeaSeed style={{ left: `${seedLeft}%`, top: `${seedTop}%`, opacity: ink.seedOpacity }}/>
     </div>
     <figcaption style={{ opacity: Math.max(ink.question, pn.opacity), transform: `translateY(${6 * (1 - Math.max(ink.question, pn.opacity))}px)` }}>
       <span style={{ opacity: ink.question }}>36 种等可能的组合，6 种相加为 7。</span>
