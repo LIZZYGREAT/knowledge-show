@@ -118,6 +118,8 @@ def _user_progress_message(event: dict[str, Any]) -> str:
 
 
 def _user_failure_message(run: dict[str, Any]) -> str:
+    if "当前版本仅支持 16:9 视频画幅" in (run.get("error") or ""):
+        return "当前版本仅支持 16:9 视频画幅，请改为 16:9 后重新生成。"
     categories = {issue.get("category") for issue in run.get("issues", [])}
     if "contract_limitation" in categories:
         return "这个基础知识方向暂时无法整理成可靠方案。可以补充具体问题或换个关注点后重试。"

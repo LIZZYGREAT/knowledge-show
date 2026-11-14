@@ -102,6 +102,48 @@ def test_mock_unknown_topic_fails_without_a_package_and_reports_failure(tmp_path
     assert store.get_run("P_TEST_KNOWLEDGE", events[0]["run_id"]).status == "failed"
 
 
+def test_unsupported_aspect_ratio_is_rejected_before_any_external_call(tmp_path):
+    class NeverCalled:
+        def __init__(self):
+            self.calls = 0
+
+        async def generate_json(self, **kwargs):
+            self.calls += 1
+            raise AssertionError("model must not be called for an unsupported aspect ratio")
+
+    class NeverSearch:
+        def __init__(self):
+            self.calls = 0
+
+        async def search(self, *args, **kwargs):
+            self.calls += 1
+            raise AssertionError("search must not be called for an unsupported aspect ratio")
+
+    project_id = "P_UNSUPPORTED_ASPECT"
+    llm = NeverCalled()
+    search = NeverSearch()
+    events = []
+    store = ResearchStore(tmp_path / "knowledge.sqlite3")
+
+    with pytest.raises(ValueError, match="仅支持 16:9"):
+        asyncio.run(
+            generate_knowledge_package(
+                project_id,
+                build_brief({"topic": "生日悖论", "aspect_ratio": "9:16"}),
+                on_event=events.append,
+                run_options=RunOptions(
+                    mode="real",
+                    clients={"llm": llm, "search": search},
+                    store=store,
+                ),
+            )
+        )
+
+    assert llm.calls == search.calls == 0
+    assert events == []
+    assert store.list_runs(project_id) == []
+
+
 def test_exported_package_version_is_immutable(tmp_path):
     package = asyncio.run(
         generate_knowledge_package(

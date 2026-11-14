@@ -97,6 +97,8 @@ async def generate_knowledge_package(
     if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]{0,63}", project_id):
         raise ValueError("project_id must match the ProjectState identifier pattern")
     validate_brief(brief)
+    if brief["effective"]["aspect_ratio"] != "16:9":
+        raise ValueError("当前版本仅支持 16:9 视频画幅。")
 
     settings = load_settings()
     if options.data_dir:

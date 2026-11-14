@@ -55,6 +55,15 @@ def test_user_copy_hides_internal_errors_and_maps_internal_progress():
     assert "结果" not in progress
 
 
+def test_user_copy_explains_unsupported_aspect_ratio():
+    message = _user_failure_message(
+        {"error": "当前版本仅支持 16:9 视频画幅。", "issues": []}
+    )
+
+    assert "仅支持 16:9" in message
+    assert "改为 16:9" in message
+
+
 def test_user_failure_explains_missing_contract_review_type_without_contract_jargon():
     message = _user_failure_message(
         {

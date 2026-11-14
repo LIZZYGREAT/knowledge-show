@@ -13,7 +13,7 @@ from jsonschema import Draft202012Validator
 DEFAULT_EFFECTIVE = {
     "creative_mode": "visual_explain",
     "knowledge_depth": "balanced",
-    "aspect_ratio": "9:16",
+    "aspect_ratio": "16:9",
     "target_duration_ms": 165_000,
 }
 
