@@ -22,13 +22,16 @@ describe("dice demonstration", () => {
       expect(end[key]).toBeCloseTo(initial[key], 3);
     }
   });
-  it("collapses PN completely before drawing the ribbon forward from the point", () => {
+  it("collapses PN completely before drawing backward from the ribbon endpoint", () => {
     expect(pnState(36).exit).toBe(1);
     expect(pnState(36).opacity).toBe(0);
     expect(inkState(36).silkOpacity).toBe(0);
     expect(inkState(36).seedOpacity).toBe(1);
     const frames = [0, 1, 2.5, 4, FLOW_DRAW_DURATION].map(offset => inkState(SILK_REDRAW_START + offset));
-    expect(frames.map(frame => frame.flowTime)).toEqual([0, 1, 2.5, 4, FLOW_DRAW_DURATION]);
+    expect(frames.every(frame => frame.flowTime === FLOW_DRAW_DURATION)).toBe(true);
+    expect(frames[0].revealFrom).toBe(1);
+    expect(frames.at(-1)!.revealFrom).toBe(0);
+    expect(frames.every((frame, index) => index === 0 || frame.revealFrom < frames[index - 1].revealFrom)).toBe(true);
     expect(frames.every(frame => frame.scale === 1)).toBe(true);
     expect(inkState(STAGE_DURATION).flowTime).toBe(FLOW_DRAW_DURATION);
   });

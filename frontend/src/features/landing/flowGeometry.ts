@@ -25,7 +25,7 @@ function center(u: number, { phase, surge }: FlowState): Point {
 }
 export const centerAt = (u: number, time: number): Point => center(u, flowState(time));
 
-function crossSection(u: number, state: FlowState) {
+function crossSection(u: number, state: FlowState, revealFrom = 0) {
   const { phase, surge, extent } = state;
   const [x, y] = center(u, state);
   const before = center(u - 0.001, state);
@@ -34,7 +34,9 @@ function crossSection(u: number, state: FlowState) {
   const dy = after[1] - before[1];
   const length = Math.hypot(dx, dy) || 1;
   const head = clamp((extent - u) / 0.11);
-  const taper = Math.pow(Math.max(0, Math.sin(Math.PI * u)), 0.72) * Math.sin(head * Math.PI / 2);
+  // During reverse drawing, taper the new leading edge at revealFrom.
+  const tail = revealFrom > 0 ? Math.sin(clamp((u - revealFrom) / Math.min(.11, revealFrom)) * Math.PI / 2) : 1;
+  const taper = tail * Math.pow(Math.max(0, Math.sin(Math.PI * u)), 0.72) * Math.sin(head * Math.PI / 2);
   const rawWidth = taper * (57 + 28 * Math.sin(u * 8.5 + phase * 0.7) + surge * 13);
   // Keep the inner edge inside its curvature radius; otherwise normals cross and
   // produce little white tears at the tightest fold.
@@ -52,7 +54,7 @@ function across(section: ReturnType<typeof crossSection>, v: number): Point {
   const offset = width * (v + 0.16 * Math.sin(v * Math.PI) * fold) + flutter * Math.abs(v) ** 3;
   return [x + nx * offset, y + ny * offset];
 }
-export const surfaceAt = (u: number, v: number, time: number): Point => across(crossSection(u, flowState(time)), v);
+export const surfaceAt = (u: number, v: number, time: number, revealFrom = 0): Point => across(crossSection(u, flowState(time), revealFrom), v);
 
 export function pathThrough(points: readonly Point[], close = false) {
   const fmt = ([x, y]: Point) => `${x.toFixed(1)},${y.toFixed(1)}`;
@@ -65,12 +67,13 @@ export function pathThrough(points: readonly Point[], close = false) {
   return d + `L${fmt(points[points.length - 1])}` + (close ? 'Z' : '');
 }
 
-export function flowMesh(time: number, compact = false) {
+export function flowMesh(time: number, compact = false, revealFrom = 0) {
   const state = flowState(time);
+  const from = Math.min(state.extent, clamp(revealFrom));
   const steps = compact ? 74 : 112;
   const count = compact ? 36 : 56;
   // Compute the shared frame once per longitudinal sample, not once per strand.
-  const sections = Array.from({ length: steps + 1 }, (_, i) => crossSection(i / steps * state.extent, state));
+  const sections = Array.from({ length: steps + 1 }, (_, i) => crossSection(from + i / steps * (state.extent - from), state, from));
   const rows = Array.from({ length: count + 1 }, (_, row) => sections.map(section => across(section, row / count * 2 - 1)));
   return {
     silhouette: pathThrough([...rows[0], ...[...rows[count]].reverse()], true),

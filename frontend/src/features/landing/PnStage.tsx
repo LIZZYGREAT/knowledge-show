@@ -1,5 +1,5 @@
 import { useId } from "react";
-import { easeBetween, pnState, SILK_ORIGIN } from "./curiosityMotion";
+import { easeBetween, pnState, SILK_ENDPOINT } from "./curiosityMotion";
 
 // Adapt the existing S01 device, polarity reversal and meter to the homepage's
 // paper materials. One clock controls the handoff, particles and instrument.
@@ -60,7 +60,7 @@ export function PnStage({ time }: { time: number }) {
   }
   const reverseTitle = easeBetween(seconds, 5.7, 6.3);
   const compareTitle = easeBetween(seconds, 10, 10.6);
-  return <g className="stage-pn" opacity={p.opacity} data-scene-ms={p.sceneMs.toFixed(0)} data-pn-mode={mode} transform={`translate(${400 + (SILK_ORIGIN[0] - 400) * p.exit} ${332.5 + (SILK_ORIGIN[1] - 332.5) * p.exit}) scale(${1 - p.exit}) translate(-400 -332.5)`}>
+  return <g className="stage-pn" opacity={p.opacity} data-scene-ms={p.sceneMs.toFixed(0)} data-pn-mode={mode} transform={`translate(${400 + (SILK_ENDPOINT[0] - 400) * p.exit} ${332.5 + (SILK_ENDPOINT[1] - 332.5) * p.exit}) scale(${1 - p.exit}) translate(-400 -332.5)`}>
     <defs>
       <linearGradient id={`${id}-ceramic`} x2=".2" y2="1"><stop stopColor="#fffcef"/><stop offset=".55" stopColor="#e4e8d8"/><stop offset="1" stopColor="#aebfa9"/></linearGradient>
       <linearGradient id={`${id}-tint`}><stop stopColor="#c68e7a" stopOpacity=".24"/><stop offset=".48" stopColor="#f2eedc" stopOpacity=".12"/><stop offset="1" stopColor="#78a8b0" stopOpacity=".3"/></linearGradient>

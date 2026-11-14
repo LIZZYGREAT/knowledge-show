@@ -16,14 +16,24 @@ test("home adapts PN polarity and instrument motion then restores silk", async (
       .toContain(seconds >= 28.5 ? "rotate(180" : "rotate(0");
   }
   const widths: number[] = [];
+  const starts: number[] = [];
   await page.goto(`/?stage-pose=${36 / STAGE_DURATION}`);
   await expect(page.locator(".stage-pn")).toHaveAttribute("opacity", "0");
   await expect(page.locator(".stage-silk")).toHaveAttribute("opacity", "0");
+  const gap = await page.locator(".stage-pn").evaluate(el => {
+    const matrix = (el as SVGGraphicsElement).getScreenCTM()!;
+    const seed = document.querySelector(".idea-seed")!.getBoundingClientRect();
+    return Math.hypot(matrix.e - seed.x - seed.width / 2, matrix.f - seed.y - seed.height / 2);
+  });
+  expect(gap).toBeLessThan(1);
   for (const offset of [.5, 2, 5.5]) {
     await page.goto(`/?stage-pose=${(SILK_REDRAW_START + offset) / STAGE_DURATION}`);
     await expect(page.locator(".stage-silk")).toHaveAttribute("opacity", "1");
+    starts.push(Number(await page.locator(".stage-silk").getAttribute("data-reveal-from")));
     widths.push((await page.locator(".stage-silk .flow-body").boundingBox())!.width);
   }
+  expect(starts[0]).toBeGreaterThan(starts[1]);
+  expect(starts[2]).toBe(0);
   expect(widths[0]).toBeLessThan(widths[1]);
   expect(widths[1]).toBeLessThan(widths[2]);
   const complete = await page.locator(".flow-body").getAttribute("d");

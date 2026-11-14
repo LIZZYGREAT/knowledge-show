@@ -1,9 +1,9 @@
-import { flowState, surfaceAt } from "./flowGeometry";
+import { surfaceAt } from "./flowGeometry";
 
 export const FLOW_DRAW_DURATION = 5.5;
 export const STAGE_DURATION = 43;
 export const SILK_REDRAW_START = 36.3;
-export const SILK_ORIGIN = surfaceAt(flowState(0).extent, -.84, 0);
+export const SILK_ENDPOINT = surfaceAt(1, -.84, FLOW_DRAW_DURATION);
 
 // Draw the introduction once. Later laps start with the finished ribbon so the
 // end can stay complete instead of erasing the drawing to reset the loop.
@@ -57,10 +57,11 @@ export function inkState(time: number) {
   const silkOpacity = returning ? easeBetween(cycle, SILK_REDRAW_START, SILK_REDRAW_START + .3)
     : 1 - easeBetween(phase, 1.3, 2.3);
   const question = easeBetween(phase, 2.4, 3.1) * (1 - easeBetween(cycle, 16.8, 18));
-  const flowTime = returning ? Math.max(0, Math.min(FLOW_DRAW_DURATION, cycle - SILK_REDRAW_START))
-    : Math.min(cycle, FLOW_DRAW_DURATION);
-  const seedOpacity = returning ? easeBetween(cycle, 35.6, 36) : 1 - bloom;
-  return { bloom, fold, silkOpacity, question, scale: 1 - fold * .94, flowTime, seedOpacity, returning };
+  const flowTime = returning ? FLOW_DRAW_DURATION : Math.min(cycle, FLOW_DRAW_DURATION);
+  const revealFrom = returning ? 1 - easeBetween(cycle, SILK_REDRAW_START, SILK_REDRAW_START + FLOW_DRAW_DURATION) : 0;
+  const seedOpacity = returning ? easeBetween(cycle, 35.6, 36) * (1 - easeBetween(cycle, 41.8, 42.5))
+    : (1 - bloom) * (time >= STAGE_DURATION ? easeBetween(cycle, FLOW_DRAW_DURATION, 6.1) : 1);
+  return { bloom, fold, silkOpacity, question, scale: 1 - fold * .94, flowTime, revealFrom, seedOpacity, returning };
 }
 
 export function inkContour(progress: number) {

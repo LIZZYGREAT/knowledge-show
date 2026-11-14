@@ -18,8 +18,8 @@ export function CuriosityStage({ pose }: { pose?: number }) {
   const diceOpacity = 1 - easeBetween(pn.cycle, 19.5, 20.7);
   const diceDetails = 1 - easeBetween(pn.cycle, 16.8, 18);
   const contour = inkContour(ink.bloom);
-  const seedU = Math.min(.88, flowState(ink.flowTime).extent);
-  const [tipX, tipY] = surfaceAt(seedU, -.84, ink.flowTime);
+  const seedU = ink.returning ? ink.revealFrom : Math.min(.88, flowState(ink.flowTime).extent);
+  const [tipX, tipY] = surfaceAt(seedU, -.84, ink.flowTime, ink.revealFrom);
   const seedX = ink.returning ? tipX : 400 - ink.fold * 40 + (tipX - 400) * ink.scale;
   const seedY = ink.returning ? tipY : 320 - ink.fold * 15 + (tipY - 320) * ink.scale;
   const seedLeft = motion.compact ? (seedX - 140) / 5.6 : seedX / 8;
@@ -43,8 +43,8 @@ export function CuriosityStage({ pose }: { pose?: number }) {
             <path className="stage-ink-mask" d={contour} fill="white" filter={`url(#${id}-wet-edge)`}/>
           </mask>
         </defs>
-        <g className="stage-silk" opacity={ink.silkOpacity} transform={`translate(${400 - ink.fold * 40} ${320 - ink.fold * 15}) scale(${ink.scale}) translate(-400 -320)`}>
-          {ink.silkOpacity > 0 && <FlowArtwork time={ink.flowTime} id={`${id}-flow`} compact={motion.compact}/>}
+        <g className="stage-silk" data-reveal-from={ink.revealFrom.toFixed(4)} opacity={ink.silkOpacity} transform={`translate(${400 - ink.fold * 40} ${320 - ink.fold * 15}) scale(${ink.scale}) translate(-400 -320)`}>
+          {ink.silkOpacity > 0 && <FlowArtwork time={ink.flowTime} id={`${id}-flow`} compact={motion.compact} revealFrom={ink.revealFrom}/>}
         </g>
         <g className="stage-ink-wash" opacity={ink.bloom}>
           <path d={contour} fill={`url(#${id}-ink-wash)`} filter={`url(#${id}-wet-edge)`}/>

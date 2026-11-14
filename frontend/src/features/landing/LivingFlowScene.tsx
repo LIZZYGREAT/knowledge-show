@@ -7,8 +7,8 @@ export function IdeaSeed({ style }: { style?: CSSProperties }) {
   return <span className="idea-seed" style={style} aria-hidden="true"><span className="seed-core" /></span>;
 }
 
-export function FlowArtwork({ time, id, compact }: { time: number; id: string; compact: boolean }) {
-  const mesh = flowMesh(time, compact);
+export function FlowArtwork({ time, id, compact, revealFrom = 0 }: { time: number; id: string; compact: boolean; revealFrom?: number }) {
+  const mesh = flowMesh(time, compact, revealFrom);
   const { extent } = flowState(time);
   return (
     <>
@@ -56,8 +56,9 @@ export function FlowArtwork({ time, id, compact }: { time: number; id: string; c
           const u = (i * 0.137 + time * 0.045) % 1;
           const v = -0.82 + i % 4 * 0.46;
           const end = Math.min(extent, u + 0.085);
-          if (u >= end) return null;
-          const points = Array.from({ length: 18 }, (_, j) => surfaceAt(u + (end - u) * j / 17, v, time));
+          const start = Math.max(u, revealFrom);
+          if (start >= end) return null;
+          const points = Array.from({ length: 18 }, (_, j) => surfaceAt(start + (end - start) * j / 17, v, time, revealFrom));
           return <path key={i} d={pathThrough(points)} strokeWidth="1.8" opacity={Math.sin(u * Math.PI) ** 2 * .6} />;
         })}
       </g>
@@ -65,8 +66,8 @@ export function FlowArtwork({ time, id, compact }: { time: number; id: string; c
         {Array.from({ length: compact ? 18 : 30 }, (_, i) => {
           const u = (i * 0.6180339 + time * (0.018 + i % 3 * 0.003)) % 1;
           const v = (i % 2 ? -1 : 1) * (0.7 + i % 5 * 0.19);
-          const [x, y] = surfaceAt(u, v, time);
-          const opacity = Math.sin(u * Math.PI) ** 2 * clamp((extent - u) * 16);
+          const [x, y] = surfaceAt(u, v, time, revealFrom);
+          const opacity = Math.sin(u * Math.PI) ** 2 * clamp((extent - u) * 16) * (revealFrom > 0 ? clamp((u - revealFrom) * 16) : 1);
           const bubble = i % 7 === 0;
           return <g key={i} opacity={opacity * 0.8}>
             <circle cx={x} cy={y} r={bubble ? 4.5 : 0.85 + i % 3 * 0.45} fill={bubble ? "#f7f7f2" : i % 4 === 0 ? "#cfad72" : "#d2edca"} fillOpacity={bubble ? ".38" : ".9"} stroke={bubble ? "#83bca4" : "none"} strokeWidth=".7" />
