@@ -1,0 +1,165 @@
+[
+  {
+    "typography": {
+      "display": "Georgia, serif",
+      "body": "Arial, \"Microsoft YaHei\", sans-serif"
+    },
+    "consistencyRules": [
+      "同一逻辑对象身份与含义一致",
+      "红蓝载流子语义稳定",
+      "编辑器高亮不进入画面"
+    ],
+    "avoid": [
+      "静态文字轮播代替知识变化",
+      "无意义粒子",
+      "继承网页品牌配色"
+    ],
+    "id": "precision-science",
+    "name": "精密科学风",
+    "intent": "正交投影与稳定尺度；明确方向、平稳推进",
+    "palette": {
+      "background": "#111e30",
+      "ink": "#edf1ef",
+      "muted": "#93a6b9",
+      "red": "#ee7b76",
+      "blue": "#78b9dd",
+      "material": "#e9eeeb",
+      "shade": "#617d96",
+      "gold": "#e2c48f"
+    },
+    "materials": [
+      "磨砂陶瓷",
+      "拉丝金属",
+      "半透明实体"
+    ],
+    "spatialLanguage": "正交投影与稳定尺度",
+    "lighting": "柔和侧光",
+    "motionCharacter": "明确方向、平稳推进",
+    "decorativeGuidance": [
+      "纹理不遮住主体",
+      "装饰服务对象层次"
+    ]
+  },
+  {
+    "typography": {
+      "display": "Georgia, serif",
+      "body": "Arial, \"Microsoft YaHei\", sans-serif"
+    },
+    "consistencyRules": [
+      "同一逻辑对象身份与含义一致",
+      "红蓝载流子语义稳定",
+      "编辑器高亮不进入画面"
+    ],
+    "avoid": [
+      "静态文字轮播代替知识变化",
+      "无意义粒子",
+      "继承网页品牌配色"
+    ],
+    "id": "paper-editorial",
+    "name": "纸艺编辑风",
+    "intent": "层叠平面与浅景深；纸面有重量，转折轻柔",
+    "palette": {
+      "background": "#f1eadc",
+      "ink": "#343f48",
+      "muted": "#7c7971",
+      "red": "#c75e50",
+      "blue": "#4986a3",
+      "material": "#fffaf0",
+      "shade": "#b6a98f",
+      "gold": "#9b773b"
+    },
+    "materials": [
+      "纤维纸",
+      "叠纸边缘",
+      "柔和投影"
+    ],
+    "spatialLanguage": "层叠平面与浅景深",
+    "lighting": "漫射暖光",
+    "motionCharacter": "纸面有重量，转折轻柔",
+    "decorativeGuidance": [
+      "纹理不遮住主体",
+      "装饰服务对象层次"
+    ]
+  },
+  {
+    "typography": {
+      "display": "Georgia, serif",
+      "body": "Arial, \"Microsoft YaHei\", sans-serif"
+    },
+    "consistencyRules": [
+      "同一逻辑对象身份与含义一致",
+      "红蓝载流子语义稳定",
+      "编辑器高亮不进入画面"
+    ],
+    "avoid": [
+      "静态文字轮播代替知识变化",
+      "无意义粒子",
+      "继承网页品牌配色"
+    ],
+    "id": "modern-graphic",
+    "name": "现代图形风",
+    "intent": "平面与强烈前后关系；快速落位、形变连贯",
+    "palette": {
+      "background": "#f6d95b",
+      "ink": "#202638",
+      "muted": "#585668",
+      "red": "#ec4b53",
+      "blue": "#2262c4",
+      "material": "#fff3c2",
+      "shade": "#d4b033",
+      "gold": "#202638"
+    },
+    "materials": [
+      "哑光色块",
+      "粗细对比线条"
+    ],
+    "spatialLanguage": "平面与强烈前后关系",
+    "lighting": "清晰硬边",
+    "motionCharacter": "快速落位、形变连贯",
+    "decorativeGuidance": [
+      "纹理不遮住主体",
+      "装饰服务对象层次"
+    ]
+  },
+  {
+    "typography": {
+      "display": "Georgia, serif",
+      "body": "Arial, \"Microsoft YaHei\", sans-serif"
+    },
+    "consistencyRules": [
+      "同一逻辑对象身份与含义一致",
+      "红蓝载流子语义稳定",
+      "编辑器高亮不进入画面"
+    ],
+    "avoid": [
+      "静态文字轮播代替知识变化",
+      "无意义粒子",
+      "继承网页品牌配色"
+    ],
+    "id": "narrative-collage",
+    "name": "叙事拼贴风",
+    "intent": "混合媒介与纸片重叠；分层推进，保留手作停顿",
+    "palette": {
+      "background": "#29292d",
+      "ink": "#ede1c3",
+      "muted": "#b7aa95",
+      "red": "#df8163",
+      "blue": "#8bbdb9",
+      "material": "#ddd2b5",
+      "shade": "#6b695f",
+      "gold": "#d7b767"
+    },
+    "materials": [
+      "印刷网点",
+      "剪贴纸边",
+      "复古仪表"
+    ],
+    "spatialLanguage": "混合媒介与纸片重叠",
+    "lighting": "局部暖光",
+    "motionCharacter": "分层推进，保留手作停顿",
+    "decorativeGuidance": [
+      "纹理不遮住主体",
+      "装饰服务对象层次"
+    ]
+  }
+]

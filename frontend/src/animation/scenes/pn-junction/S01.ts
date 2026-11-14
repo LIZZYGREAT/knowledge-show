@@ -1,16 +1,17 @@
 import { gsap } from 'gsap';
 import { ElementRegistry } from '../../runtime/ElementRegistry';
 import type { SceneDefinition } from '../../runtime/SceneTypes';
-import { precisionScience as style } from '../../styles/precisionScience';
+import { precisionScience } from '../../styles/precisionScience';
 import { s01Script } from './script';
 import { timelineSeconds } from '../../runtime/time';
 const reverseStart = timelineSeconds(s01Script.events[1].offset_ms);
 const splitStart = timelineSeconds(s01Script.events[2].offset_ms);
 
+import type { StyleProfile } from '../../styles/profiles';
 const NS = 'http://www.w3.org/2000/svg';
 const clamp = (n: number) => Math.max(0, Math.min(1, n));
 
-function device(name: string) {
+function device(name: string, style: StyleProfile) {
   const ticks = Array.from({ length: 25 }, (_, i) => {
     const angle = (200 + i * 140 / 24) * Math.PI / 180;
     const r = i % 4 === 0 ? 77 : 82;
@@ -46,7 +47,7 @@ function device(name: string) {
   </g>`;
 }
 
-export const pnS01: SceneDefinition = {
+export function createPnS01(style: StyleProfile = precisionScience): SceneDefinition { return {
   sceneId: s01Script.scene_id,
   durationMs: s01Script.duration_ms,
   mount(host) {
@@ -64,7 +65,7 @@ export const pnS01: SceneDefinition = {
     svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', '同一个结在两种接法下的粒子与仪表变化');
     svg.innerHTML = `<defs>
       <linearGradient id="metal" gradientUnits="userSpaceOnUse" x1="0" y1="460" x2="0" y2="470"><stop stop-color="#d0dce5"/><stop offset=".5" stop-color="#708296"/><stop offset="1" stop-color="#34475b"/></linearGradient>
-      <linearGradient id="ceramic" x1="0" y1="0" x2=".25" y2="1"><stop stop-color="#f0eee3"/><stop offset=".5" stop-color="#ced7d8"/><stop offset="1" stop-color="#8d9fac"/></linearGradient>
+      <linearGradient id="ceramic" x1="0" y1="0" x2=".25" y2="1"><stop stop-color="${style.palette.material}"/><stop offset=".5" stop-color="#ced7d8"/><stop offset="1" stop-color="${style.palette.shade}"/></linearGradient>
       <linearGradient id="bodyTint"><stop stop-color="#c88989" stop-opacity=".23"/><stop offset=".48" stop-color="#d9d5ce" stop-opacity=".08"/><stop offset="1" stop-color="#6aacc7" stop-opacity=".28"/></linearGradient>
       <linearGradient id="contact"><stop stop-color="#bac6cb" stop-opacity="0"/><stop offset=".5" stop-color="#e4e4de" stop-opacity=".9"/><stop offset="1" stop-color="#bac6cb" stop-opacity="0"/></linearGradient>
       <radialGradient id="dial"><stop stop-color="#28384c"/><stop offset="1" stop-color="#152337"/></radialGradient>
@@ -73,10 +74,28 @@ export const pnS01: SceneDefinition = {
     </defs>
     <rect width="1600" height="900" fill="${style.palette.background}"/>
     <ellipse cx="800" cy="515" rx="740" ry="300" fill="url(#ground)"/>
-    <g data-camera>${device('main')}${device('comparison')}</g>
-    <text x="800" y="174" fill="#ced7df" text-anchor="middle" font-size="22" letter-spacing="6">同一个结</text>
-    <g data-subtitle><path d="M640 747H960" stroke="#667587" stroke-width="1"/><text x="800" y="802" fill="#f2eee4" text-anchor="middle" font-size="32">${s01Script.timed_text[0].text}</text></g>`;
+    <g data-camera>${device('main', style)}${device('comparison', style)}</g>
+    <text x="800" y="174" fill="${style.palette.ink}" text-anchor="middle" font-size="22" letter-spacing="6">同一个结</text>
+    <g data-subtitle><path d="M640 747H960" stroke="#667587" stroke-width="1"/><text x="800" y="802" fill="${style.palette.ink}" text-anchor="middle" font-size="32">${s01Script.timed_text[0].text}</text></g>`;
     root.append(svg);
+    if (style.id !== 'precision-science') {
+      const paper = style.id === 'paper-editorial' || style.id === 'narrative-collage';
+      const pattern = document.createElementNS(NS, 'pattern');
+      pattern.id = 'art-grain'; pattern.setAttribute('width', paper ? '8' : '18'); pattern.setAttribute('height', paper ? '8' : '18'); pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+      const mark = document.createElementNS(NS, 'path');
+      mark.setAttribute('d', style.id === 'narrative-collage' ? 'M1 1h2m3 4h1' : 'M1 2h.7'); mark.setAttribute('stroke', style.palette.ink); mark.setAttribute('stroke-width', '.7'); mark.setAttribute('opacity', '.22'); pattern.append(mark); svg.querySelector('defs')!.append(pattern);
+      svg.querySelectorAll('[data-body]').forEach(body => {
+        body.querySelectorAll('rect').forEach(rect => rect.setAttribute('rx', paper ? '4' : '0'));
+        const main = body.querySelector('rect[x="520"]')!;
+        main.setAttribute('fill', style.palette.material); main.setAttribute('stroke', style.palette.ink); main.setAttribute('stroke-width', paper ? '1' : '4');
+        const texture = document.createElementNS(NS, 'rect');
+        for (const [key, value] of Object.entries({ x: '520', y: '345', width: '480', height: '240', fill: 'url(#art-grain)', 'pointer-events': 'none' })) texture.setAttribute(key, value);
+        body.append(texture);
+      });
+      svg.querySelectorAll('[data-meter] circle').forEach(circle => { if (Number(circle.getAttribute('r')) > 90) { circle.setAttribute('fill', style.palette.material); circle.setAttribute('stroke', style.palette.ink); } });
+      svg.querySelectorAll('[data-needle] path').forEach(path => { path.setAttribute('stroke', style.palette.ink); path.setAttribute('stroke-width', paper ? '2' : '5'); });
+      svg.querySelectorAll('[data-meter] text').forEach(text => text.setAttribute('fill', style.palette.ink));
+    }
     const find = <T extends Element>(selector: string) => {
       const node = svg.querySelector<T>(selector);
       if (!node) throw new Error(`Missing scene node: ${selector}`);
@@ -152,4 +171,5 @@ export const pnS01: SceneDefinition = {
     };
     return handle;
   },
-};
+}; }
+export const pnS01 = createPnS01();
