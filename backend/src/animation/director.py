@@ -13,6 +13,8 @@ DIRECTOR = '''You are the Animation Director for a knowledge video. Create an or
 Return JSON {"objects": [...], "anchor_times_ms": [...]}. No HTML, JS, URLs, network, secrets or external assets.
 Use 1600x900 logical coordinates. Each object needs: id (stable EL_... or exact timed_text ID), label, shape (circle/rect/path/text), x,y,width,height,radius,path,text,fill (#RRGGBB), keyframes.
 Keyframes need time_ms,x,y,opacity (0..1),scale (>0),rotation. Sorted, include time 0 and scene duration. Values interpolate smoothly and deterministically.
+Optional appearance fields: stroke (#RRGGBB), strokeWidth (0..30), cornerRadius (0..500, rect), fillOpacity (0..1), lineCap (butt/round/square), materialKey (flat/paper-layer/frosted/ink-print), fontSize (8..160), fontWeight (100..900), textAnchor (start/middle/end), zIndex (-100..100). Materials are rendered as safe SVG: paper-layer has fibers and a soft raised edge, frosted uses translucent highlights, ink-print uses halftone dots, flat is a solid graphic. Use them selectively on meaningful actors; do not place textures on every label. Text may include newline breaks; no markup. Keep subtitles inside the frame with readable spacing.
+Each keyframe may have easing: smoothstep (legacy default), linear, ease-in-cubic, ease-out-cubic, ease-in-out-cubic. Easing on a frame controls the outgoing segment. Optional drawProgress (0..1, path only, default 1) reveals the stroke using normalized path length; use fillOpacity:0 for drawn lines. All properties are computed from absolute time, never live CSS animations. Example path frames: [{"time_ms":0,"x":200,"y":400,"opacity":1,"scale":1,"rotation":0,"drawProgress":0,"easing":"ease-out-cubic"},{"time_ms":9000,"x":400,"y":400,"opacity":1,"scale":1,"rotation":0,"drawProgress":1}]. Camera, groups, arbitrary CSS and custom scripts are not supported; coordinated actors can share transform trajectories while keeping their own IDs.
 Objects must be recognizable knowledge actors whose states change continuously in response to the script, not slides of titles. Do not make a field of meaningless particles. Object identity persists across keyframes. Supply every timed_text object with exact ID and exact text; its visibility is enforced by the runtime.
 For every anchor:true event include its exact offset in anchor_times_ms and a keyframe at that offset. Preserve script facts, semantic constraints and all event times. Never silently rewrite upstream content.
 Use scene_context for the whole-film message, neighboring scene goals, verified facts, prior object identities and the user's visual preference. Keep the facts and stable object meanings consistent across scenes. Respect the user's visual preference while using the art profile as a concrete material and motion reference. Art profile guides materials, light and motion, not object composition. For a local revision change only requested appearance or animation parameters and preserve object IDs and all required text. Use at most 60 objects and 64 keyframes per object. Paths use only SVG path commands and finite numbers.'''
@@ -97,11 +99,15 @@ def validate_program(scene: dict[str, Any], program: dict[str, Any]) -> list[dic
         previous=-1
         for frame in frames:
             if not isinstance(frame,dict): raise ValueError('关键帧必须是对象。')
-            if set(frame)-{'time_ms','x','y','opacity','scale','rotation'}: raise ValueError('关键帧包含不支持的字段。')
+            if set(frame)-{'time_ms','x','y','opacity','scale','rotation','easing','drawProgress'}: raise ValueError('关键帧包含不支持的字段。')
             for key in ['time_ms','x','y','opacity','scale','rotation']:
                 value=frame.get(key)
                 if not isinstance(value,(int,float)) or isinstance(value,bool) or not math.isfinite(value): raise ValueError('关键帧数据无效。')
             if not previous < frame['time_ms'] <= scene['duration_ms'] or frame['time_ms']<0 or not 0<=frame['opacity']<=1 or not 0<frame['scale']<=10 or max(abs(frame['x']),abs(frame['y']))>10000: raise ValueError('关键帧范围无效。')
+            if 'easing' in frame and frame['easing'] not in ['smoothstep','linear','ease-in-cubic','ease-out-cubic','ease-in-out-cubic']: raise ValueError('运动曲线无效。')
+            if 'drawProgress' in frame:
+                value=frame['drawProgress']
+                if obj['shape']!='path' or not isinstance(value,(int,float)) or isinstance(value,bool) or not math.isfinite(value) or not 0<=value<=1: raise ValueError('路径显现参数无效。')
             previous=frame['time_ms']
         if frames[0]['time_ms'] != 0 or frames[-1]['time_ms'] != scene['duration_ms']: raise ValueError('关键帧未覆盖场景。')
     for text in scene.get('timed_text',[]):

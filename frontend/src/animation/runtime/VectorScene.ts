@@ -1,5 +1,6 @@
 import type { SceneDefinition } from './SceneTypes';
 import type { ScriptScene, SceneResource } from './BundleTypes';
+import { interpolate } from './interpolate';
 import { ElementRegistry } from './ElementRegistry';
 import { applyMaterial, svgNode } from './styleMaterial';
 export function createVectorScene(scene: ScriptScene, resource: SceneResource): SceneDefinition {
@@ -21,7 +22,10 @@ export function createVectorScene(scene: ScriptScene, resource: SceneResource): 
       el.setAttribute('fill-opacity', String(object.fillOpacity ?? 1));
       if (object.shape === 'circle') el.setAttribute('r', String(object.radius ?? 20));
       if (object.shape === 'rect') { el.setAttribute('width', String(object.width ?? 100)); el.setAttribute('height', String(object.height ?? 100)); el.setAttribute('rx', String(object.cornerRadius ?? 8)); }
-      if (object.shape === 'path') el.setAttribute('d', object.path ?? '');
+      if (object.shape === 'path') {
+        el.setAttribute('d', object.path ?? '');
+        if (object.keyframes.some(f => f.drawProgress !== undefined)) { el.setAttribute('pathLength', '1'); el.setAttribute('stroke-dasharray', '1'); }
+      }
       if (object.shape === 'text') {
         el.setAttribute('font-size', String(object.fontSize ?? 32)); el.setAttribute('font-weight', String(object.fontWeight ?? 400));
         el.setAttribute('text-anchor', object.textAnchor ?? 'start');
@@ -33,21 +37,16 @@ export function createVectorScene(scene: ScriptScene, resource: SceneResource): 
       group.append(el); svg.append(group);
       const timed = scene.timed_text.find(t => t.id === object.id);
       registry.register({ id: object.id, label: object.label, ...(timed ? { sourceRef: { kind: 'timed_text' as const, id: timed.id } } : {}) }, group);
-      return { object, group, timed };
+      return { object, group, el, timed };
     });
     return {
       seek(ms) {
-        for (const { object, group, timed } of nodes) {
-          const frames = object.keyframes;
-          const right = frames.findIndex(frame => frame.time_ms > ms);
-          const a = frames[right === -1 ? frames.length - 1 : Math.max(0, right - 1)];
-          const b = frames[right === -1 ? frames.length - 1 : right];
-          const u = Math.max(0, Math.min(1, (ms - a.time_ms) / Math.max(1, b.time_ms - a.time_ms)));
-          const eased = u * u * (3 - 2 * u);
-          const get = (key: 'x' | 'y' | 'opacity' | 'scale' | 'rotation') => a[key] + (b[key] - a[key]) * eased;
-          group.setAttribute('transform', `translate(${get('x')} ${get('y')}) rotate(${get('rotation')}) scale(${get('scale')})`);
+        for (const { object, group, el, timed } of nodes) {
+          const state = interpolate(object.keyframes, ms);
+          group.setAttribute('transform', `translate(${state.x} ${state.y}) rotate(${state.rotation}) scale(${state.scale})`);
+          if (object.shape === 'path' && el.hasAttribute('pathLength')) el.setAttribute('stroke-dashoffset', String(1 - state.drawProgress));
           const visible = !timed || ms >= timed.offset_ms && ms < timed.offset_ms + timed.duration_ms;
-          group.setAttribute('opacity', String(visible ? get('opacity') : 0));
+          group.setAttribute('opacity', String(visible ? state.opacity : 0));
         }
         svg.dataset.timeMs = String(ms);
       },

@@ -24,7 +24,9 @@ export function validateVector(scene: ScriptScene, resource: SceneResource) {
     if (!Array.isArray(object.keyframes) || object.keyframes.length < 2 || object.keyframes.length > 64) throw new Error('无效的关键帧数量。');
     let previous = -1;
     for (const f of object.keyframes) {
-      if (Object.keys(f).some(k => !['time_ms','x','y','opacity','scale','rotation'].includes(k)) || !finite(f.time_ms,0,scene.duration_ms) || f.time_ms <= previous || !finite(f.x,-10000,10000) || !finite(f.y,-10000,10000) || !finite(f.opacity,0,1) || !finite(f.scale,Number.MIN_VALUE,10) || !Number.isFinite(f.rotation)) throw new Error('无效的关键帧。');
+      if (Object.keys(f).some(k => !['time_ms','x','y','opacity','scale','rotation','easing','drawProgress'].includes(k)) || !finite(f.time_ms,0,scene.duration_ms) || f.time_ms <= previous || !finite(f.x,-10000,10000) || !finite(f.y,-10000,10000) || !finite(f.opacity,0,1) || !finite(f.scale,Number.MIN_VALUE,10) || !Number.isFinite(f.rotation)) throw new Error('无效的关键帧。');
+      if (f.easing !== undefined && !['smoothstep','linear','ease-in-cubic','ease-out-cubic','ease-in-out-cubic'].includes(f.easing)) throw new Error('无效的运动曲线。');
+      if (f.drawProgress !== undefined && (object.shape !== 'path' || !finite(f.drawProgress,0,1))) throw new Error('无效的路径显现。');
       previous = f.time_ms;
     }
     if (object.keyframes[0].time_ms !== 0 || previous !== scene.duration_ms) throw new Error('关键帧未覆盖场景。');

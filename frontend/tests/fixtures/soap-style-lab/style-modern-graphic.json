@@ -377,7 +377,8 @@
               "y": 240,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -385,7 +386,8 @@
               "y": 240,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -393,7 +395,8 @@
               "y": 240,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "width": 1190,
@@ -414,7 +417,8 @@
               "y": 320,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -422,7 +426,8 @@
               "y": 320,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -430,7 +435,8 @@
               "y": 320,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "text": "01",
@@ -451,7 +457,8 @@
               "y": 637,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -459,7 +466,8 @@
               "y": 637,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -467,7 +475,8 @@
               "y": 637,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "path": "M-240 0 Q0 12 240 0 L240 24 L-240 24Z",
@@ -487,7 +496,8 @@
               "y": 490,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -495,7 +505,8 @@
               "y": 490,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -503,7 +514,8 @@
               "y": 490,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "materialKey": "flat",
@@ -525,7 +537,9 @@
               "y": 335,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.4
+              "opacity": 0.4,
+              "easing": "ease-out-cubic",
+              "drawProgress": 0.2
             },
             {
               "time_ms": 4500,
@@ -533,7 +547,9 @@
               "y": 327,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.65
+              "opacity": 0.65,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             },
             {
               "time_ms": 9000,
@@ -541,7 +557,9 @@
               "y": 335,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.3
+              "opacity": 0.3,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             }
           ],
           "path": "M0 0 Q70-18 135 0 T270 0",
@@ -564,7 +582,9 @@
               "y": 400,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.4
+              "opacity": 0.4,
+              "easing": "ease-out-cubic",
+              "drawProgress": 0.2
             },
             {
               "time_ms": 4500,
@@ -572,7 +592,9 @@
               "y": 392,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.65
+              "opacity": 0.65,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             },
             {
               "time_ms": 9000,
@@ -580,7 +602,9 @@
               "y": 400,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.3
+              "opacity": 0.3,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             }
           ],
           "path": "M0 0 Q70-18 135 0 T270 0",
@@ -603,7 +627,9 @@
               "y": 465,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.4
+              "opacity": 0.4,
+              "easing": "ease-out-cubic",
+              "drawProgress": 0.2
             },
             {
               "time_ms": 4500,
@@ -611,7 +637,9 @@
               "y": 457,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.65
+              "opacity": 0.65,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             },
             {
               "time_ms": 9000,
@@ -619,7 +647,9 @@
               "y": 465,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.3
+              "opacity": 0.3,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             }
           ],
           "path": "M0 0 Q70-18 135 0 T270 0",
@@ -642,7 +672,9 @@
               "y": 530,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.4
+              "opacity": 0.4,
+              "easing": "ease-out-cubic",
+              "drawProgress": 0.2
             },
             {
               "time_ms": 4500,
@@ -650,7 +682,9 @@
               "y": 522,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.65
+              "opacity": 0.65,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             },
             {
               "time_ms": 9000,
@@ -658,7 +692,9 @@
               "y": 530,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.3
+              "opacity": 0.3,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             }
           ],
           "path": "M0 0 Q70-18 135 0 T270 0",
@@ -681,7 +717,8 @@
               "y": 125,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -689,7 +726,8 @@
               "y": 125,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -697,7 +735,8 @@
               "y": 125,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "text": "肥皂为什么能带走油污？",
@@ -718,7 +757,8 @@
               "y": 190,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -726,7 +766,8 @@
               "y": 190,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -734,7 +775,8 @@
               "y": 190,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "text": "水经过，油仍附着",
@@ -754,7 +796,8 @@
               "y": 525,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -762,7 +805,8 @@
               "y": 525,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -770,7 +814,8 @@
               "y": 525,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "text": "油",
@@ -791,7 +836,8 @@
               "y": 835,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -799,7 +845,8 @@
               "y": 835,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -807,7 +854,8 @@
               "y": 835,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "text": "过程示意 · 油被分散并带走，未发生化学消失",
@@ -827,7 +875,8 @@
               "y": 760,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -835,7 +884,8 @@
               "y": 760,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -843,7 +893,8 @@
               "y": 760,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "text": "只用水，为什么油污还在？",
@@ -914,7 +965,8 @@
               "y": 240,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -922,7 +974,8 @@
               "y": 240,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -930,7 +983,8 @@
               "y": 240,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "width": 1190,
@@ -951,7 +1005,8 @@
               "y": 320,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -959,7 +1014,8 @@
               "y": 320,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -967,7 +1023,8 @@
               "y": 320,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "text": "02",
@@ -988,7 +1045,8 @@
               "y": 637,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -996,7 +1054,8 @@
               "y": 637,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -1004,7 +1063,8 @@
               "y": 637,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "path": "M-240 0 Q0 12 240 0 L240 24 L-240 24Z",
@@ -1024,7 +1084,8 @@
               "y": 490,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -1032,7 +1093,8 @@
               "y": 490,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -1040,7 +1102,8 @@
               "y": 490,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "materialKey": "flat",
@@ -1062,7 +1125,9 @@
               "y": 335,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.4
+              "opacity": 0.4,
+              "easing": "ease-out-cubic",
+              "drawProgress": 0.2
             },
             {
               "time_ms": 4500,
@@ -1070,7 +1135,9 @@
               "y": 327,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.65
+              "opacity": 0.65,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             },
             {
               "time_ms": 9000,
@@ -1078,7 +1145,9 @@
               "y": 335,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.3
+              "opacity": 0.3,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             }
           ],
           "path": "M0 0 Q70-18 135 0 T270 0",
@@ -1101,7 +1170,9 @@
               "y": 400,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.4
+              "opacity": 0.4,
+              "easing": "ease-out-cubic",
+              "drawProgress": 0.2
             },
             {
               "time_ms": 4500,
@@ -1109,7 +1180,9 @@
               "y": 392,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.65
+              "opacity": 0.65,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             },
             {
               "time_ms": 9000,
@@ -1117,7 +1190,9 @@
               "y": 400,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.3
+              "opacity": 0.3,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             }
           ],
           "path": "M0 0 Q70-18 135 0 T270 0",
@@ -1140,7 +1215,9 @@
               "y": 465,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.4
+              "opacity": 0.4,
+              "easing": "ease-out-cubic",
+              "drawProgress": 0.2
             },
             {
               "time_ms": 4500,
@@ -1148,7 +1225,9 @@
               "y": 457,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.65
+              "opacity": 0.65,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             },
             {
               "time_ms": 9000,
@@ -1156,7 +1235,9 @@
               "y": 465,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.3
+              "opacity": 0.3,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             }
           ],
           "path": "M0 0 Q70-18 135 0 T270 0",
@@ -1179,7 +1260,9 @@
               "y": 530,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.4
+              "opacity": 0.4,
+              "easing": "ease-out-cubic",
+              "drawProgress": 0.2
             },
             {
               "time_ms": 4500,
@@ -1187,7 +1270,9 @@
               "y": 522,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.65
+              "opacity": 0.65,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             },
             {
               "time_ms": 9000,
@@ -1195,7 +1280,9 @@
               "y": 530,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.3
+              "opacity": 0.3,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             }
           ],
           "path": "M0 0 Q70-18 135 0 T270 0",
@@ -1218,7 +1305,8 @@
               "y": 230.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.1
+              "opacity": 0.1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1000,
@@ -1226,7 +1314,8 @@
               "y": 230.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -1234,7 +1323,8 @@
               "y": 403.363,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -1242,7 +1332,8 @@
               "y": 403.363,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "path": "M0 0 L20.94 14.89 L41.87 13.13 L63.44 27.47",
@@ -1266,7 +1357,8 @@
               "y": 230.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.1
+              "opacity": 0.1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1000,
@@ -1274,7 +1366,8 @@
               "y": 230.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -1282,7 +1375,8 @@
               "y": 403.363,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -1290,7 +1384,8 @@
               "y": 403.363,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "width": 28,
@@ -1314,7 +1409,8 @@
               "y": 180.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.1
+              "opacity": 0.1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1330,
@@ -1322,7 +1418,8 @@
               "y": 180.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -1330,7 +1427,8 @@
               "y": 328.458,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -1338,7 +1436,8 @@
               "y": 328.458,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "path": "M0 0 L14.22 23.44 L28.44 28.81 L43.10 51.22",
@@ -1362,7 +1461,8 @@
               "y": 180.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.1
+              "opacity": 0.1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1330,
@@ -1370,7 +1470,8 @@
               "y": 180.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -1378,7 +1479,8 @@
               "y": 328.458,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -1386,7 +1488,8 @@
               "y": 328.458,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "width": 28,
@@ -1410,7 +1513,8 @@
               "y": 230.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.1
+              "opacity": 0.1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1660,
@@ -1418,7 +1522,8 @@
               "y": 230.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -1426,7 +1531,8 @@
               "y": 288.766,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -1434,7 +1540,8 @@
               "y": 288.766,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "path": "M0 0 L4.41 27.97 L8.82 37.11 L13.36 63.81",
@@ -1458,7 +1565,8 @@
               "y": 230.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.1
+              "opacity": 0.1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1660,
@@ -1466,7 +1574,8 @@
               "y": 230.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -1474,7 +1583,8 @@
               "y": 288.766,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -1482,7 +1592,8 @@
               "y": 288.766,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "width": 28,
@@ -1506,7 +1617,8 @@
               "y": 180.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.1
+              "opacity": 0.1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1990,
@@ -1514,7 +1626,8 @@
               "y": 180.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -1522,7 +1635,8 @@
               "y": 292.941,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -1530,7 +1644,8 @@
               "y": 292.941,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "path": "M0 0 L-6.37 27.49 L-12.73 36.24 L-19.29 62.48",
@@ -1554,7 +1669,8 @@
               "y": 180.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.1
+              "opacity": 0.1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1990,
@@ -1562,7 +1678,8 @@
               "y": 180.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -1570,7 +1687,8 @@
               "y": 292.941,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -1578,7 +1696,8 @@
               "y": 292.941,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "width": 28,
@@ -1602,7 +1721,8 @@
               "y": 230.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.1
+              "opacity": 0.1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 2320,
@@ -1610,7 +1730,8 @@
               "y": 230.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -1618,7 +1739,8 @@
               "y": 340.072,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -1626,7 +1748,8 @@
               "y": 340.072,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "path": "M0 0 L-15.75 22.11 L-31.51 26.38 L-47.74 47.54",
@@ -1650,7 +1773,8 @@
               "y": 230.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.1
+              "opacity": 0.1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 2320,
@@ -1658,7 +1782,8 @@
               "y": 230.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -1666,7 +1791,8 @@
               "y": 340.072,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -1674,7 +1800,8 @@
               "y": 340.072,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "width": 28,
@@ -1698,7 +1825,8 @@
               "y": 180.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.1
+              "opacity": 0.1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 2650,
@@ -1706,7 +1834,8 @@
               "y": 180.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -1714,7 +1843,8 @@
               "y": 419.886,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -1722,7 +1852,8 @@
               "y": 419.886,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "path": "M0 0 L-21.71 13.00 L-43.41 9.67 L-65.78 22.23",
@@ -1746,7 +1877,8 @@
               "y": 180.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.1
+              "opacity": 0.1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 2650,
@@ -1754,7 +1886,8 @@
               "y": 180.0,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -1762,7 +1895,8 @@
               "y": 419.886,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -1770,7 +1904,8 @@
               "y": 419.886,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "width": 28,
@@ -1794,7 +1929,8 @@
               "y": 490,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -1802,7 +1938,8 @@
               "y": 490,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -1810,7 +1947,8 @@
               "y": 490,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "text": "亲水端 · 朝水",
@@ -1830,7 +1968,8 @@
               "y": 535,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -1838,7 +1977,8 @@
               "y": 535,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -1846,7 +1986,8 @@
               "y": 535,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "text": "亲油端 · 入油",
@@ -1866,7 +2007,8 @@
               "y": 125,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -1874,7 +2016,8 @@
               "y": 125,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -1882,7 +2025,8 @@
               "y": 125,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "text": "肥皂为什么能带走油污？",
@@ -1903,7 +2047,8 @@
               "y": 190,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -1911,7 +2056,8 @@
               "y": 190,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -1919,7 +2065,8 @@
               "y": 190,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "text": "油—水界面 · 分子方向示意",
@@ -1939,7 +2086,8 @@
               "y": 525,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -1947,7 +2095,8 @@
               "y": 525,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -1955,7 +2104,8 @@
               "y": 525,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "text": "油",
@@ -1976,7 +2126,8 @@
               "y": 835,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -1984,7 +2135,8 @@
               "y": 835,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -1992,7 +2144,8 @@
               "y": 835,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "text": "过程示意 · 油被分散并带走，未发生化学消失",
@@ -2012,7 +2165,8 @@
               "y": 760,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -2020,7 +2174,8 @@
               "y": 760,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -2028,7 +2183,8 @@
               "y": 760,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "text": "亲水端朝水，亲油端伸向油",
@@ -2099,7 +2255,8 @@
               "y": 240,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -2107,7 +2264,8 @@
               "y": 240,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -2115,7 +2273,8 @@
               "y": 240,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "width": 1190,
@@ -2136,7 +2295,8 @@
               "y": 320,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -2144,7 +2304,8 @@
               "y": 320,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -2152,7 +2313,8 @@
               "y": 320,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "text": "03",
@@ -2173,7 +2335,8 @@
               "y": 637,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -2181,7 +2344,8 @@
               "y": 637,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -2189,7 +2353,8 @@
               "y": 637,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "path": "M-240 0 Q0 12 240 0 L240 24 L-240 24Z",
@@ -2209,7 +2374,8 @@
               "y": 490,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1800,
@@ -2217,7 +2383,8 @@
               "y": 482,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -2225,7 +2392,8 @@
               "y": 454,
               "scale": 0.63,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 6500,
@@ -2233,7 +2401,8 @@
               "y": 430,
               "scale": 0.27,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -2241,7 +2410,8 @@
               "y": 380,
               "scale": 0.27,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "materialKey": "flat",
@@ -2263,7 +2433,9 @@
               "y": 335,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.4
+              "opacity": 0.4,
+              "easing": "ease-out-cubic",
+              "drawProgress": 0.2
             },
             {
               "time_ms": 4500,
@@ -2271,7 +2443,9 @@
               "y": 327,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.65
+              "opacity": 0.65,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             },
             {
               "time_ms": 9000,
@@ -2279,7 +2453,9 @@
               "y": 335,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.3
+              "opacity": 0.3,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             }
           ],
           "path": "M0 0 Q70-18 135 0 T270 0",
@@ -2302,7 +2478,9 @@
               "y": 400,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.4
+              "opacity": 0.4,
+              "easing": "ease-out-cubic",
+              "drawProgress": 0.2
             },
             {
               "time_ms": 4500,
@@ -2310,7 +2488,9 @@
               "y": 392,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.65
+              "opacity": 0.65,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             },
             {
               "time_ms": 9000,
@@ -2318,7 +2498,9 @@
               "y": 400,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.3
+              "opacity": 0.3,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             }
           ],
           "path": "M0 0 Q70-18 135 0 T270 0",
@@ -2341,7 +2523,9 @@
               "y": 465,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.4
+              "opacity": 0.4,
+              "easing": "ease-out-cubic",
+              "drawProgress": 0.2
             },
             {
               "time_ms": 4500,
@@ -2349,7 +2533,9 @@
               "y": 457,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.65
+              "opacity": 0.65,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             },
             {
               "time_ms": 9000,
@@ -2357,7 +2543,9 @@
               "y": 465,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.3
+              "opacity": 0.3,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             }
           ],
           "path": "M0 0 Q70-18 135 0 T270 0",
@@ -2380,7 +2568,9 @@
               "y": 530,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.4
+              "opacity": 0.4,
+              "easing": "ease-out-cubic",
+              "drawProgress": 0.2
             },
             {
               "time_ms": 4500,
@@ -2388,7 +2578,9 @@
               "y": 522,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.65
+              "opacity": 0.65,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             },
             {
               "time_ms": 9000,
@@ -2396,7 +2588,9 @@
               "y": 530,
               "scale": 1,
               "rotation": 0,
-              "opacity": 0.3
+              "opacity": 0.3,
+              "easing": "ease-out-cubic",
+              "drawProgress": 1
             }
           ],
           "path": "M0 0 Q70-18 135 0 T270 0",
@@ -2419,7 +2613,8 @@
               "y": 490,
               "scale": 0.01,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1800,
@@ -2427,7 +2622,8 @@
               "y": 482,
               "scale": 0.04,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -2435,7 +2631,8 @@
               "y": 340,
               "scale": 0.32,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 6500,
@@ -2443,7 +2640,8 @@
               "y": 340,
               "scale": 0.32,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -2451,7 +2649,8 @@
               "y": 340,
               "scale": 0.32,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "path": "M-160-120L160-120L160 120L-160 120Z",
@@ -2473,7 +2672,8 @@
               "y": 403.363,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1800,
@@ -2481,7 +2681,8 @@
               "y": 395.363,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -2489,7 +2690,8 @@
               "y": 309.677,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 6500,
@@ -2497,7 +2699,8 @@
               "y": 309.677,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -2505,7 +2708,8 @@
               "y": 309.677,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "path": "M0 0 L20.94 14.89 L41.87 13.13 L63.44 27.47",
@@ -2529,7 +2733,8 @@
               "y": 403.363,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1800,
@@ -2537,7 +2742,8 @@
               "y": 395.363,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -2545,7 +2751,8 @@
               "y": 309.677,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 6500,
@@ -2553,7 +2760,8 @@
               "y": 309.677,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -2561,7 +2769,8 @@
               "y": 309.677,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "width": 28,
@@ -2585,7 +2794,8 @@
               "y": 490,
               "scale": 0.01,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1800,
@@ -2593,7 +2803,8 @@
               "y": 482,
               "scale": 0.04,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -2601,7 +2812,8 @@
               "y": 340,
               "scale": 0.32,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 6500,
@@ -2609,7 +2821,8 @@
               "y": 340,
               "scale": 0.32,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -2617,7 +2830,8 @@
               "y": 340,
               "scale": 0.32,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "path": "M-160-120L160-120L160 120L-160 120Z",
@@ -2639,7 +2853,8 @@
               "y": 328.458,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1800,
@@ -2647,7 +2862,8 @@
               "y": 320.458,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -2655,7 +2871,8 @@
               "y": 283.46,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 6500,
@@ -2663,7 +2880,8 @@
               "y": 283.46,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -2671,7 +2889,8 @@
               "y": 283.46,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "path": "M0 0 L14.22 23.44 L28.44 28.81 L43.10 51.22",
@@ -2695,7 +2914,8 @@
               "y": 328.458,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1800,
@@ -2703,7 +2923,8 @@
               "y": 320.458,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -2711,7 +2932,8 @@
               "y": 283.46,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 6500,
@@ -2719,7 +2941,8 @@
               "y": 283.46,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -2727,7 +2950,8 @@
               "y": 283.46,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "width": 28,
@@ -2751,7 +2975,8 @@
               "y": 490,
               "scale": 0.01,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1800,
@@ -2759,7 +2984,8 @@
               "y": 482,
               "scale": 0.04,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -2767,7 +2993,8 @@
               "y": 340,
               "scale": 0.32,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 6500,
@@ -2775,7 +3002,8 @@
               "y": 340,
               "scale": 0.32,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -2783,7 +3011,8 @@
               "y": 340,
               "scale": 0.32,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "path": "M-160-120L160-120L160 120L-160 120Z",
@@ -2805,7 +3034,8 @@
               "y": 288.766,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1800,
@@ -2813,7 +3043,8 @@
               "y": 280.766,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -2821,7 +3052,8 @@
               "y": 269.568,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 6500,
@@ -2829,7 +3061,8 @@
               "y": 269.568,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -2837,7 +3070,8 @@
               "y": 269.568,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "path": "M0 0 L4.41 27.97 L8.82 37.11 L13.36 63.81",
@@ -2861,7 +3095,8 @@
               "y": 288.766,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1800,
@@ -2869,7 +3104,8 @@
               "y": 280.766,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -2877,7 +3113,8 @@
               "y": 269.568,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 6500,
@@ -2885,7 +3122,8 @@
               "y": 269.568,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -2893,7 +3131,8 @@
               "y": 269.568,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "width": 28,
@@ -2917,7 +3156,8 @@
               "y": 490,
               "scale": 0.01,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1800,
@@ -2925,7 +3165,8 @@
               "y": 482,
               "scale": 0.04,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -2933,7 +3174,8 @@
               "y": 520,
               "scale": 0.32,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 6500,
@@ -2941,7 +3183,8 @@
               "y": 520,
               "scale": 0.32,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -2949,7 +3192,8 @@
               "y": 520,
               "scale": 0.32,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "path": "M-160-120L160-120L160 120L-160 120Z",
@@ -2971,7 +3215,8 @@
               "y": 292.941,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1800,
@@ -2979,7 +3224,8 @@
               "y": 284.941,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -2987,7 +3233,8 @@
               "y": 451.029,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 6500,
@@ -2995,7 +3242,8 @@
               "y": 451.029,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -3003,7 +3251,8 @@
               "y": 451.029,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "path": "M0 0 L-6.37 27.49 L-12.73 36.24 L-19.29 62.48",
@@ -3027,7 +3276,8 @@
               "y": 292.941,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1800,
@@ -3035,7 +3285,8 @@
               "y": 284.941,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -3043,7 +3294,8 @@
               "y": 451.029,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 6500,
@@ -3051,7 +3303,8 @@
               "y": 451.029,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -3059,7 +3312,8 @@
               "y": 451.029,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "width": 28,
@@ -3083,7 +3337,8 @@
               "y": 490,
               "scale": 0.01,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1800,
@@ -3091,7 +3346,8 @@
               "y": 482,
               "scale": 0.04,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -3099,7 +3355,8 @@
               "y": 520,
               "scale": 0.32,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 6500,
@@ -3107,7 +3364,8 @@
               "y": 520,
               "scale": 0.32,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -3115,7 +3373,8 @@
               "y": 520,
               "scale": 0.32,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "path": "M-160-120L160-120L160 120L-160 120Z",
@@ -3137,7 +3396,8 @@
               "y": 340.072,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1800,
@@ -3145,7 +3405,8 @@
               "y": 332.072,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -3153,7 +3414,8 @@
               "y": 467.525,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 6500,
@@ -3161,7 +3423,8 @@
               "y": 467.525,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -3169,7 +3432,8 @@
               "y": 467.525,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "path": "M0 0 L-15.75 22.11 L-31.51 26.38 L-47.74 47.54",
@@ -3193,7 +3457,8 @@
               "y": 340.072,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1800,
@@ -3201,7 +3466,8 @@
               "y": 332.072,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -3209,7 +3475,8 @@
               "y": 467.525,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 6500,
@@ -3217,7 +3484,8 @@
               "y": 467.525,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -3225,7 +3493,8 @@
               "y": 467.525,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "width": 28,
@@ -3249,7 +3518,8 @@
               "y": 490,
               "scale": 0.01,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1800,
@@ -3257,7 +3527,8 @@
               "y": 482,
               "scale": 0.04,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -3265,7 +3536,8 @@
               "y": 520,
               "scale": 0.32,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 6500,
@@ -3273,7 +3545,8 @@
               "y": 520,
               "scale": 0.32,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -3281,7 +3554,8 @@
               "y": 520,
               "scale": 0.32,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "path": "M-160-120L160-120L160 120L-160 120Z",
@@ -3303,7 +3577,8 @@
               "y": 419.886,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1800,
@@ -3311,7 +3586,8 @@
               "y": 411.886,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -3319,7 +3595,8 @@
               "y": 495.46,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 6500,
@@ -3327,7 +3604,8 @@
               "y": 495.46,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -3335,7 +3613,8 @@
               "y": 495.46,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "path": "M0 0 L-21.71 13.00 L-43.41 9.67 L-65.78 22.23",
@@ -3359,7 +3638,8 @@
               "y": 419.886,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1800,
@@ -3367,7 +3647,8 @@
               "y": 411.886,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -3375,7 +3656,8 @@
               "y": 495.46,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 6500,
@@ -3383,7 +3665,8 @@
               "y": 495.46,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -3391,7 +3674,8 @@
               "y": 495.46,
               "scale": 0.55,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "width": 28,
@@ -3415,7 +3699,8 @@
               "y": 490,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -3423,7 +3708,8 @@
               "y": 490,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -3431,7 +3717,8 @@
               "y": 490,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "text": "亲水端 · 朝水",
@@ -3451,7 +3738,8 @@
               "y": 535,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -3459,7 +3747,8 @@
               "y": 535,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -3467,7 +3756,8 @@
               "y": 535,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "text": "亲油端 · 入油",
@@ -3487,7 +3777,8 @@
               "y": 125,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -3495,7 +3786,8 @@
               "y": 125,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -3503,7 +3795,8 @@
               "y": 125,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "text": "肥皂为什么能带走油污？",
@@ -3524,7 +3817,8 @@
               "y": 190,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -3532,7 +3826,8 @@
               "y": 190,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -3540,7 +3835,8 @@
               "y": 190,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "text": "搅动 → 分散 → 冲洗",
@@ -3560,7 +3856,8 @@
               "y": 490,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 1800,
@@ -3568,7 +3865,8 @@
               "y": 482,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -3576,7 +3874,8 @@
               "y": 454,
               "scale": 0.63,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 6500,
@@ -3584,7 +3883,8 @@
               "y": 430,
               "scale": 0.27,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -3592,7 +3892,8 @@
               "y": 380,
               "scale": 0.27,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "text": "油",
@@ -3613,7 +3914,8 @@
               "y": 835,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -3621,7 +3923,8 @@
               "y": 835,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -3629,7 +3932,8 @@
               "y": 835,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "text": "过程示意 · 油被分散并带走，未发生化学消失",
@@ -3649,7 +3953,8 @@
               "y": 760,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 4500,
@@ -3657,7 +3962,8 @@
               "y": 760,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             },
             {
               "time_ms": 9000,
@@ -3665,7 +3971,8 @@
               "y": 760,
               "scale": 1,
               "rotation": 0,
-              "opacity": 1
+              "opacity": 1,
+              "easing": "ease-out-cubic"
             }
           ],
           "text": "搅动、分散，再随水流带走",

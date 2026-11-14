@@ -102,6 +102,12 @@ def make_bundle(profile):
         text('EL_FOOTNOTE','过程示意 · 油被分散并带走，未发生化学消失',110,835,22)
         timed=scene['timed_text'][0]; text(timed['id'],timed['text'],800,760,38,textAnchor='middle',fontWeight=600)
         elements[timed['id']]['source_ref']={'kind':'timed_text','id':timed['id']}
+        for actor in objects:
+            for k,f in enumerate(actor['keyframes']):
+                f['easing']='ease-out-cubic' if modern else 'ease-in-out-cubic' if paper else 'ease-in-cubic' if collage else 'smoothstep'
+                if actor['id'].startswith('EL_FLOW_'): f['drawProgress']=min(1,.2+f['time_ms']/4500)
+            if paper and actor['id'].startswith('EL_HEAD_') and actor['shape']!='text' and stage==2:
+                last=actor['keyframes'][-1]; actor['keyframes'].insert(-1,{**last,'time_ms':5200,'rotation':4})
         validate_program(scene,dict(objects=objects,anchor_times_ms=[4500]))
         ref=f'soap-lab/{pid}/{sid}.json'
         resources[ref]=dict(kind='vector-scene',sceneId=sid,style=profile,parameters=dict(speed=1),objects=objects)

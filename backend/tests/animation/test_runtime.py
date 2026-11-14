@@ -331,7 +331,7 @@ async def test_invalid_scene_gets_one_bounded_retry_and_valid_scenes_are_cached(
     current=projects.load(project['project_id'])
     await service.generate(current,script,client=Client())
     assert len(calls)==8
-    cache_path=next((service.root/project['project_id']/'generation-cache').glob('*.json'))
+    cache_path=next(path for path in (service.root/project['project_id']/'generation-cache').glob('*.json') if json.loads(path.read_text())['resource']['sceneId']=='S02')
     damaged=json.loads(cache_path.read_text())
     damaged['resource']['objects'][0]['label']+=' changed'
     cache_path.write_text(json.dumps(damaged))
@@ -375,3 +375,25 @@ def test_soap_fixtures_use_validated_internal_programs(style):
         with pytest.raises(ValueError,match='外观'): validate_program(scene,bad)
         bad=copy.deepcopy(value);bad['objects'][0]['strokeWidth']=float('nan')
         with pytest.raises(ValueError,match='外观'): validate_program(scene,bad)
+
+@pytest.mark.anyio
+@pytest.mark.parametrize('style',['paper-editorial','precision-science','modern-graphic','narrative-collage'])
+async def test_fake_director_emits_supported_materials_and_motion(style):
+    from pathlib import Path
+    fixture=Path(__file__).resolve().parents[3]/'frontend/tests/fixtures/soap-style-lab'
+    bundle=json.loads((fixture/f'style-{style}.json').read_text())
+    class FakeDirector:
+        async def generate_json(self,**kwargs):
+            assert 'materialKey' in kwargs['instructions'] and 'drawProgress' in kwargs['instructions']
+            scene=kwargs['data']['scene']
+            resource=next(r for r in bundle['resources'].values() if r['sceneId']==scene['scene_id'])
+            return SimpleNamespace(value={'objects':resource['objects'],'anchor_times_ms':[4500]})
+    for scene in bundle['script']['scenes']:
+        resource=await direct_scene(FakeDirector(),scene,resolve_profile(style))
+        assert resource['kind']=='vector-scene' and resource['style']['id']==style
+        bad={'objects':copy.deepcopy(resource['objects']),'anchor_times_ms':[4500]}
+        bad['objects'][0]['keyframes'][0]['easing']='arbitrary-js'
+        with pytest.raises(ValueError,match='运动曲线'): validate_program(scene,bad)
+        bad['objects'][0]['keyframes'][0].pop('easing')
+        bad['objects'][0]['keyframes'][0]['drawProgress']=float('inf')
+        with pytest.raises(ValueError,match='路径显现'): validate_program(scene,bad)

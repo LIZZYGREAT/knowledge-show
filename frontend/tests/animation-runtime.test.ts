@@ -48,3 +48,16 @@ it('loads styled vectors and rejects unrecognized materials or unsafe paint', ()
   object.materialKey = 'flat'; object.stroke = 'url(https://invalid)';
   expect(() => validateBundle(bundle)).toThrow();
 });
+
+import { ease, interpolate } from '../src/animation/runtime/interpolate';
+it('uses outgoing easing with deterministic path drawing and legacy defaults', () => {
+  expect(ease(.25)).toBe(.15625);
+  const frames = [{ time_ms:0,x:0,y:0,opacity:1,scale:1,rotation:0,drawProgress:0,easing:'ease-out-cubic' as const },{time_ms:1000,x:100,y:0,opacity:1,scale:1,rotation:0,drawProgress:1}];
+  expect(interpolate(frames,500).x).toBe(87.5);
+  expect(interpolate(frames,500).drawProgress).toBe(.875);
+  expect(interpolate(frames,1000).x).toBe(100);
+  expect(interpolate(frames,-100).drawProgress).toBe(0);
+  const legacy = frames.map(({easing,drawProgress,...f}) => f);
+  expect(interpolate(legacy,250).x).toBe(15.625);
+  expect(interpolate(legacy,250).drawProgress).toBe(1);
+});
