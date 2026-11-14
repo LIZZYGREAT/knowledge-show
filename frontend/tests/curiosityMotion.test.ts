@@ -6,8 +6,10 @@ describe("dice demonstration", () => {
     const drop = inkState(1.5);
     expect(drop.travel).toBeGreaterThan(0);
     expect(drop.form).toBe(0);
+    expect(drop.lift).toBe(0);
     const shaping = inkState(2.35);
     expect(shaping.form).toBeGreaterThan(0);
+    expect(shaping.lift).toBeGreaterThan(0);
     expect(shaping.form).toBeLessThan(1);
     expect(shaping.turn).toBeGreaterThan(drop.turn);
     expect(stageState(2.35).roll).toBe(0);

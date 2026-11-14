@@ -45,7 +45,7 @@ export function inkState(time: number) {
   const form = easeBetween(phase, 1.65, 3.15) * (1 - easeBetween(phase, 13.8, 15));
   const presence = easeBetween(phase, .65, 1.05) * (1 - easeBetween(phase, 15.2, 15.65));
   const turn = easeBetween(phase, .8, 3.15) * (1 - easeBetween(phase, 13.8, 15.65)) * Math.PI * 2;
-  const lift = easeBetween(phase, 1.1, 2.7) * (1 - easeBetween(phase, 14, 15.5));
+  const lift = easeBetween(phase, 1.5, 3.15) * (1 - easeBetween(phase, 14, 15.5));
   const vortexOpacity = presence * (1 - easeBetween(phase, 6, 6.8) * (1 - easeBetween(phase, 13.7, 14.5)));
   return { bloom, fold, silkOpacity, travel, form, presence, turn, lift, vortexOpacity, scale: 1 - fold * .94,
     flowTime: 5.5 + Math.sin(phase / STAGE_DURATION * Math.PI * 2) * 1.1,

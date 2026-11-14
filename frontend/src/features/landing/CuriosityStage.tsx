@@ -15,7 +15,7 @@ export function CuriosityStage({ pose }: { pose?: number }) {
   const wobble = Math.sin(t * 15) * roll;
   const ink = inkState(time);
   const tumble = easeBetween(t, 1.4, 3.2) * Math.PI * 2;
-  const dieTurn = ink.turn + tumble;
+  const rippleTurn = ink.turn + tumble;
   const contour = inkContour(ink.bloom);
   const [tipX, tipY] = surfaceAt(.88, -.84, ink.flowTime);
   const seedX = 400 - ink.fold * 40 + (tipX - 400) * ink.scale;
@@ -26,17 +26,33 @@ export function CuriosityStage({ pose }: { pose?: number }) {
     const travel = ink.travel;
     const px = seedX + (x - seedX) * travel;
     const py = seedY + (y - seedY) * travel - Math.sin(travel * Math.PI) * arc;
-    const size = (1.25 - unfold * .42) * (.2 + ink.form * .8);
+    const size = 1.25 - unfold * .42;
     const stretch = Math.sin(travel * Math.PI) * (1 - ink.form) * .18;
     return `translate(${px} ${py}) rotate(${rotation * ink.form}) scale(${size * (1 - stretch)} ${size * (1 + stretch)})`;
   }
-  const vortex = inkVortex({ x: 376.5 - unfold * 98, y: 313 - unfold * 67,
-    sourceX: seedX, sourceY: seedY, travel: ink.travel, lift: ink.lift, turn: dieTurn, unfold });
-  function vortexLines(paths: string[]) {
-    return paths.map((d, i) => <g key={i}>
-      <path d={d} stroke="#46927c" strokeWidth="4" strokeOpacity=".10"/>
-      <path d={d} stroke={i % 3 ? "#5e9985" : "#bca16c"} strokeWidth={i % 3 ? 1.3 : .9} strokeOpacity=".65"/>
-    </g>);
+  function rippleDie(name: "ivory" | "green", x: number, y: number, rotation: number, arc: number) {
+    const green = name === "green";
+    // Each ripple is the driver of its own die; both live in the same coordinates.
+    const wave = { travel: ink.travel, lift: ink.lift, turn: rippleTurn * (green ? -1 : 1) };
+    const vortex = inkVortex(wave);
+    function lines(paths: string[]) {
+      return paths.map((d, i) => <g key={i}>
+        <path d={d} stroke={green ? "#46927c" : "#bca16c"} strokeWidth="3.5" strokeOpacity=".1"/>
+        <path d={d} stroke={green ? "#5e9985" : "#b59a63"} strokeWidth="1.2" strokeOpacity=".65"/>
+      </g>);
+    }
+    return <g key={name} className="stage-die-system" data-die-system={name} transform={dieTransform(x, y, rotation, arc)}>
+      <g className="stage-ink-ripples stage-vortex-back" data-lift={wave.lift.toFixed(3)} data-turn={wave.turn.toFixed(5)} opacity={ink.vortexOpacity * .7} fill="none" strokeLinecap="round">
+        {lines(vortex.back)}
+      </g>
+      <circle className="stage-ink-drop" r={4 * (1 - ink.form)} fill={green ? "#2e7869" : "#b59a63"} opacity={ink.presence * (1 - ink.form)}/>
+      <g data-die={name} opacity={ink.presence} transform={`scale(${ink.form})`}>
+        <InkDie form={ink.form} turn={wave.turn} tumble={tumble * (green ? -1 : 1)} green={green}/>
+      </g>
+      <g className="stage-vortex-front" data-turn={wave.turn.toFixed(5)} opacity={ink.vortexOpacity} fill="none" strokeLinecap="round">
+        {lines(vortex.front)}
+      </g>
+    </g>;
   }
   const id = useId().replace(/:/g, "");
   return <figure ref={ref} className="curiosity-stage" data-time={time.toFixed(3)} data-paused={pose !== undefined || motion.paused} data-pose={((time % STAGE_DURATION) / STAGE_DURATION).toFixed(3)} data-ink={ink.bloom.toFixed(3)} aria-label="知识动画演示：两个公平六面骰子共有36种等可能的有序组合，其中6种点数和为7，比其他点数和的组合都多。">
@@ -63,15 +79,9 @@ export function CuriosityStage({ pose }: { pose?: number }) {
           <path d={contour} fill="none" stroke="#6b9380" strokeWidth="1.2" strokeOpacity={(1 - ink.bloom) * .22} filter={`url(#${id}-wet-edge)`}/>
         </g>
         <text x="403" y="97" textAnchor="middle" className="stage-question">为什么 7 最常见？</text>
-        <g className="stage-ink-ripples stage-vortex-back" data-lift={ink.lift.toFixed(3)} opacity={ink.vortexOpacity * .7} fill="none" strokeLinecap="round">
-          {vortexLines(vortex.back)}
-        </g>
         <g className="stage-knowledge">
-        <g data-die="ivory" opacity={ink.presence} transform={dieTransform(310 - unfold * 76, 306 - unfold * 67 - Math.abs(wobble) * 12, -12 + wobble * 22, 42)}><InkDie form={ink.form} turn={dieTurn} tumble={tumble}/></g>
-        <g data-die="green" opacity={ink.presence} transform={dieTransform(443 - unfold * 120, 320 - unfold * 68 - Math.abs(wobble) * 9, 12 - wobble * 26, 60)}><InkDie form={ink.form} turn={dieTurn} tumble={tumble} green/></g>
-        <g className="stage-vortex-front" opacity={ink.vortexOpacity} fill="none" strokeLinecap="round">
-          {vortexLines(vortex.front)}
-        </g>
+        {rippleDie("ivory", 310 - unfold * 76, 306 - unfold * 67 - Math.abs(wobble) * 12, -12 + wobble * 22, 42)}
+        {rippleDie("green", 443 - unfold * 120, 320 - unfold * 68 - Math.abs(wobble) * 9, 12 - wobble * 26, 60)}
         <g className="stage-explanation" opacity={ink.form} mask={`url(#${id}-ink-reveal)`}>
         <text x={380 - unfold * 102} y={405 - unfold * 76} opacity={1 - easeBetween(roll, 0, .2)} textAnchor="middle" className="stage-equation">3 + 4 = 7</text>
         <path opacity={unfold} pathLength="1" strokeDasharray="1" strokeDashoffset={1 - unfold} d="M341 278Q383 269 405 229" fill="none" stroke="#b7a269" strokeWidth="1"/>

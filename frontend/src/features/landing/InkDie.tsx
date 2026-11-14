@@ -35,7 +35,7 @@ export function InkDie({ form, turn, tumble = 0, green = false }: { form: number
   return <g className="stage-die" data-formed={form.toFixed(3)}>
     <ellipse cy="47" rx={26 + form * 13} ry={5 + form * 3} fill="#254f421c"/>
     <rect x="-31" y="-31" width="62" height="62" rx={31 - form * 21} fill={green ? "#2e7869" : "#c6a768"} opacity={1 - form}/>
-    <g className="stage-die-cube" opacity={form} transform={`scale(${.72 + form * .28})`}>
+    <g className="stage-die-cube" data-turn={turn.toFixed(5)} opacity={form} transform={`scale(${.72 + form * .28})`}>
       {faces.map(face => {
         const light = .74 + Math.max(0, -face.normal[0] * .25 - face.normal[1] * .55 + face.normal[2] * .2) * .35;
         const color = `rgb(${base.map(n => Math.round(Math.min(255, n * light))).join(" ")})`;

@@ -768,7 +768,7 @@ test("silk becomes an ink reveal and leaves the complete knowledge scene readabl
   expect(form).toBeGreaterThan(0);
   expect(form).toBeLessThan(1);
   expect(await page.locator(".stage-ink-ripples path").first().getAttribute("d")).not.toBe(ripple);
-  expect(Number(await page.locator(".stage-ink-ripples").getAttribute("data-lift"))).toBeGreaterThan(0);
+  expect(Number(await page.locator(".stage-ink-ripples").first().getAttribute("data-lift"))).toBeGreaterThan(0);
   const ink = Number(await page.locator(".curiosity-stage").getAttribute("data-ink"));
   expect(ink).toBeGreaterThan(0);
   expect(ink).toBeLessThan(1);
@@ -787,6 +787,25 @@ test("silk becomes an ink reveal and leaves the complete knowledge scene readabl
         path.isPointInFill(new DOMPoint(x, y)));
     });
   })).toBe(true);
+});
+
+test("each die follows its own ripple as the flat wave rises into a spiral", async ({ page }) => {
+  for (const seconds of [1.5, 2.3, 5.4]) {
+    await page.goto(`/?stage-pose=${seconds / 16}`);
+    await expect(page.locator(".stage-die-system")).toHaveCount(2);
+    const turns: number[] = [];
+    for (const name of ["ivory", "green"]) {
+      const system = page.locator(`[data-die-system="${name}"]`);
+      await expect(system.locator(".stage-ink-ripples")).toHaveCount(1);
+      await expect(system.locator(".stage-vortex-front")).toHaveCount(1);
+      await expect(system.locator(".stage-die")).toHaveCount(1);
+      const turn = await system.locator(".stage-ink-ripples").getAttribute("data-turn");
+      expect(await system.locator(".stage-die-cube").getAttribute("data-turn")).toBe(turn);
+      expect(await system.locator(".stage-vortex-front").getAttribute("data-turn")).toBe(turn);
+      turns.push(Number(turn));
+    }
+    expect(turns[0]).toBeCloseTo(-turns[1], 4);
+  }
 });
 
 test("theatre pauses offscreen and responds to motion preference changes", async ({ page }) => {
