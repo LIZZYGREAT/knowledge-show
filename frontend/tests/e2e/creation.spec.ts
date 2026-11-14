@@ -36,6 +36,13 @@ test("composes, preserves preferences and returns from missing API settings", as
 test("key stays out of persistent browser storage and cannot fake connection", async ({
   page,
 }) => {
+  await page.route("**/api/model/test", async (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ connected: false }),
+    }),
+  );
   await page.goto("/");
   await page.getByRole("button", { name: "设置", exact: true }).click();
   await page
@@ -47,7 +54,7 @@ test("key stays out of persistent browser storage and cannot fake connection", a
   );
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "测试连接", exact: true }).click();
-  await expect(page.getByRole("status")).toContainText("密钥未发送");
+  await expect(page.getByRole("status")).toContainText("密钥无法使用");
   await expect(page.getByRole("button", { name: "本次使用" })).toBeDisabled();
   expect(
     await page.evaluate(() => ({
@@ -57,6 +64,110 @@ test("key stays out of persistent browser storage and cannot fake connection", a
     })),
   ).toEqual({ local: 0, session: 0, cookie: "" });
   await page.reload();
+  await page.getByRole("button", { name: "设置", exact: true }).click();
+  await expect(page.getByLabel("API Key", { exact: true })).toHaveValue("");
+});
+
+test("real task UI resumes a published script and waits for animation", async ({
+  page,
+}) => {
+  const secret = "sk-e2e-only-secret";
+  await page.route("**/api/model/test", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ connected: true }),
+    }),
+  );
+  await page.route("**/api/projects", (route) =>
+    route.fulfill({
+      status: 201,
+      contentType: "application/json",
+      body: JSON.stringify({
+        project_id: "P_E2E",
+        project_revision: 1,
+        project: { project_id: "P_E2E", revision: 1 },
+      }),
+    }),
+  );
+  await page.route("**/api/projects/P_E2E/jobs", (route) =>
+    route.fulfill({
+      status: 202,
+      contentType: "application/json",
+      body: JSON.stringify({ job_id: "JOB_E2E", status: "running" }),
+    }),
+  );
+  await page.route("**/api/jobs/JOB_E2E", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        job_id: "JOB_E2E",
+        project_id: "P_E2E",
+        status: "script_ready",
+        current_stage: "animation",
+        stages: {
+          knowledge: "completed",
+          script: "completed",
+          animation: "pending",
+        },
+        message: "脚本准备完成，等待动画制作。",
+        project_revision: 4,
+        artifacts: {
+          knowledge_package: { artifact_id: "KP_E2E", revision: 1 },
+          production_script: { artifact_id: "PS_E2E", revision: 1 },
+        },
+        error_code: null,
+      }),
+    }),
+  );
+  await page.route("**/api/projects/P_E2E/production-script**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        core_message: "两枚骰子的点数和有不同的组合数。",
+        total_duration_ms: 165000,
+        scenes: [{ scene_id: "SC01", objective: "理解组合数量" }],
+      }),
+    }),
+  );
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "开始创作" }).click();
+  await page.getByLabel("你想让大家了解什么？").fill("骰子概率");
+  await page.getByRole("button", { name: "开始创作", exact: false }).click();
+  await page.getByRole("button", { name: "确认，开始制作" }).click();
+  await page.getByLabel("API Key", { exact: true }).fill(secret);
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "测试连接", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("连接成功");
+  await page.getByRole("button", { name: "本次使用" }).click();
+  await page.getByRole("button", { name: "确认，开始制作" }).click();
+
+  await expect(
+    page.getByRole("heading", { name: "讲述主线已经准备好。" }),
+  ).toBeVisible();
+  await expect(page.getByText("等待动画制作", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "两枚骰子的点数和有不同的组合数。" }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: /预览|工作台/ })).toHaveCount(0);
+  const stored = await page.evaluate(() =>
+    sessionStorage.getItem("knowledge-show:active-task"),
+  );
+  expect(stored).toContain("JOB_E2E");
+  expect(stored).not.toContain(secret);
+
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "讲述主线已经准备好。" }),
+  ).toBeVisible();
+  const restoredSession = await page.evaluate(
+    () => sessionStorage.getItem("knowledge-show:active-task") ?? "",
+  );
+  expect(restoredSession).toContain("JOB_E2E");
+  expect(restoredSession).not.toContain(secret);
   await page.getByRole("button", { name: "设置", exact: true }).click();
   await expect(page.getByLabel("API Key", { exact: true })).toHaveValue("");
 });

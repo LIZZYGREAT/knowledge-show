@@ -1,6 +1,6 @@
 # 对外 API 与跨阶段契约入口
 
-> 当前仓库已拥有**跨阶段数据契约**，但尚未确认使用哪种 API 传输协议或具体服务端点。本文是对接导航与后续端点登记处，**不重复定义数据字段**。
+> 本文登记本地前后端已实现的 HTTP 对接；跨阶段正式数据仍以 `contracts/schemas/` 为准。传输响应不复制 ProjectState 或产物 Schema。
 
 ## 一、现行权威契约
 
@@ -14,19 +14,38 @@
 
 其中 `ProjectState` 保存用户需求、已确认方向和当前产物引用；`KnowledgePackage` 为知识层输出；`ProductionScript` 为脚本层输出；`AnimationManifest` 为动画层输出；`RevisionRequest` 负责反馈。字段和类型请直接查 Schema。
 
-## 二、API 端点登记（待实际实现后填写）
+## 二、本地 HTTP 端点
 
-当前 `backend/src/api/` 仍为占位目录，尚未确定 HTTP、WebSocket 或其他传输方式；**不在文档中预设路径或成功响应**。
+服务入口为 `backend/src/api/app.py` 的 `api.app:app`，本地开发绑定 `127.0.0.1:8000`。Vite 将 `/api` 代理到该地址。服务只允许回环请求，并只接受本地开发 Origin；不用于公开互联网或多用户部署。
+
+API Key 由显式操作提交。模型连接测试会实际请求 DeepSeek；生成任务在知识层 LLM、Search/Fetch 与脚本层客户端中逐请求注入该 Key。密钥不进入 `.env`、ProjectState、Job 快照或前端存储。HTTP 错误只返回有限错误码和用户文案，服务日志不记录密钥和原始异常。
 
 | 对接行为 | 逻辑输入 / 输出 | 传输端点 | 实施状态 |
 | --- | --- | --- | --- |
-| 创建/更新项目 | `ProjectState.brief` → `ProjectState` | 待定 | 未实现 |
-| 生成知识候选与知识包 | `ProjectState` → `KnowledgePackage` | 待定 | 未实现 |
-| 确定/调整创作方向 | 方向 ID + 项目版本 → 更新后的 `ProjectState` | 待定 | 未实现 |
-| 生成脚本 | 项目状态 + 知识包引用 → `ProductionScript` | 待定 | 未实现 |
-| 生成预览产物 | 项目状态 + 脚本引用 → `AnimationManifest` | 待定 | 未实现 |
-| 提交反馈与修订 | `RevisionRequest` → 受影响产物的新版本 | 待定 | 未实现 |
+| 本机服务存活检查 | 无 → `{status: "ok"}`；不测试模型凭证 | `GET /api/health` | 已实现 |
+| 显式测试模型连接 | `{api_key}` → `{connected}`；一次低用量真实请求 | `POST /api/model/test` | 已实现 |
+| 创建项目 | `{user_input}` → 完整 ProjectState 与 revision | `POST /api/projects` | 已实现 |
+| 恢复项目 | 项目 ID → 当前 ProjectState | `GET /api/projects/{project_id}` | 已实现 |
+| 启动/复用脚本任务 | `{target: "script", api_key, regenerate?}` → Job ID | `POST /api/projects/{project_id}/jobs` | 已实现；后台跑知识→脚本，单项目任务互斥 |
+| 查询任务 | Job ID → 安全状态、阶段文案与已发布 ArtifactRef | `GET /api/jobs/{job_id}` | 已实现；轮询；重启时未完成任务标记 `interrupted` |
+| 读取当前精确知识包 | `{artifact_id, revision}` → `KnowledgePackage` | `GET /api/projects/{project_id}/knowledge-package` | 已实现；不自动替换为最新版 |
+| 读取当前精确脚本 | `{artifact_id, revision}` → `ProductionScript` | `GET /api/projects/{project_id}/production-script` | 已实现；重验上下游引用 |
+| 确定创作方向 | `{direction_id, expected_project_revision}` → ProjectState | `POST /api/projects/{project_id}/direction` | 已实现；方向变化会使脚本/动画引用失效 |
+| 动画输入交接 | 项目配置、精确脚本 ArtifactRef 与完整脚本 | `GET /api/projects/{project_id}/handoff/animation` | 已实现；无脚本为 `awaiting_script`，有脚本但无动画为 `awaiting_animation` |
+| 查询预览就绪状态 | 当前 Manifest 与真实可加载资源状态 | `GET /api/projects/{project_id}/preview` | 已实现未就绪回执；当前没有通用 Manifest 播放适配器 |
+| 接收动画 Manifest 候选 | Schema、脚本引用、场景/事件覆盖与本地资源文件 → 候选回执 | `POST /api/projects/{project_id}/animation-manifest` | 已实现候选校验与保存；通用播放器未接入，不发布 ProjectState 当前引用 |
+| 发布当前动画 Manifest / 进入真实预览 | 已校验 Manifest 且被播放器解析、实际资源可加载 → 当前 AnimationManifest | 待定 | 未实现；固定 PN P0 预览不是本项目的正式视频 |
+| 接收修订请求 | Schema-valid `RevisionRequest` + 精确目标版本 → `received` 回执 | `POST /api/projects/{project_id}/revision-requests` | 已实现接收、持久化与版本校验；不执行自动修改，原成果不变 |
 | 确认与导出 | 已确认动画产物 → 视频文件 | 待定 | 未实现 |
+
+脚本任务的 `script_ready` 只表示合法 ProductionScript 已发布，动画阶段保持 `pending`，不表示视频已生成。任务响应只含过滤后的用户语义，不回传模型调用明细或 traceback。
+
+本地启动：
+
+```bash
+PYTHONPATH=backend/src .venv/bin/python -m uvicorn api.app:app --host 127.0.0.1 --port 8000
+cd frontend && npm run dev
+```
 
 真实 API 确认后，此处仅补方法、路径、鉴权（如需）、异步状态、错误语义和负责人；请求/响应对象引用 Schema，不另抄一份字段表。
 

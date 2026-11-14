@@ -1,5 +1,6 @@
 import { flushSync } from "react-dom";
 import { useEffect, useRef, useState } from "react";
+import { createProject, startScriptJob, testModelConnection } from "./common/api";
 import { initialDraft, toUserInput } from "./common/creation";
 import { LandingHero } from "./features/landing/LandingHero";
 import { CreationComposer } from "./features/creation/CreationComposer";
@@ -7,23 +8,57 @@ import { CreationConfirm } from "./features/creation/CreationConfirm";
 import { ApiSettingsDrawer } from "./features/settings/ApiSettingsDrawer";
 import { useEphemeralKey } from "./features/settings/EphemeralKeyContext";
 import { GenerationStatus } from "./features/progress/GenerationStatus";
+import { TaskProgress } from "./features/progress/TaskProgress";
+
+type Page = "landing" | "composing" | "demo" | "working";
+type TaskSession = { projectId: string; jobId: string; topic: string };
+const TASK_SESSION_KEY = "knowledge-show:active-task";
+
+function readTaskSession(): TaskSession | null {
+  try {
+    const raw = sessionStorage.getItem(TASK_SESSION_KEY);
+    if (!raw) return null;
+    const value = JSON.parse(raw) as Partial<TaskSession>;
+    if (typeof value.projectId !== "string" || typeof value.topic !== "string")
+      return null;
+    return {
+      projectId: value.projectId,
+      jobId: typeof value.jobId === "string" ? value.jobId : "",
+      topic: value.topic,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export default function App() {
-  const [page, setPage] = useState<"landing" | "composing" | "demo">("landing");
-  const [draft, setDraft] = useState(initialDraft);
+  const [taskSession, setTaskSession] = useState(readTaskSession);
+  const [page, setPage] = useState<Page>(() =>
+    taskSession?.jobId ? "working" : taskSession ? "composing" : "landing",
+  );
+  const [draft, setDraft] = useState(() => ({
+    ...initialDraft,
+    topic: taskSession?.topic ?? "",
+  }));
+  const [projectId, setProjectId] = useState(taskSession?.projectId ?? "");
+  const [jobId, setJobId] = useState(taskSession?.jobId ?? "");
   const [settings, setSettings] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const [resumeConfirm, setResumeConfirm] = useState(false);
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const connection = useEphemeralKey();
   const content = useRef<HTMLDivElement>(null);
   const [transitioning, setTransitioning] = useState(false);
   const transition = useRef<ViewTransition | null>(null);
+
   useEffect(() => () => transition.current?.skipTransition(), []);
   useEffect(() => {
     window.scrollTo(0, 0);
     content.current?.focus();
   }, [page]);
-  function navigate(next: typeof page) {
+
+  function navigate(next: Page) {
     if (next === page) return;
     transition.current?.skipTransition();
     if (
@@ -48,24 +83,93 @@ export default function App() {
       setPage(next);
     }
   }
+
   function review() {
     try {
       toUserInput(draft);
       setError("");
       setConfirm(true);
-    } catch (e) {
-      setError((e as Error).message);
+    } catch (cause) {
+      setError((cause as Error).message);
     }
   }
-  function submit() {
-    if (!connection.connected) {
+
+  function persistTask(next: TaskSession) {
+    setTaskSession(next);
+    try {
+      sessionStorage.setItem(TASK_SESSION_KEY, JSON.stringify(next));
+    } catch {
+      // The active task remains available in memory for this page session.
+    }
+  }
+
+  function clearTask() {
+    setTaskSession(null);
+    setProjectId("");
+    setJobId("");
+    try {
+      sessionStorage.removeItem(TASK_SESSION_KEY);
+    } catch {
+      // Storage can be unavailable in restricted browser contexts.
+    }
+  }
+
+  async function submit() {
+    if (!connection.connected || !connection.key) {
       setConfirm(false);
       setResumeConfirm(true);
       setSettings(true);
       return;
     }
-    setError("生成服务尚未接入，创作要求已保留。可以返回查看流程演示。");
+    if (submitting) return;
+    setSubmitting(true);
+    setError("");
+    try {
+      let targetProjectId = projectId;
+      if (!targetProjectId) {
+        const created = await createProject(toUserInput(draft));
+        targetProjectId = created.project_id;
+        setProjectId(targetProjectId);
+        persistTask({ projectId: targetProjectId, jobId: "", topic: draft.topic });
+      }
+      const started = await startScriptJob(targetProjectId, connection.key);
+      const next = {
+        projectId: targetProjectId,
+        jobId: started.job_id,
+        topic: draft.topic,
+      };
+      setProjectId(targetProjectId);
+      setJobId(started.job_id);
+      persistTask(next);
+      setConfirm(false);
+      setError("");
+      navigate("working");
+    } catch (cause) {
+      setError((cause as Error).message || "暂时无法启动创作任务，请稍后重试。");
+    } finally {
+      setSubmitting(false);
+    }
   }
+
+  async function retryCurrentTask() {
+    if (!connection.connected || !connection.key) {
+      setSettings(true);
+      return;
+    }
+    if (!projectId || submitting) return;
+    setSubmitting(true);
+    setError("");
+    try {
+      const started = await startScriptJob(projectId, connection.key);
+      setJobId(started.job_id);
+      persistTask({ projectId, jobId: started.job_id, topic: draft.topic });
+    } catch (cause) {
+      setError((cause as Error).message || "暂时无法重试任务，请稍后重试。");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   function closeSettings() {
     setSettings(false);
     if (resumeConfirm) {
@@ -73,6 +177,7 @@ export default function App() {
       setResumeConfirm(false);
     }
   }
+
   return (
     <>
       <a className="skip-link" href="#main-content">
@@ -131,16 +236,38 @@ export default function App() {
         ) : page === "composing" ? (
           <CreationComposer
             draft={draft}
-            onChange={setDraft}
+            onChange={(next) => {
+              if (projectId && next.topic !== draft.topic) clearTask();
+              setDraft(next);
+            }}
             onSubmit={review}
             onDemo={() => navigate("demo")}
             error={error}
           />
-        ) : (
+        ) : page === "demo" ? (
           <GenerationStatus
             topic={draft.topic}
             onBack={() => navigate("composing")}
           />
+        ) : jobId ? (
+          <TaskProgress
+            jobId={jobId}
+            topic={draft.topic}
+            hasApiKey={connection.connected && Boolean(connection.key)}
+            onBack={() => {
+              clearTask();
+              navigate("composing");
+            }}
+            onRetry={() => void retryCurrentTask()}
+            onOpenSettings={() => setSettings(true)}
+          />
+        ) : (
+          <main className="generation">
+            <p className="current-action">创作项目已建立，请配置连接后继续启动任务。</p>
+            <button className="primary" onClick={() => setConfirm(true)}>
+              继续创作 →
+            </button>
+          </main>
         )}
       </div>
       {confirm && (
@@ -150,11 +277,17 @@ export default function App() {
             setConfirm(false);
             setError("");
           }}
-          onConfirm={submit}
+          onConfirm={() => void submit()}
           error={error}
+          busy={submitting}
         />
       )}
-      {settings && <ApiSettingsDrawer onClose={closeSettings} />}
+      {settings && (
+        <ApiSettingsDrawer
+          onClose={closeSettings}
+          testConnection={testModelConnection}
+        />
+      )}
     </>
   );
 }

@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import asyncio
 import inspect
 import json
 import re
+import threading
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Callable
@@ -30,6 +32,7 @@ class WorkflowArtifactNotFound(WorkflowError):
 class WorkflowOptions:
     mode: str = "real"
     force_knowledge: bool = False
+    regenerate_script: bool = False
     knowledge_options: RunOptions | None = None
     script_client: Any | None = None
     knowledge_export_dir: str | Path | None = None
@@ -38,6 +41,15 @@ class WorkflowOptions:
     def __post_init__(self) -> None:
         if self.mode not in {"real", "mock"}:
             raise ValueError("workflow mode must be 'real' or 'mock'")
+
+
+_PROJECT_RUN_LOCKS: dict[str, asyncio.Lock] = {}
+_PROJECT_RUN_LOCKS_GUARD = threading.Lock()
+
+
+def _project_run_lock(project_id: str) -> asyncio.Lock:
+    with _PROJECT_RUN_LOCKS_GUARD:
+        return _PROJECT_RUN_LOCKS.setdefault(project_id, asyncio.Lock())
 
 
 async def _notify(
@@ -59,6 +71,23 @@ async def run_until_script(
     on_event: Callable[[dict[str, Any]], Any] | None = None,
 ) -> dict[str, Any]:
     """Run through a published ProductionScript without starting animation work."""
+    lock = _project_run_lock(project_id)
+    async with lock:
+        return await _run_until_script_locked(
+            project_id,
+            options=options,
+            state_store=state_store,
+            on_event=on_event,
+        )
+
+
+async def _run_until_script_locked(
+    project_id: str,
+    *,
+    options: WorkflowOptions,
+    state_store: ProjectStateStore | None,
+    on_event: Callable[[dict[str, Any]], Any] | None,
+) -> dict[str, Any]:
     store = state_store or ProjectStateStore()
     project = store.load(project_id)
     if project["brief"]["effective"]["aspect_ratio"] != "16:9":
@@ -116,6 +145,32 @@ async def run_until_script(
         export_dir=knowledge_export_dir,
     )
     project = _ensure_direction(project, package, store)
+
+    current_script_ref = project["artifacts"].get("production_script")
+    if current_script_ref is not None and not options.regenerate_script:
+        current_script = read_production_script(
+            project_id,
+            current_script_ref,
+            project=project,
+            package=package,
+            export_dir=options.script_export_dir,
+        )
+        await _notify(
+            on_event,
+            {
+                "stage": "script",
+                "kind": "completed",
+                "message": "已复用当前有效的脚本方案",
+                "artifact": current_script_ref,
+                "diagnostic": {"source": "published_artifact_reuse"},
+            },
+        )
+        return {
+            "project": project,
+            "knowledge_package": package,
+            "production_script": current_script,
+        }
+
     if options.script_client is None:
         raise WorkflowError("脚本生成服务未配置。")
 
@@ -198,8 +253,15 @@ def _ensure_direction(
 ) -> dict[str, Any]:
     direction_id = project["decisions"].get("direction_id")
     if direction_id:
-        selected_direction(project, package)
-        return project
+        try:
+            selected_direction(project, package)
+            return project
+        except ValueError as exc:
+            status = project["decisions"].get("direction_status")
+            if status != "system_default":
+                raise WorkflowError(
+                    "当前知识包已不包含你确认的方向，请重新选择后继续。"
+                ) from exc
     direction_id = package["recommended_direction_id"]
     decisions = {
         "direction_id": direction_id,

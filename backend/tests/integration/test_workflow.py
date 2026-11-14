@@ -37,6 +37,12 @@ class FixtureScriptClient:
         return copy.deepcopy(value)
 
 
+class DelayedFixtureScriptClient(FixtureScriptClient):
+    async def generate_json(self, **kwargs):
+        await asyncio.sleep(0)
+        return await super().generate_json(**kwargs)
+
+
 def _mock_package(project_id, brief):
     package = _example("knowledge-package")
     package["project_id"] = project_id
@@ -138,6 +144,139 @@ def test_workflow_publishes_knowledge_then_script_and_sets_default_direction(
         export_dir=script_exports,
     )
     assert exact_script == result["production_script"]
+
+    reused = asyncio.run(
+        run_until_script(
+            project["project_id"],
+            options=WorkflowOptions(
+                mode="mock",
+                script_client=script_client,
+                knowledge_export_dir=knowledge_exports,
+                script_export_dir=script_exports,
+            ),
+            state_store=store,
+        )
+    )
+    assert reused["production_script"] == result["production_script"]
+    assert reused["project"] == final
+    assert script_client.calls == 1
+
+
+def test_project_state_invalidates_only_changed_downstream_references(tmp_path):
+    store = ProjectStateStore(tmp_path / "projects")
+    project = store.create({"topic": "为什么两枚骰子的点数和为 7 最常见？"})
+    project = store.update(
+        project["project_id"],
+        project["revision"],
+        decisions={"direction_id": "D01", "direction_status": "system_default"},
+        artifacts={"knowledge_package": {"artifact_id": "KP_A", "revision": 1}},
+    )
+    project = store.update(
+        project["project_id"],
+        project["revision"],
+        artifacts={
+            **project["artifacts"],
+            "production_script": {"artifact_id": "PS_A", "revision": 1},
+            "animation_manifest": {"artifact_id": "AM_A", "revision": 1},
+        },
+    )
+
+    unchanged = store.publish_artifact_ref(
+        project["project_id"],
+        project["revision"],
+        "knowledge_package",
+        {"artifact_id": "KP_A", "revision": 1},
+    )
+    assert unchanged["artifacts"]["production_script"] == {
+        "artifact_id": "PS_A",
+        "revision": 1,
+    }
+
+    changed_knowledge = store.publish_artifact_ref(
+        project["project_id"],
+        unchanged["revision"],
+        "knowledge_package",
+        {"artifact_id": "KP_A", "revision": 2},
+    )
+    assert changed_knowledge["artifacts"] == {
+        "knowledge_package": {"artifact_id": "KP_A", "revision": 2}
+    }
+
+    with_script = store.update(
+        project["project_id"],
+        changed_knowledge["revision"],
+        artifacts={
+            **changed_knowledge["artifacts"],
+            "production_script": {"artifact_id": "PS_A", "revision": 2},
+            "animation_manifest": {"artifact_id": "AM_A", "revision": 1},
+        },
+    )
+    changed_script = store.publish_artifact_ref(
+        project["project_id"],
+        with_script["revision"],
+        "production_script",
+        {"artifact_id": "PS_A", "revision": 3},
+    )
+    assert changed_script["artifacts"] == {
+        "knowledge_package": {"artifact_id": "KP_A", "revision": 2},
+        "production_script": {"artifact_id": "PS_A", "revision": 3},
+    }
+
+    with_animation = store.update(
+        project["project_id"],
+        changed_script["revision"],
+        artifacts={
+            **changed_script["artifacts"],
+            "animation_manifest": {"artifact_id": "AM_A", "revision": 1},
+        },
+    )
+    changed_direction = store.update(
+        project["project_id"],
+        with_animation["revision"],
+        decisions={"direction_id": "D02", "direction_status": "user_confirmed"},
+    )
+    assert changed_direction["artifacts"] == {
+        "knowledge_package": {"artifact_id": "KP_A", "revision": 2}
+    }
+
+
+def test_concurrent_workflow_requests_for_one_project_are_serialized(
+    tmp_path, monkeypatch
+):
+    store = ProjectStateStore(tmp_path / "projects")
+    project = store.create({"topic": "为什么两枚骰子的点数和为 7 最常见？"})
+    knowledge_exports = tmp_path / "knowledge"
+    script_exports = tmp_path / "scripts"
+    knowledge_calls = []
+
+    async def mock_knowledge(project_id, brief, *, run_options, on_event):
+        knowledge_calls.append(project_id)
+        await asyncio.sleep(0)
+        package = _mock_package(project_id, brief)
+        export_knowledge_package(package, run_options.export_dir)
+        await on_event({"phase": "delivery", "event_type": "completed"})
+        return package
+
+    monkeypatch.setattr("workflow.service.generate_knowledge_package", mock_knowledge)
+    script_client = DelayedFixtureScriptClient(_example("production-script"))
+    options = WorkflowOptions(
+        mode="mock",
+        knowledge_options=RunOptions(mode="mock"),
+        script_client=script_client,
+        knowledge_export_dir=knowledge_exports,
+        script_export_dir=script_exports,
+    )
+
+    async def run_twice():
+        return await asyncio.gather(
+            run_until_script(project["project_id"], options=options, state_store=store),
+            run_until_script(project["project_id"], options=options, state_store=store),
+        )
+
+    first, second = asyncio.run(run_twice())
+    assert knowledge_calls == [project["project_id"]]
+    assert script_client.calls == 1
+    assert first["production_script"] == second["production_script"]
 
 
 def test_failed_script_retry_reuses_published_knowledge_package(tmp_path, monkeypatch):
