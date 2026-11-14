@@ -30,6 +30,7 @@ from workflow.animation import (
     AnimationManifestError,
 )
 from workflow.revisions import (
+    RevisionArtifactResolver,
     RevisionRequestConflict,
     RevisionRequestError,
     RevisionRequestStore,
@@ -56,6 +57,7 @@ def create_app(
     state_store: ProjectStateStore | None = None,
     job_store: JobStore | None = None,
     revision_store: RevisionRequestStore | None = None,
+    revision_artifact_resolver: RevisionArtifactResolver | None = None,
     animation_manifest_store: AnimationManifestCandidateStore | None = None,
     knowledge_export_dir: str | Path | None = None,
     script_export_dir: str | Path | None = None,
@@ -66,8 +68,73 @@ def create_app(
     jobs = job_store or JobStore()
     revisions = revision_store or RevisionRequestStore()
     manifests = animation_manifest_store or AnimationManifestCandidateStore()
+    animation_runtime = None
     active_tasks: set[asyncio.Task[Any]] = set()
     active_by_project: dict[str, str] = {}
+
+    def resolve_revision_artifacts(
+        project: dict[str, Any], target: dict[str, Any]
+    ) -> dict[str, dict[str, Any]] | None:
+        """Read only currently referenced, published artifacts for anchor lookup."""
+        if revision_artifact_resolver is not None:
+            return revision_artifact_resolver(project, target)
+
+        kind = target["kind"]
+        bundle: dict[str, dict[str, Any]] = {}
+        if kind == "animation_manifest":
+            # Only load the exact current published version. Candidate files are
+            # never a source for revision anchors.
+            target_ref = {
+                "artifact_id": target["artifact_id"],
+                "revision": target["revision"],
+            }
+            if (
+                animation_runtime is None
+                or project["artifacts"].get("animation_manifest") != target_ref
+            ):
+                return None
+            try:
+                published = animation_runtime.load(project["project_id"], target_ref)
+            except (OSError, ValueError, KeyError, TypeError):
+                return None
+            manifest = published.get("manifest")
+            if not isinstance(manifest, dict):
+                return None
+            bundle["animation_manifest"] = manifest
+
+        package_ref = (
+            target
+            if kind == "knowledge_package"
+            else project["artifacts"].get("knowledge_package")
+        )
+        if package_ref is not None:
+            package = read_knowledge_package(
+                project["project_id"], package_ref, export_dir=knowledge_export_dir
+            )
+            bundle["knowledge_package"] = package
+
+        if kind == "knowledge_package":
+            return bundle
+
+        script_ref = (
+            target
+            if kind == "production_script"
+            else project["artifacts"].get("production_script")
+        )
+        if script_ref is not None:
+            if "knowledge_package" not in bundle:
+                raise WorkflowArtifactNotFound(
+                    "Published ProductionScript has no readable KnowledgePackage"
+                )
+            script = read_production_script(
+                project["project_id"],
+                script_ref,
+                project=project,
+                package=bundle["knowledge_package"],
+                export_dir=script_export_dir,
+            )
+            bundle["production_script"] = script
+        return bundle
 
     @asynccontextmanager
     async def lifespan(_: FastAPI):
@@ -114,6 +181,14 @@ def create_app(
         ):
             return _error(422, "missing_key", "请先填写 API Key。")
         return _error(422, "invalid_input", "请求内容不完整或格式不正确，请检查后重试。")
+
+    from animation.api import install_animation_routes
+    animation_runtime = install_animation_routes(
+        app, projects=projects, candidates=manifests, revisions=revisions,
+        services_factory=services_factory, active_tasks=active_tasks,
+        artifact_resolver=resolve_revision_artifacts,
+        knowledge_export_dir=knowledge_export_dir, script_export_dir=script_export_dir,
+    )
 
     @app.get("/api/health")
     async def health():
@@ -337,15 +412,22 @@ def create_app(
             return _error(404, "invalid_input", "没有找到这个创作项目。")
         except ProjectStateError:
             return _error(422, "invalid_input", "项目编号无效。")
+        if project["artifacts"].get("animation_manifest") is not None:
+            return animation_runtime.preview(project)
         if project["artifacts"].get("animation_manifest") is None:
-            if manifests.has_candidate(project_id):
+            if project["artifacts"].get("production_script") is None:
+                return {
+                    "status": "not_ready",
+                    "message": "当前项目尚未发布脚本，动画交接仍在等待中。",
+                }
+            if manifests.has_current_candidate(project):
                 return {
                     "status": "not_ready",
                     "message": "动画产物已通过交接校验，但通用播放器尚未接入，当前不能预览。",
                 }
             return {
                 "status": "not_ready",
-                "message": "当前项目尚无已校验且可加载的真实动画资源。",
+                "message": "当前脚本版本尚无匹配的动画候选，或没有可加载的真实动画资源。",
             }
         return {
             "status": "not_ready",
@@ -358,7 +440,11 @@ def create_app(
             project = projects.load(project_id)
             if request_body.get("project_id") != project_id:
                 return _error(422, "invalid_input", "修改请求没有指向当前项目。")
-            revisions.accept(project, request_body)
+            revisions.accept(
+                project,
+                request_body,
+                artifact_resolver=resolve_revision_artifacts,
+            )
         except ProjectNotFoundError:
             return _error(404, "invalid_input", "没有找到这个创作项目。")
         except ProjectStateError:
@@ -367,6 +453,8 @@ def create_app(
             return _error(409, "conflict", "项目或目标版本已更新，请刷新后重新提交。")
         except RevisionRequestError:
             return _error(422, "invalid_input", "修改请求格式不正确或目标版本无效。")
+        except (WorkflowArtifactNotFound, WorkflowError, ValueError):
+            return _error(409, "conflict", "修订目标的当前版本暂时无法读取，请刷新后重新提交。")
         return {
             "request_id": request_body["request_id"],
             "status": "received",

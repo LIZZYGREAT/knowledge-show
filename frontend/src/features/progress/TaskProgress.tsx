@@ -1,3 +1,4 @@
+import { AnimationHandoff } from './AnimationHandoff';
 import { useEffect, useState } from "react";
 import {
   getJob,
@@ -18,6 +19,7 @@ export function TaskProgress({
   jobId,
   topic,
   hasApiKey,
+  apiKey,
   onBack,
   onRetry,
   onOpenSettings,
@@ -25,44 +27,40 @@ export function TaskProgress({
   jobId: string;
   topic: string;
   hasApiKey: boolean;
+  apiKey?: string | null;
   onBack: () => void;
   onRetry: () => void;
   onOpenSettings: () => void;
 }) {
   const [job, setJob] = useState<JobSnapshot | null>(null);
-  const [loadError, setLoadError] = useState("");
+  const [jobError, setJobError] = useState("");
+  const [scriptError, setScriptError] = useState("");
   const [script, setScript] = useState<ProductionScriptSummary | null>(null);
+  const [loadingScript, setLoadingScript] = useState(false);
+  const [scriptReadAttempt, setScriptReadAttempt] = useState(0);
 
   useEffect(() => {
     let stopped = false;
     let timer = 0;
-    let loadedScriptKey = "";
+    setJob(null);
+    setJobError("");
+    setScript(null);
+    setScriptError("");
+    setLoadingScript(false);
+    setScriptReadAttempt(0);
 
     async function poll() {
       try {
         const latest = await getJob(jobId);
         if (stopped) return;
         setJob(latest);
-        setLoadError("");
-        const scriptRef = latest.artifacts.production_script;
-        const scriptKey = scriptRef
-          ? `${scriptRef.artifact_id}-r${scriptRef.revision}`
-          : "";
-        if (latest.status === "script_ready" && scriptRef && scriptKey !== loadedScriptKey) {
-          loadedScriptKey = scriptKey;
-          try {
-            const overview = await getProductionScript(latest.project_id, scriptRef);
-            if (!stopped) setScript(overview);
-          } catch (error) {
-            if (!stopped) setLoadError((error as Error).message);
-          }
-        }
+        setJobError("");
         if (["queued", "running"].includes(latest.status)) {
           timer = window.setTimeout(poll, 1500);
         }
       } catch (error) {
         if (!stopped) {
-          setLoadError((error as Error).message);
+          setJobError((error as Error).message);
           timer = window.setTimeout(poll, 2500);
         }
       }
@@ -74,6 +72,33 @@ export function TaskProgress({
       window.clearTimeout(timer);
     };
   }, [jobId]);
+
+  const scriptRef = job?.artifacts.production_script;
+  useEffect(() => {
+    if (job?.status !== "script_ready" || !scriptRef) {
+      setScript(null);
+      setScriptError("");
+      setLoadingScript(false);
+      return;
+    }
+    let active = true;
+    setScript(null);
+    setScriptError("");
+    setLoadingScript(true);
+    void getProductionScript(job.project_id, scriptRef)
+      .then((overview) => {
+        if (active) setScript(overview);
+      })
+      .catch((error) => {
+        if (active) setScriptError((error as Error).message);
+      })
+      .finally(() => {
+        if (active) setLoadingScript(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [job?.status, job?.project_id, scriptRef?.artifact_id, scriptRef?.revision, scriptReadAttempt]);
 
   const failed = job?.status === "failed" || job?.status === "interrupted";
   const ready = job?.status === "script_ready";
@@ -126,7 +151,8 @@ export function TaskProgress({
         </div>
       </div>
       <p className="current-action" role="status">
-        {loadError ||
+        {jobError ||
+          scriptError ||
           job?.message ||
           "正在读取任务状态。"}
       </p>
@@ -139,11 +165,7 @@ export function TaskProgress({
           </p>
         </section>
       )}
-      {ready && (
-        <p className="quiet">
-          脚本已正式保存，当前项目还没有可播放的动画资源，因此不能进入视频预览或工作台。
-        </p>
-      )}
+      {ready && job && <AnimationHandoff projectId={job.project_id} apiKey={apiKey} />}
       <div className="progress-actions">
         <button className="secondary" onClick={onBack}>
           {failed ? "返回修改" : "返回创作页"}
@@ -158,7 +180,15 @@ export function TaskProgress({
               重新配置 API Key →
             </button>
           )
-        ) : active && loadError ? (
+        ) : ready && scriptError ? (
+          <button
+            className="secondary"
+            onClick={() => setScriptReadAttempt((attempt) => attempt + 1)}
+            disabled={loadingScript}
+          >
+            {loadingScript ? "正在读取脚本…" : "重新读取脚本"}
+          </button>
+        ) : active && jobError ? (
           <button className="secondary" onClick={() => window.location.reload()}>
             重新连接任务
           </button>

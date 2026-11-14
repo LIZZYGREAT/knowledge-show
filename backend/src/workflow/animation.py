@@ -44,10 +44,28 @@ class AnimationManifestCandidateStore:
         )
         self.schema_path = root / "contracts" / "schemas" / "animation-manifest.schema.json"
 
-    def has_candidate(self, project_id: str) -> bool:
-        if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]{0,63}", project_id):
+    def has_current_candidate(self, project: dict[str, Any]) -> bool:
+        project_id = project.get("project_id")
+        script_ref = project.get("artifacts", {}).get("production_script")
+        if (
+            not isinstance(project_id, str)
+            or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]{0,63}", project_id)
+            or not isinstance(script_ref, dict)
+        ):
             return False
-        return any((self.root_dir / project_id).glob("*-r*.json"))
+        project_dir = self.root_dir / project_id
+        for path in project_dir.glob("*-r*.json"):
+            try:
+                candidate = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                continue
+            if (
+                candidate.get("project_id") == project_id
+                and candidate.get("brief_revision") == project["brief"].get("revision")
+                and candidate.get("production_script_ref") == script_ref
+            ):
+                return True
+        return False
 
     def accept(
         self,
@@ -128,7 +146,19 @@ class AnimationManifestCandidateStore:
             timed_text_ids.update(item["id"] for item in scene.get("timed_text", []))
 
         cursor = 0
-        for clip in sorted(manifest["clips"], key=lambda item: item["start_ms"]):
+        clip_ids: set[str] = set()
+        internal_event_ids: set[str] = set()
+        anchored_events = {
+            (scene["scene_id"], event["id"])
+            for scene in script["scenes"]
+            for event in scene["events"]
+            if event.get("anchor") is True
+        }
+        mapped_anchors: set[tuple[str, str]] = set()
+        for clip in manifest["clips"]:
+            if clip["clip_id"] in clip_ids:
+                raise AnimationManifestError("AnimationManifest clip IDs must be unique")
+            clip_ids.add(clip["clip_id"])
             scene_id = clip["scene_id"]
             if scene_id not in scene_events:
                 raise AnimationManifestError("AnimationManifest clip references an unknown scene")
@@ -141,15 +171,34 @@ class AnimationManifestCandidateStore:
             refs = set(clip.get("script_event_refs", []))
             if not refs.issubset(scene_events[scene_id]):
                 raise AnimationManifestError("AnimationManifest clip references an event from another scene")
+            last_internal_offset = -1
             for event in clip.get("internal_events", []):
+                if event["id"] in internal_event_ids:
+                    raise AnimationManifestError("AnimationManifest internal event IDs must be unique")
+                internal_event_ids.add(event["id"])
+                if event["offset_ms"] < last_internal_offset:
+                    raise AnimationManifestError("AnimationManifest internal events must be ordered")
+                if event["offset_ms"] >= clip["duration_ms"]:
+                    raise AnimationManifestError("AnimationManifest internal event exceeds its clip")
+                last_internal_offset = event["offset_ms"]
                 duration = event.get("duration_ms", 0)
                 if event["offset_ms"] + duration > clip["duration_ms"]:
                     raise AnimationManifestError("AnimationManifest internal event exceeds its clip")
-                if not set(event.get("script_event_refs", [])).issubset(refs):
+                internal_refs = set(event.get("script_event_refs", []))
+                if not internal_refs.issubset(refs):
                     raise AnimationManifestError("AnimationManifest internal event references an unlisted script event")
+                if not internal_refs.issubset(scene_events[scene_id]):
+                    raise AnimationManifestError("AnimationManifest internal event references an event from another scene")
+                mapped_anchors.update(
+                    (scene_id, event_id)
+                    for event_id in internal_refs
+                    if (scene_id, event_id) in anchored_events
+                )
             self._require_resource(clip["resource_ref"])
         if cursor != manifest["total_duration_ms"]:
             raise AnimationManifestError("AnimationManifest clips do not cover the full script")
+        if not anchored_events.issubset(mapped_anchors):
+            raise AnimationManifestError("AnimationManifest does not map every anchored script event")
 
         if not manifest.get("preview_ref"):
             raise AnimationManifestError("AnimationManifest preview_ref is required for handoff")
@@ -164,6 +213,8 @@ class AnimationManifestCandidateStore:
                 available = event_ids if source_ref["kind"] == "script_event" else timed_text_ids
                 if source_ref["id"] not in available:
                     raise AnimationManifestError("AnimationManifest selectable element source is unknown")
+                if source_ref["kind"] == "timed_text" and item["id"] != source_ref["id"]:
+                    raise AnimationManifestError("Timed-text selectable element must reuse its source ID")
 
     def _require_resource(self, reference: str) -> None:
         if not isinstance(reference, str) or not reference or "\\" in reference:

@@ -1,0 +1,9 @@
+import type { StyleProfile } from '../styles/profiles';
+export type ArtifactRef = { artifact_id: string; revision: number };
+export type ScriptScene = { scene_id: string; start_ms: number; duration_ms: number; objective: string; visual_notes?: string[]; semantic_constraints?: string[]; events: { id: string; offset_ms: number; duration_ms?: number; description: string; anchor?: boolean }[]; timed_text: { id: string; offset_ms: number; duration_ms: number; text: string; kind: string }[] };
+export type ProductionScript = ArtifactRef & { project_id: string; brief_revision: number; total_duration_ms: number; scenes: ScriptScene[]; core_message: string };
+export type Clip = { clip_id: string; scene_id: string; start_ms: number; duration_ms: number; resource_ref: string; script_event_refs?: string[]; internal_events?: { id: string; offset_ms: number; script_event_refs: string[]; description: string }[] };
+export type AnimationManifest = ArtifactRef & { project_id: string; brief_revision: number; production_script_ref: ArtifactRef; total_duration_ms: number; preview_ref: string; clips: Clip[]; selectable_elements: { id: string; source_ref?: { kind: 'timed_text' | 'script_event'; id: string } }[] };
+export type VectorObject = { id: string; label: string; shape: 'circle' | 'rect' | 'path' | 'text'; x: number; y: number; width?: number; height?: number; radius?: number; path?: string; text?: string; fill: string; keyframes: { time_ms: number; x: number; y: number; opacity: number; scale: number; rotation: number }[] };
+export type SceneResource = { kind: 'pn-scene' | 'vector-scene'; sceneId: string; style: StyleProfile; parameters: { speed: number; particleScale?: number; particleOpacity?: number }; objects?: VectorObject[] };
+export type AnimationBundle = { manifest: AnimationManifest; script: ProductionScript; projectRevision: number; resources: Record<string, SceneResource> };
