@@ -1,11 +1,11 @@
 # main 跨层契约修订与分支整合执行方案
 
-> **任务类型**：跨层接口修复 / 脚本文件整合 / 最小联调 / Git 集成  
-> **审查日期**：2026-11-14  
-> **仓库**：`LIZZYGREAT/knowledge-show`  
-> **审查基线**：`main@5e351e0c28f21ef57c355b38d6fafff057153add`  
-> **待整合分支**：`feat/script-prompt@b0826da9ef85e42792c8a0a015aed3678632dd15`  
-> **建议存放路径**：`docs/tasks/open/backend/main跨层契约修订与分支整合执行方案.md`  
+> **任务类型**：跨层接口修复 / 脚本文件整合 / 最小联调 / Git 集成<br>
+> **审查日期**：2026-11-14<br>
+> **仓库**：`LIZZYGREAT/knowledge-show`<br>
+> **审查基线**：`main@5e351e0c28f21ef57c355b38d6fafff057153add`<br>
+> **待整合分支**：`feat/script-prompt@b0826da9ef85e42792c8a0a015aed3678632dd15`<br>
+> **建议存放路径**：`docs/tasks/open/backend/main跨层契约修订与分支整合执行方案.md`<br>
 > **任务状态**：待执行；本文是给 Codex 和双方负责人使用的实施方案，不代表修改、测试或合并已经完成。
 
 ## 一、目标与当前事实
