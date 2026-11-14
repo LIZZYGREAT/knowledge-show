@@ -30,6 +30,7 @@ from workflow.animation import (
     AnimationManifestError,
 )
 from workflow.revisions import (
+    RevisionArtifactResolver,
     RevisionRequestConflict,
     RevisionRequestError,
     RevisionRequestStore,
@@ -56,6 +57,7 @@ def create_app(
     state_store: ProjectStateStore | None = None,
     job_store: JobStore | None = None,
     revision_store: RevisionRequestStore | None = None,
+    revision_artifact_resolver: RevisionArtifactResolver | None = None,
     animation_manifest_store: AnimationManifestCandidateStore | None = None,
     knowledge_export_dir: str | Path | None = None,
     script_export_dir: str | Path | None = None,
@@ -68,6 +70,54 @@ def create_app(
     manifests = animation_manifest_store or AnimationManifestCandidateStore()
     active_tasks: set[asyncio.Task[Any]] = set()
     active_by_project: dict[str, str] = {}
+
+    def resolve_revision_artifacts(
+        project: dict[str, Any], target: dict[str, Any]
+    ) -> dict[str, dict[str, Any]] | None:
+        """Read only currently referenced, published artifacts for anchor lookup."""
+        if revision_artifact_resolver is not None:
+            return revision_artifact_resolver(project, target)
+
+        kind = target["kind"]
+        if kind == "animation_manifest":
+            # Candidate files are not published AnimationManifests and cannot be
+            # used to accept a user revision anchor.
+            return None
+
+        bundle: dict[str, dict[str, Any]] = {}
+        package_ref = (
+            target
+            if kind == "knowledge_package"
+            else project["artifacts"].get("knowledge_package")
+        )
+        if package_ref is not None:
+            package = read_knowledge_package(
+                project["project_id"], package_ref, export_dir=knowledge_export_dir
+            )
+            bundle["knowledge_package"] = package
+
+        if kind == "knowledge_package":
+            return bundle
+
+        script_ref = (
+            target
+            if kind == "production_script"
+            else project["artifacts"].get("production_script")
+        )
+        if script_ref is not None:
+            if "knowledge_package" not in bundle:
+                raise WorkflowArtifactNotFound(
+                    "Published ProductionScript has no readable KnowledgePackage"
+                )
+            script = read_production_script(
+                project["project_id"],
+                script_ref,
+                project=project,
+                package=bundle["knowledge_package"],
+                export_dir=script_export_dir,
+            )
+            bundle["production_script"] = script
+        return bundle
 
     @asynccontextmanager
     async def lifespan(_: FastAPI):
@@ -363,7 +413,11 @@ def create_app(
             project = projects.load(project_id)
             if request_body.get("project_id") != project_id:
                 return _error(422, "invalid_input", "修改请求没有指向当前项目。")
-            revisions.accept(project, request_body)
+            revisions.accept(
+                project,
+                request_body,
+                artifact_resolver=resolve_revision_artifacts,
+            )
         except ProjectNotFoundError:
             return _error(404, "invalid_input", "没有找到这个创作项目。")
         except ProjectStateError:
@@ -372,6 +426,8 @@ def create_app(
             return _error(409, "conflict", "项目或目标版本已更新，请刷新后重新提交。")
         except RevisionRequestError:
             return _error(422, "invalid_input", "修改请求格式不正确或目标版本无效。")
+        except (WorkflowArtifactNotFound, WorkflowError, ValueError):
+            return _error(409, "conflict", "修订目标的当前版本暂时无法读取，请刷新后重新提交。")
         return {
             "request_id": request_body["request_id"],
             "status": "received",

@@ -521,3 +521,201 @@ async def test_revision_request_is_validated_persisted_and_never_claims_executio
     assert preview.status_code == 200
     assert preview.json()["status"] == "not_ready"
     assert "等待中" in preview.json()["message"]
+
+
+def _anchored_revision_request(project, *, request_id, target_kind, anchors):
+    target = (
+        {
+            "artifact_id": project["project_id"],
+            "revision": project["revision"],
+        }
+        if target_kind == "project_state"
+        else project["artifacts"][target_kind]
+    )
+    return {
+        "project_id": project["project_id"],
+        "request_id": request_id,
+        "base_project_revision": project["revision"],
+        "source": "user",
+        "target_layer": "animation" if target_kind == "animation_manifest" else "script",
+        "target_artifact": {"kind": target_kind, **target},
+        "anchors": anchors,
+        "scope": "local",
+        "problem": "请检查这个精确位置。",
+    }
+
+
+@pytest.mark.anyio
+async def test_revision_anchors_resolve_against_exact_published_mock_artifacts(tmp_path):
+    projects = ProjectStateStore(tmp_path / "projects")
+    revisions = RevisionRequestStore(tmp_path / "revision-requests")
+    project = projects.create({"topic": "生日悖论"})
+    refs = {
+        "knowledge_package": {"artifact_id": "KP_REVISION_TEST", "revision": 1},
+        "production_script": {"artifact_id": "PS_REVISION_TEST", "revision": 1},
+        "animation_manifest": {"artifact_id": "AM_REVISION_TEST", "revision": 1},
+    }
+    for kind, ref in refs.items():
+        project = projects.publish_artifact_ref(
+            project["project_id"], project["revision"], kind, ref
+        )
+
+    package = {
+        **refs["knowledge_package"],
+        "project_id": project["project_id"],
+        "brief_revision": project["brief"]["revision"],
+        "directions": [{"id": "DIR_REVISION_TEST"}],
+        "knowledge_units": [{"id": "KU_REVISION_TEST"}],
+    }
+    script = {
+        **refs["production_script"],
+        "project_id": project["project_id"],
+        "brief_revision": project["brief"]["revision"],
+        "knowledge_package_ref": refs["knowledge_package"],
+        "total_duration_ms": 30000,
+        "scenes": [
+            {
+                "scene_id": "SC_REVISION_TEST",
+                "events": [{"id": "EV_REVISION_TEST"}],
+                "timed_text": [{"id": "TT_REVISION_TEST"}],
+            }
+        ],
+    }
+    manifest = {
+        **refs["animation_manifest"],
+        "project_id": project["project_id"],
+        "brief_revision": project["brief"]["revision"],
+        "production_script_ref": refs["production_script"],
+        "total_duration_ms": 30000,
+        "clips": [
+            {
+                "clip_id": "CL_REVISION_TEST",
+                "internal_events": [{"id": "CE_REVISION_TEST"}],
+            }
+        ],
+        "selectable_elements": [{"id": "RE_REVISION_TEST"}],
+    }
+
+    def resolve_exact_artifacts(_project, _target):
+        return {
+            "knowledge_package": package,
+            "production_script": script,
+            "animation_manifest": manifest,
+        }
+
+    app = api_module.create_app(
+        state_store=projects,
+        job_store=JobStore(tmp_path / "jobs"),
+        revision_store=revisions,
+        revision_artifact_resolver=resolve_exact_artifacts,
+    )
+    good_anchors = [
+        {"kind": "render_element", "id": "RE_REVISION_TEST"},
+        {"kind": "timed_text", "id": "TT_REVISION_TEST"},
+        {"kind": "scene", "id": "SC_REVISION_TEST"},
+        {"kind": "clip", "id": "CL_REVISION_TEST"},
+        {"kind": "time_range", "start_ms": 1000, "end_ms": 2000},
+    ]
+    async with app.router.lifespan_context(app):
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://127.0.0.1"
+        ) as client:
+            accepted = await client.post(
+                f"/api/projects/{project['project_id']}/revision-requests",
+                json=_anchored_revision_request(
+                    project,
+                    request_id="RR_VALID_ANCHORS",
+                    target_kind="animation_manifest",
+                    anchors=good_anchors,
+                ),
+            )
+            invalid_cases = [
+                ("RR_BAD_ELEMENT", [{"kind": "render_element", "id": "RE_MISSING"}]),
+                ("RR_BAD_TEXT", [{"kind": "timed_text", "id": "TT_MISSING"}]),
+                ("RR_BAD_SCENE", [{"kind": "scene", "id": "SC_MISSING"}]),
+                ("RR_BAD_CLIP", [{"kind": "clip", "id": "CL_MISSING"}]),
+                ("RR_BAD_RANGE", [{"kind": "time_range", "start_ms": 0, "end_ms": 30001}]),
+            ]
+            rejected = []
+            for request_id, anchors in invalid_cases:
+                response = await client.post(
+                    f"/api/projects/{project['project_id']}/revision-requests",
+                    json=_anchored_revision_request(
+                        project,
+                        request_id=request_id,
+                        target_kind="animation_manifest",
+                        anchors=anchors,
+                    ),
+                )
+                rejected.append((request_id, response))
+
+            stale_target = _anchored_revision_request(
+                project,
+                request_id="RR_STALE_MANIFEST",
+                target_kind="animation_manifest",
+                anchors=[{"kind": "render_element", "id": "RE_REVISION_TEST"}],
+            )
+            stale_target["target_artifact"]["revision"] = 2
+            stale = await client.post(
+                f"/api/projects/{project['project_id']}/revision-requests",
+                json=stale_target,
+            )
+
+    assert accepted.status_code == 202
+    assert accepted.json()["status"] == "received"
+    assert all(response.status_code == 422 for _, response in rejected)
+    assert all(
+        not revisions.root_dir.joinpath(project["project_id"], f"{request_id}.json").exists()
+        for request_id, _ in rejected
+    )
+    assert stale.status_code == 409
+
+
+@pytest.mark.anyio
+async def test_revision_request_never_uses_animation_candidate_as_published_manifest(
+    tmp_path,
+):
+    projects = ProjectStateStore(tmp_path / "projects")
+    revisions = RevisionRequestStore(tmp_path / "revision-requests")
+    candidates = AnimationManifestCandidateStore(tmp_path / "manifest-candidates")
+    project = projects.create({"topic": "生日悖论"})
+    project = projects.publish_artifact_ref(
+        project["project_id"],
+        project["revision"],
+        "animation_manifest",
+        {"artifact_id": "AM_CANDIDATE_ONLY", "revision": 1},
+    )
+    candidate_folder = candidates.root_dir / project["project_id"]
+    candidate_folder.mkdir(parents=True)
+    (candidate_folder / "AM_CANDIDATE_ONLY-r1.json").write_text(
+        json.dumps({"selectable_elements": [{"id": "RE_CANDIDATE_ONLY"}]}),
+        encoding="utf-8",
+    )
+    app = api_module.create_app(
+        state_store=projects,
+        job_store=JobStore(tmp_path / "jobs"),
+        revision_store=revisions,
+        animation_manifest_store=candidates,
+    )
+
+    async with app.router.lifespan_context(app):
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://127.0.0.1"
+        ) as client:
+            response = await client.post(
+                f"/api/projects/{project['project_id']}/revision-requests",
+                json=_anchored_revision_request(
+                    project,
+                    request_id="RR_CANDIDATE_ONLY",
+                    target_kind="animation_manifest",
+                    anchors=[{"kind": "render_element", "id": "RE_CANDIDATE_ONLY"}],
+                ),
+            )
+
+    assert candidates.root_dir.joinpath(
+        project["project_id"], "AM_CANDIDATE_ONLY-r1.json"
+    ).exists()
+    assert response.status_code == 422
+    assert not revisions.root_dir.joinpath(
+        project["project_id"], "RR_CANDIDATE_ONLY.json"
+    ).exists()
