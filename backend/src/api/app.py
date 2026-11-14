@@ -68,6 +68,7 @@ def create_app(
     jobs = job_store or JobStore()
     revisions = revision_store or RevisionRequestStore()
     manifests = animation_manifest_store or AnimationManifestCandidateStore()
+    animation_runtime = None
     active_tasks: set[asyncio.Task[Any]] = set()
     active_by_project: dict[str, str] = {}
 
@@ -79,12 +80,28 @@ def create_app(
             return revision_artifact_resolver(project, target)
 
         kind = target["kind"]
-        if kind == "animation_manifest":
-            # Candidate files are not published AnimationManifests and cannot be
-            # used to accept a user revision anchor.
-            return None
-
         bundle: dict[str, dict[str, Any]] = {}
+        if kind == "animation_manifest":
+            # Only load the exact current published version. Candidate files are
+            # never a source for revision anchors.
+            target_ref = {
+                "artifact_id": target["artifact_id"],
+                "revision": target["revision"],
+            }
+            if (
+                animation_runtime is None
+                or project["artifacts"].get("animation_manifest") != target_ref
+            ):
+                return None
+            try:
+                published = animation_runtime.load(project["project_id"], target_ref)
+            except (OSError, ValueError, KeyError, TypeError):
+                return None
+            manifest = published.get("manifest")
+            if not isinstance(manifest, dict):
+                return None
+            bundle["animation_manifest"] = manifest
+
         package_ref = (
             target
             if kind == "knowledge_package"
@@ -164,6 +181,14 @@ def create_app(
         ):
             return _error(422, "missing_key", "请先填写 API Key。")
         return _error(422, "invalid_input", "请求内容不完整或格式不正确，请检查后重试。")
+
+    from animation.api import install_animation_routes
+    animation_runtime = install_animation_routes(
+        app, projects=projects, candidates=manifests, revisions=revisions,
+        services_factory=services_factory, active_tasks=active_tasks,
+        artifact_resolver=resolve_revision_artifacts,
+        knowledge_export_dir=knowledge_export_dir, script_export_dir=script_export_dir,
+    )
 
     @app.get("/api/health")
     async def health():
@@ -387,6 +412,8 @@ def create_app(
             return _error(404, "invalid_input", "没有找到这个创作项目。")
         except ProjectStateError:
             return _error(422, "invalid_input", "项目编号无效。")
+        if project["artifacts"].get("animation_manifest") is not None:
+            return animation_runtime.preview(project)
         if project["artifacts"].get("animation_manifest") is None:
             if project["artifacts"].get("production_script") is None:
                 return {
