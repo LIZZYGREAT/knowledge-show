@@ -1,6 +1,6 @@
 # knowledge-show
 
-> 面向普通创作者的 AI 知识短视频制作项目。当前 `main` 仍以基础骨架和接口契约为主；知识层首版位于 `feat/knowledge-layer-implementation`，成本效率与用户体验修订位于 `feat/knowledge-cost-efficiency-ux`，尚未集成脚本、动画和共享工作流。
+> 面向普通创作者的 AI 知识短视频制作项目。当前 `main` 仍以基础骨架和接口契约为主；知识层首版、体验修订和联调前最小修订分别位于 `feat/knowledge-layer-implementation`、`feat/knowledge-cost-efficiency-ux`、`feat/knowledge-handoff-readiness`，尚未集成脚本、动画和共享工作流。
 
 ## 项目目标
 
@@ -28,13 +28,13 @@ PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests/knowledge -q
 .venv/bin/python contracts/validate_contracts.py
 ```
 
-知识层本地检验页可用 Mock 模式离线运行；Real API 模式从仓库根目录 `.env` 读取 DeepSeek 配置（由 `python-dotenv` 自动加载），真实凭据不提交到版本控制：
+知识层本地检验页在仓库根目录 `.env` 配有密钥时默认使用 Real API，并要求确认本次在线生成可能产生调用费用；没有密钥时只提供明确标注的固定主题离线示例。页面打开不会自动调用模型。开发者诊断可手动切换 Mock 与 Real API。密钥由 `python-dotenv` 自动加载，不提交到版本控制：
 
 ```bash
 PYTHONPATH=backend/src STREAMLIT_SERVER_ADDRESS=127.0.0.1 STREAMLIT_SERVER_PORT=8501 .venv/bin/python -m streamlit run backend/src/knowledge/devtools/review_app.py
 ```
 
-当前分支的知识层测试、契约校验和真实 API 验收已运行通过；脚本、动画、全链路应用启动和视频导出尚未实现。
+联调前修订分支的 79 项知识层测试和契约校验已通过；真实 API 验收覆盖基础定义、进阶自注意力机制和带 `focus` / `must_include` 的骰子概率主题。脚本、动画、工作流协调器、全链路应用启动和视频导出尚未实现。
 
 ## 目录与文档入口
 

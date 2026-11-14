@@ -1,6 +1,6 @@
 # knowledge-show 系统架构与数据流
 
-> 本文描述已确定的**概念架构与仓库模块边界**，并标出知识层在 `feat/knowledge-layer-implementation` 的实际落地状态。该分支尚未合并或接入共享工作流。字段及类型由 `contracts/` 中的现行定义负责。
+> 本文描述已确定的**概念架构与仓库模块边界**。知识层首版、体验修订和联调前最小修订分别位于 `feat/knowledge-layer-implementation`、`feat/knowledge-cost-efficiency-ux`、`feat/knowledge-handoff-readiness`，尚未合并或接入共享工作流。字段及类型由 `contracts/` 中的现行定义负责。
 
 ## 一、整体工作流
 
@@ -66,11 +66,13 @@ flowchart TD
 
 当前知识包允许在 `knowledge_units[]` 中使用 `verification_status = needs_review` 保留待处理线索，但**候选方向和脚本只能引用 `verified` 知识**。内部 ResearchStore 可保留更丰富的研究草稿；对外引用权限由现行契约决定。
 
+当前知识层以 `${KNOWLEDGE_EXPORT_DIR}/{artifact_id}-r{revision}.json` 交付具体版本。写入使用原子发布并在运行完成前重新读取和校验；版本内容不可被静默覆盖。脚本消费者应使用协调器发布的精确 `ArtifactRef`，不读取知识层 SQLite。仓库目前没有实现工作流协调器或脚本服务，因此知识层准备文件后，跨阶段状态发布仍需后续集成完成。
+
 ## 四、目录到模块的映射
 
 | 仓库位置 | 规划中的职责 | 当前情况 |
 | --- | --- | --- |
-| `backend/src/knowledge/` | 研究、创意探索、知识管理、事实核验与知识包交付 | 已在 `feat/knowledge-layer-implementation` 实现并验证，尚待集成 |
+| `backend/src/knowledge/` | 研究、创意探索、知识管理、事实核验与知识包交付 | 首版与联调前修订已在独立分支实现并验证，尚待集成 |
 | `backend/src/script/` | 选材、叙事主线、场景事件、时间规划和脚本输出 | 业务待实现 |
 | `backend/src/workflow/` | 跨层项目状态、执行编排、版本与修订路由 | 业务待实现 |
 | `backend/src/api/` | 前后端入口；具体协议待定 | 占位目录 |
@@ -104,6 +106,6 @@ PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests/knowledge -q
 .venv/bin/python contracts/validate_contracts.py
 ```
 
-本分支已运行以上知识层测试和契约校验，并以真实 DeepSeek 请求验证多个主题。契约脚本验证公开数据的结构、引用和部分时间/版本关系，**不能代替事实核验、创意质量、脚本可看性、动画播放及最终观感检查**。实际运行和产物状态以对应模块的真实测试为准。
+联调前修订分支已运行知识层测试、契约校验，并以真实 DeepSeek 请求验收基础定义、进阶自注意力机制和带 `focus` / `must_include` 的骰子概率主题。契约脚本验证公开数据的结构、引用和部分时间/版本关系，**不能代替事实核验、创意质量、脚本可看性、动画播放及最终观感检查**。实际运行和产物状态以对应模块的真实测试为准。
 
 分工与协作规则见 `docs/work/目录结构与分工.md` 和 `docs/work/workflow.md`。

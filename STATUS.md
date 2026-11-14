@@ -1,14 +1,17 @@
 # knowledge-show 当前项目状态
 
-> 当前快照区分默认分支与未集成的模块分支。知识层首版在 `feat/knowledge-layer-implementation`；成本效率与用户体验修订在 `feat/knowledge-cost-efficiency-ux`，尚未合并到 `main`。脚本、动画和跨层工作流仍按实际代码确认。
+> 当前快照区分默认分支与未集成的模块分支。`main` 仍以基础目录和跨阶段契约为主；知识层及其修订位于独立工作分支，脚本、动画和共享工作流尚未接通。
 
 ## 当前可用状态
 
 - **默认分支**：`main`。
-- **知识层工作分支**：`feat/knowledge-layer-implementation` 实现首版；`feat/knowledge-cost-efficiency-ux` 补充风险驱动核验、有限补证、用户预览/开发者诊断分层和自然语言失败提示。
-- **知识层验证**：使用仓库 `.venv` 运行 62 项知识层测试与契约校验。当前修订分支真实 DeepSeek 验收中，“真空中的光速精确值”主题通过 KnowledgePackage 校验，7 次模型调用、2 次 Search、2 次 Fetch，耗时约 50.44 秒。其他验收输入曾遇到模型 JSON/字段格式无效和来源 Fetch 404；均保留为失败，没有将未核验内容交付。
-- **待协商限制**：公共契约仍没有 `internal_review` 证据类型。纯基础知识虽可进行低风险轻量核查，但若没有真实来源或可复核推导，当前不能组成合法 KnowledgePackage；本分支没有单方面修改共享 Schema。
-- **尚未集成**：脚本 Agent、动画运行时、共享工作流/API、端到端动态预览与视频导出。
+- **当前知识层分支**：`feat/knowledge-handoff-readiness`，基于成本效率与用户体验修订继续补齐联调前最小闭环；任务方案提交为 `893a5e7`，实现提交为 `4271ab2`，证据详情边界修正提交为 `e022da8`。本分支尚未合并。
+- **知识包交付**：KnowledgePackage 以 `{artifact_id}-r{revision}.json` 写入 `KNOWLEDGE_EXPORT_DIR`，通过原子发布、回读和 Schema 校验后才标记运行完成；已发布版本不会被不同内容覆盖。脚本消费者约定读取精确 ArtifactRef，不访问知识层 SQLite。
+- **共享契约**：共享接口负责人已同意新增 `evidence.kind=internal_review`。本分支已同步 Schema、契约说明、示例、校验和生产逻辑。该类型只记录稳定低风险基础知识的具体内部核查；数值、时效、争议、实验及重要因果主张仍需来源或可复核推导。`required_knowledge_refs` 仅能列出所有候选方向通用的硬性知识，默认为空。
+- **人工检验页**：有密钥时用户预览使用在线生成并要求确认可能产生调用费用；无密钥时只提供固定主题离线示例，其他主题在运行前被拒绝。开发者诊断仍可切换 Mock / Real API；页面打开不会自动调用模型。
+- **自动验证**：`.venv` 中 79 项知识层测试通过；`contracts/validate_contracts.py` 通过，覆盖五份 Schema、五份连贯样例、十一个负向用例和非推荐方向切换。
+- **真实 API 验收**：三项主题均生成通过校验的知识包：基础六面骰定义（3 个候选方向，5 次模型调用）、进阶自注意力机制（1 个候选方向，3 次调用）、带明确 `focus` 与 `must_include` 的骰子概率（1 个候选方向，5 次调用）。合计 13 次模型调用、36,468 tokens、约 83.69 秒；均未触发 Search / Fetch。费用金额未作估算。
+- **未实现的跨层能力**：脚本 Agent、工作流协调器、共享 API、动画运行时、动态预览和视频导出仍未实现。知识层会准备可读的版本文件；将引用发布到 `ProjectState.artifacts.knowledge_package` 仍是后续协调器的工作。
 - **检查入口**：
 
   ```bash
@@ -20,21 +23,21 @@
 
 | 工作范围 | 主要负责方 | 当前状态 |
 | --- | --- | --- |
-| `backend/src/knowledge/`、`backend/tests/knowledge/` | 成员 A（知识层） | 首版与成本效率/体验修订分别在 `feat/knowledge-layer-implementation`、`feat/knowledge-cost-efficiency-ux` 验证，等待集成确认 |
+| `backend/src/knowledge/`、`backend/tests/knowledge/` | 成员 A（知识层） | 首版、体验修订与联调前修订均在独立分支验证，等待集成确认 |
 | `backend/src/script/`、`backend/tests/script/` | 成员 B（脚本层） | 基础目录，具体脚本工作流待实现 |
 | `frontend/src/animation/`、`frontend/src/features/` | 按团队当前任务认领 | 基础目录，尚未确认运行能力 |
-| `backend/src/workflow/`、`backend/src/api/`、`contracts/` | 双方按任务协商 | 共享区；本次未修改公共 Schema |
+| `backend/src/workflow/`、`backend/src/api/`、`contracts/` | 双方按任务协商 | 工作流/API 业务待实现；联调前分支已按负责人同意修订知识包契约 |
 
 ## 下一次集成重点
 
-- 将知识层接入 `ProjectState` 工作流，再使用现有 Mock 契约联调脚本层与动画层。
-- 保持 `contracts/接口契约与协作规范.md` 和 `contracts/schemas/` 为跨阶段交接依据；字段或状态语义变更仍需协商，并同步 Schema、示例、生产方与消费方。
-- 真实动画预览与导出功能实现后，分别检查预览和成片一致性。
+- 协调器在确认版本 JSON 可读取后发布精确知识包 ArtifactRef，并把已选方向交给脚本层。
+- 脚本层依所选方向的 `knowledge_refs` 取材，遵守知识单元 `conditions`；不要把方向内 Claim 依赖当作全局必选内容。
+- 以知识包中的非推荐方向进行联调，确认 `ProductionScript.direction_id` 与项目决策一致，并精确引用同一知识包版本。
+- 动画运行时完成后，分别检查实际预览和导出成片的一致性。
 
 ## 活动任务
 
-- 当前任务：`docs/tasks/open/backend/知识层成本效率与用户体验修订方案.md`。
-- 工作分支：`feat/knowledge-cost-efficiency-ux`；修订与验证已完成，尚未合并。公共 `internal_review` 证据语义仍待共享接口负责人协商；任务文件仍待负责人确认后再移入 `closed/`。
-- 前序任务：`docs/tasks/open/backend/知识层实现方案.md` 在 `feat/knowledge-layer-implementation` 完成首版，等待集成与任务关闭确认。
+- 当前任务：`docs/tasks/open/backend/知识层联调前最小修订方案.md`，工作分支 `feat/knowledge-handoff-readiness`。实现、本地与真实 API 验收已完成；任务仍留在 `open/`，等待负责人确认后关闭。
+- 前序任务：`docs/tasks/open/backend/知识层成本效率与用户体验修订方案.md` 和 `docs/tasks/open/backend/知识层实现方案.md` 的实现分别位于各自功能分支，等待集成及任务关闭确认。
 
 更新规则：只有形成稳定能力、任务发生交接、出现重要阻塞或完成集成时更新此文档。尚未验证的功能不得写成“已完成”。
