@@ -7,7 +7,7 @@ export function IdeaSeed({ style }: { style?: CSSProperties }) {
   return <span className="idea-seed" style={style} aria-hidden="true"><span className="seed-core" /></span>;
 }
 
-export function FlowArtwork({ time, id, compact }: { time: number; id: string; compact: boolean }) {
+function FlowArtwork({ time, id, compact }: { time: number; id: string; compact: boolean }) {
   const mesh = flowMesh(time, compact);
   const { extent } = flowState(time);
   return (
