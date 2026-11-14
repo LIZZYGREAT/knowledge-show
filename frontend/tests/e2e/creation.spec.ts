@@ -94,9 +94,9 @@ for (const width of [375, 768, 1280, 1440, 1920])
     const brand = await page.locator(".brand").boundingBox();
     const settings = await page.locator(".settings-button").boundingBox();
     expect(brand!.x + brand!.width).toBeLessThan(settings!.x);
-    const theatre = await page.locator(".paper-theatre").boundingBox();
-    const sheet = await page.locator(".paper-sheet").boundingBox();
-    expect(sheet!.height / theatre!.height).toBeGreaterThan(0.65);
+    const theatre = await page.locator(".flow-theatre").boundingBox();
+    const artwork = await page.locator(".flow-artwork").boundingBox();
+    expect(artwork!.height / theatre!.height).toBeGreaterThan(0.65);
     await page.getByRole("button", { name: "开始创作" }).click();
     const composer = await page.locator(".composer").boundingBox();
     expect(composer!.width).toBeGreaterThanOrEqual(Math.min(width, 1380) - 2);
@@ -138,7 +138,7 @@ test("shared bead travels into the topic prompt, including an immediate click", 
   page,
 }) => {
   await page.goto("/");
-  await expect(page.locator(".living-paper-stage")).toBeVisible();
+  await expect(page.locator(".living-flow-scene")).toBeVisible();
   const origin = await page.locator(".idea-seed").boundingBox();
   await page.getByRole("button", { name: "开始创作" }).click();
   await expect(page.locator("#main-content")).toHaveAttribute(
@@ -180,7 +180,7 @@ test("no view transitions fallback and reduced motion keep the same form usable"
   );
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  await expect(page.locator(".living-paper-stage")).toHaveAttribute(
+  await expect(page.locator(".living-flow-scene")).toHaveAttribute(
     "data-pose",
     "1.000",
   );
@@ -196,9 +196,9 @@ test("no view transitions fallback and reduced motion keep the same form usable"
     "保留的主题",
   );
 });
-test("opening unfolds once and pauses on blur", async ({ page }) => {
+test("flow scene grows continuously and pauses on blur", async ({ page }) => {
   await page.goto("/");
-  const stage = page.locator(".living-paper-stage");
+  const stage = page.locator(".living-flow-scene");
   await expect
     .poll(async () => Number(await stage.getAttribute("data-pose")))
     .toBeGreaterThan(0.1);
@@ -208,7 +208,8 @@ test("opening unfolds once and pauses on blur", async ({ page }) => {
   await page.waitForTimeout(180);
   expect(await stage.getAttribute("data-pose")).toBe(paused);
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
-  await expect(stage).toHaveAttribute("data-pose", "1.000");
-  await page.waitForTimeout(150);
-  await expect(stage).toHaveAttribute("data-pose", "1.000");
+  await expect(stage).toHaveAttribute("data-paused", "false");
+  await expect
+    .poll(async () => Number(await stage.getAttribute("data-pose")))
+    .toBeGreaterThan(Number(paused));
 });
