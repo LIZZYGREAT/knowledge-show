@@ -1,4 +1,5 @@
 # Knowledge service runtime and local review UI
+fastapi>=0.115,<1
 openai>=2,<3
 httpx>=0.27,<1
 pydantic>=2,<3
@@ -8,3 +9,4 @@ jsonschema>=4.18,<5
 
 # Local development and offline checks
 pytest>=8,<9
+uvicorn>=0.30,<1
