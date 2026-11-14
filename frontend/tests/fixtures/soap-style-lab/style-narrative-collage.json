@@ -233,6 +233,9 @@
         "id": "EL_FOOTNOTE"
       },
       {
+        "id": "EL_CAPTION_PAPER"
+      },
+      {
         "id": "T_S01",
         "source_ref": {
           "kind": "timed_text",
@@ -482,7 +485,8 @@
             }
           ],
           "path": "M-240 0 Q0 12 240 0 L240 24 L-240 24Z",
-          "materialKey": "ink-print"
+          "materialKey": "ink-print",
+          "zIndex": 1
         },
         {
           "id": "EL_OIL",
@@ -523,7 +527,8 @@
           "materialKey": "ink-print",
           "stroke": "#d7b767",
           "strokeWidth": 2,
-          "path": "M-178 40 C-205-110-65-163 58-140 S220-6 152 100 S-160 142-178 40Z"
+          "path": "M-178 40 C-205-110-65-163 58-140 S220-6 152 100 S-160 142-178 40Z",
+          "zIndex": 2
         },
         {
           "id": "EL_FLOW_0",
@@ -536,7 +541,7 @@
             {
               "time_ms": 0,
               "x": 180,
-              "y": 335,
+              "y": 285,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.4,
@@ -546,7 +551,7 @@
             {
               "time_ms": 4500,
               "x": 480,
-              "y": 327,
+              "y": 277,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.65,
@@ -556,7 +561,7 @@
             {
               "time_ms": 9000,
               "x": 1140,
-              "y": 335,
+              "y": 285,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.3,
@@ -568,7 +573,8 @@
           "stroke": "#8bbdb9",
           "strokeWidth": 3,
           "fillOpacity": 0,
-          "lineCap": "round"
+          "lineCap": "round",
+          "zIndex": 1
         },
         {
           "id": "EL_FLOW_1",
@@ -581,7 +587,7 @@
             {
               "time_ms": 0,
               "x": 230,
-              "y": 400,
+              "y": 310,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.4,
@@ -591,7 +597,7 @@
             {
               "time_ms": 4500,
               "x": 530,
-              "y": 392,
+              "y": 302,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.65,
@@ -601,7 +607,7 @@
             {
               "time_ms": 9000,
               "x": 1190,
-              "y": 400,
+              "y": 310,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.3,
@@ -613,7 +619,8 @@
           "stroke": "#8bbdb9",
           "strokeWidth": 3,
           "fillOpacity": 0,
-          "lineCap": "round"
+          "lineCap": "round",
+          "zIndex": 1
         },
         {
           "id": "EL_FLOW_2",
@@ -626,7 +633,7 @@
             {
               "time_ms": 0,
               "x": 280,
-              "y": 465,
+              "y": 335,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.4,
@@ -636,7 +643,7 @@
             {
               "time_ms": 4500,
               "x": 580,
-              "y": 457,
+              "y": 327,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.65,
@@ -646,7 +653,7 @@
             {
               "time_ms": 9000,
               "x": 1240,
-              "y": 465,
+              "y": 335,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.3,
@@ -658,7 +665,8 @@
           "stroke": "#8bbdb9",
           "strokeWidth": 3,
           "fillOpacity": 0,
-          "lineCap": "round"
+          "lineCap": "round",
+          "zIndex": 1
         },
         {
           "id": "EL_FLOW_3",
@@ -671,7 +679,7 @@
             {
               "time_ms": 0,
               "x": 330,
-              "y": 530,
+              "y": 650,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.4,
@@ -681,7 +689,7 @@
             {
               "time_ms": 4500,
               "x": 630,
-              "y": 522,
+              "y": 642,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.65,
@@ -691,7 +699,7 @@
             {
               "time_ms": 9000,
               "x": 1290,
-              "y": 530,
+              "y": 650,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.3,
@@ -703,7 +711,8 @@
           "stroke": "#8bbdb9",
           "strokeWidth": 3,
           "fillOpacity": 0,
-          "lineCap": "round"
+          "lineCap": "round",
+          "zIndex": 1
         },
         {
           "id": "EL_TITLE",
@@ -743,7 +752,8 @@
           ],
           "text": "肥皂为什么能带走油污？",
           "fontSize": 52,
-          "fontWeight": 700
+          "fontWeight": 700,
+          "zIndex": 6
         },
         {
           "id": "EL_STAGE_NOTE",
@@ -782,7 +792,8 @@
             }
           ],
           "text": "水经过，油仍附着",
-          "fontSize": 28
+          "fontSize": 28,
+          "zIndex": 6
         },
         {
           "id": "EL_OIL_LABEL",
@@ -822,7 +833,8 @@
           ],
           "text": "油",
           "fontSize": 38,
-          "fontWeight": 700
+          "fontWeight": 700,
+          "zIndex": 6
         },
         {
           "id": "EL_FOOTNOTE",
@@ -861,7 +873,49 @@
             }
           ],
           "text": "过程示意 · 油被分散并带走，未发生化学消失",
-          "fontSize": 22
+          "fontSize": 22,
+          "zIndex": 6
+        },
+        {
+          "id": "EL_CAPTION_PAPER",
+          "label": "字幕底衬",
+          "shape": "rect",
+          "x": 0,
+          "y": 0,
+          "fill": "#29292d",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 80,
+              "y": 705,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "ease-in-cubic"
+            },
+            {
+              "time_ms": 4500,
+              "x": 80,
+              "y": 705,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "ease-in-cubic"
+            },
+            {
+              "time_ms": 9000,
+              "x": 80,
+              "y": 705,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "ease-in-cubic"
+            }
+          ],
+          "width": 1440,
+          "height": 85,
+          "cornerRadius": 4,
+          "zIndex": 5
         },
         {
           "id": "T_S01",
@@ -902,7 +956,8 @@
           "text": "只用水，为什么油污还在？",
           "fontSize": 38,
           "textAnchor": "middle",
-          "fontWeight": 600
+          "fontWeight": 600,
+          "zIndex": 6
         }
       ]
     },
@@ -1072,7 +1127,8 @@
             }
           ],
           "path": "M-240 0 Q0 12 240 0 L240 24 L-240 24Z",
-          "materialKey": "ink-print"
+          "materialKey": "ink-print",
+          "zIndex": 1
         },
         {
           "id": "EL_OIL",
@@ -1113,7 +1169,8 @@
           "materialKey": "ink-print",
           "stroke": "#d7b767",
           "strokeWidth": 2,
-          "path": "M-178 40 C-205-110-65-163 58-140 S220-6 152 100 S-160 142-178 40Z"
+          "path": "M-178 40 C-205-110-65-163 58-140 S220-6 152 100 S-160 142-178 40Z",
+          "zIndex": 2
         },
         {
           "id": "EL_FLOW_0",
@@ -1126,7 +1183,7 @@
             {
               "time_ms": 0,
               "x": 180,
-              "y": 335,
+              "y": 285,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.4,
@@ -1136,7 +1193,7 @@
             {
               "time_ms": 4500,
               "x": 480,
-              "y": 327,
+              "y": 277,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.65,
@@ -1146,7 +1203,7 @@
             {
               "time_ms": 9000,
               "x": 1140,
-              "y": 335,
+              "y": 285,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.3,
@@ -1158,7 +1215,8 @@
           "stroke": "#8bbdb9",
           "strokeWidth": 3,
           "fillOpacity": 0,
-          "lineCap": "round"
+          "lineCap": "round",
+          "zIndex": 1
         },
         {
           "id": "EL_FLOW_1",
@@ -1171,7 +1229,7 @@
             {
               "time_ms": 0,
               "x": 230,
-              "y": 400,
+              "y": 310,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.4,
@@ -1181,7 +1239,7 @@
             {
               "time_ms": 4500,
               "x": 530,
-              "y": 392,
+              "y": 302,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.65,
@@ -1191,7 +1249,7 @@
             {
               "time_ms": 9000,
               "x": 1190,
-              "y": 400,
+              "y": 310,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.3,
@@ -1203,7 +1261,8 @@
           "stroke": "#8bbdb9",
           "strokeWidth": 3,
           "fillOpacity": 0,
-          "lineCap": "round"
+          "lineCap": "round",
+          "zIndex": 1
         },
         {
           "id": "EL_FLOW_2",
@@ -1216,7 +1275,7 @@
             {
               "time_ms": 0,
               "x": 280,
-              "y": 465,
+              "y": 335,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.4,
@@ -1226,7 +1285,7 @@
             {
               "time_ms": 4500,
               "x": 580,
-              "y": 457,
+              "y": 327,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.65,
@@ -1236,7 +1295,7 @@
             {
               "time_ms": 9000,
               "x": 1240,
-              "y": 465,
+              "y": 335,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.3,
@@ -1248,7 +1307,8 @@
           "stroke": "#8bbdb9",
           "strokeWidth": 3,
           "fillOpacity": 0,
-          "lineCap": "round"
+          "lineCap": "round",
+          "zIndex": 1
         },
         {
           "id": "EL_FLOW_3",
@@ -1261,7 +1321,7 @@
             {
               "time_ms": 0,
               "x": 330,
-              "y": 530,
+              "y": 650,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.4,
@@ -1271,7 +1331,7 @@
             {
               "time_ms": 4500,
               "x": 630,
-              "y": 522,
+              "y": 642,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.65,
@@ -1281,7 +1341,7 @@
             {
               "time_ms": 9000,
               "x": 1290,
-              "y": 530,
+              "y": 650,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.3,
@@ -1293,7 +1353,8 @@
           "stroke": "#8bbdb9",
           "strokeWidth": 3,
           "fillOpacity": 0,
-          "lineCap": "round"
+          "lineCap": "round",
+          "zIndex": 1
         },
         {
           "id": "EL_TAIL_0",
@@ -1950,7 +2011,8 @@
             }
           ],
           "text": "亲水端 · 朝水",
-          "fontSize": 28
+          "fontSize": 28,
+          "zIndex": 6
         },
         {
           "id": "EL_TAIL_LABEL",
@@ -1989,7 +2051,8 @@
             }
           ],
           "text": "亲油端 · 入油",
-          "fontSize": 28
+          "fontSize": 28,
+          "zIndex": 6
         },
         {
           "id": "EL_TITLE",
@@ -2029,7 +2092,8 @@
           ],
           "text": "肥皂为什么能带走油污？",
           "fontSize": 52,
-          "fontWeight": 700
+          "fontWeight": 700,
+          "zIndex": 6
         },
         {
           "id": "EL_STAGE_NOTE",
@@ -2068,7 +2132,8 @@
             }
           ],
           "text": "油—水界面 · 分子方向示意",
-          "fontSize": 28
+          "fontSize": 28,
+          "zIndex": 6
         },
         {
           "id": "EL_OIL_LABEL",
@@ -2108,7 +2173,8 @@
           ],
           "text": "油",
           "fontSize": 38,
-          "fontWeight": 700
+          "fontWeight": 700,
+          "zIndex": 6
         },
         {
           "id": "EL_FOOTNOTE",
@@ -2147,7 +2213,49 @@
             }
           ],
           "text": "过程示意 · 油被分散并带走，未发生化学消失",
-          "fontSize": 22
+          "fontSize": 22,
+          "zIndex": 6
+        },
+        {
+          "id": "EL_CAPTION_PAPER",
+          "label": "字幕底衬",
+          "shape": "rect",
+          "x": 0,
+          "y": 0,
+          "fill": "#29292d",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 80,
+              "y": 705,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "ease-in-cubic"
+            },
+            {
+              "time_ms": 4500,
+              "x": 80,
+              "y": 705,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "ease-in-cubic"
+            },
+            {
+              "time_ms": 9000,
+              "x": 80,
+              "y": 705,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "ease-in-cubic"
+            }
+          ],
+          "width": 1440,
+          "height": 85,
+          "cornerRadius": 4,
+          "zIndex": 5
         },
         {
           "id": "T_S02",
@@ -2188,7 +2296,8 @@
           "text": "亲水端朝水，亲油端伸向油",
           "fontSize": 38,
           "textAnchor": "middle",
-          "fontWeight": 600
+          "fontWeight": 600,
+          "zIndex": 6
         }
       ]
     },
@@ -2358,7 +2467,8 @@
             }
           ],
           "path": "M-240 0 Q0 12 240 0 L240 24 L-240 24Z",
-          "materialKey": "ink-print"
+          "materialKey": "ink-print",
+          "zIndex": 1
         },
         {
           "id": "EL_OIL",
@@ -2417,7 +2527,8 @@
           "materialKey": "ink-print",
           "stroke": "#d7b767",
           "strokeWidth": 2,
-          "path": "M-178 40 C-205-110-65-163 58-140 S220-6 152 100 S-160 142-178 40Z"
+          "path": "M-178 40 C-205-110-65-163 58-140 S220-6 152 100 S-160 142-178 40Z",
+          "zIndex": 2
         },
         {
           "id": "EL_FLOW_0",
@@ -2430,7 +2541,7 @@
             {
               "time_ms": 0,
               "x": 180,
-              "y": 335,
+              "y": 285,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.4,
@@ -2440,7 +2551,7 @@
             {
               "time_ms": 4500,
               "x": 480,
-              "y": 327,
+              "y": 277,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.65,
@@ -2450,7 +2561,7 @@
             {
               "time_ms": 9000,
               "x": 1140,
-              "y": 335,
+              "y": 285,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.3,
@@ -2462,7 +2573,8 @@
           "stroke": "#8bbdb9",
           "strokeWidth": 3,
           "fillOpacity": 0,
-          "lineCap": "round"
+          "lineCap": "round",
+          "zIndex": 1
         },
         {
           "id": "EL_FLOW_1",
@@ -2475,7 +2587,7 @@
             {
               "time_ms": 0,
               "x": 230,
-              "y": 400,
+              "y": 310,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.4,
@@ -2485,7 +2597,7 @@
             {
               "time_ms": 4500,
               "x": 530,
-              "y": 392,
+              "y": 302,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.65,
@@ -2495,7 +2607,7 @@
             {
               "time_ms": 9000,
               "x": 1190,
-              "y": 400,
+              "y": 310,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.3,
@@ -2507,7 +2619,8 @@
           "stroke": "#8bbdb9",
           "strokeWidth": 3,
           "fillOpacity": 0,
-          "lineCap": "round"
+          "lineCap": "round",
+          "zIndex": 1
         },
         {
           "id": "EL_FLOW_2",
@@ -2520,7 +2633,7 @@
             {
               "time_ms": 0,
               "x": 280,
-              "y": 465,
+              "y": 335,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.4,
@@ -2530,7 +2643,7 @@
             {
               "time_ms": 4500,
               "x": 580,
-              "y": 457,
+              "y": 327,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.65,
@@ -2540,7 +2653,7 @@
             {
               "time_ms": 9000,
               "x": 1240,
-              "y": 465,
+              "y": 335,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.3,
@@ -2552,7 +2665,8 @@
           "stroke": "#8bbdb9",
           "strokeWidth": 3,
           "fillOpacity": 0,
-          "lineCap": "round"
+          "lineCap": "round",
+          "zIndex": 1
         },
         {
           "id": "EL_FLOW_3",
@@ -2565,7 +2679,7 @@
             {
               "time_ms": 0,
               "x": 330,
-              "y": 530,
+              "y": 650,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.4,
@@ -2575,7 +2689,7 @@
             {
               "time_ms": 4500,
               "x": 630,
-              "y": 522,
+              "y": 642,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.65,
@@ -2585,7 +2699,7 @@
             {
               "time_ms": 9000,
               "x": 1290,
-              "y": 530,
+              "y": 650,
               "scale": 1,
               "rotation": 0,
               "opacity": 0.3,
@@ -2597,7 +2711,8 @@
           "stroke": "#8bbdb9",
           "strokeWidth": 3,
           "fillOpacity": 0,
-          "lineCap": "round"
+          "lineCap": "round",
+          "zIndex": 1
         },
         {
           "id": "EL_DROP_0",
@@ -2627,8 +2742,8 @@
             },
             {
               "time_ms": 4500,
-              "x": 1070,
-              "y": 340,
+              "x": 1050,
+              "y": 320,
               "scale": 0.32,
               "rotation": 0,
               "opacity": 1,
@@ -2636,8 +2751,8 @@
             },
             {
               "time_ms": 6500,
-              "x": 1270,
-              "y": 340,
+              "x": 1250,
+              "y": 320,
               "scale": 0.32,
               "rotation": 0,
               "opacity": 1,
@@ -2646,7 +2761,7 @@
             {
               "time_ms": 9000,
               "x": 1920,
-              "y": 340,
+              "y": 320,
               "scale": 0.32,
               "rotation": 0,
               "opacity": 1,
@@ -2656,7 +2771,8 @@
           "path": "M-178 40 C-205-110-65-163 58-140 S220-6 152 100 S-160 142-178 40Z",
           "materialKey": "ink-print",
           "stroke": "#d7b767",
-          "strokeWidth": 3
+          "strokeWidth": 3,
+          "zIndex": 2
         },
         {
           "id": "EL_TAIL_0",
@@ -2686,8 +2802,8 @@
             },
             {
               "time_ms": 4500,
-              "x": 997.042,
-              "y": 309.677,
+              "x": 977.042,
+              "y": 289.677,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -2695,8 +2811,8 @@
             },
             {
               "time_ms": 6500,
-              "x": 1197.042,
-              "y": 309.677,
+              "x": 1177.042,
+              "y": 289.677,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -2705,7 +2821,7 @@
             {
               "time_ms": 9000,
               "x": 1847.042,
-              "y": 309.677,
+              "y": 289.677,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -2747,8 +2863,8 @@
             },
             {
               "time_ms": 4500,
-              "x": 997.042,
-              "y": 309.677,
+              "x": 977.042,
+              "y": 289.677,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -2756,8 +2872,8 @@
             },
             {
               "time_ms": 6500,
-              "x": 1197.042,
-              "y": 309.677,
+              "x": 1177.042,
+              "y": 289.677,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -2766,7 +2882,7 @@
             {
               "time_ms": 9000,
               "x": 1847.042,
-              "y": 309.677,
+              "y": 289.677,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -2807,8 +2923,8 @@
             },
             {
               "time_ms": 4500,
-              "x": 1200,
-              "y": 340,
+              "x": 1185,
+              "y": 350,
               "scale": 0.32,
               "rotation": 0,
               "opacity": 1,
@@ -2816,8 +2932,8 @@
             },
             {
               "time_ms": 6500,
-              "x": 1400,
-              "y": 340,
+              "x": 1385,
+              "y": 350,
               "scale": 0.32,
               "rotation": 0,
               "opacity": 1,
@@ -2826,7 +2942,7 @@
             {
               "time_ms": 9000,
               "x": 2010,
-              "y": 340,
+              "y": 350,
               "scale": 0.32,
               "rotation": 0,
               "opacity": 1,
@@ -2836,7 +2952,8 @@
           "path": "M-178 40 C-205-110-65-163 58-140 S220-6 152 100 S-160 142-178 40Z",
           "materialKey": "ink-print",
           "stroke": "#d7b767",
-          "strokeWidth": 3
+          "strokeWidth": 3,
+          "zIndex": 2
         },
         {
           "id": "EL_TAIL_1",
@@ -2866,8 +2983,8 @@
             },
             {
               "time_ms": 4500,
-              "x": 1150.439,
-              "y": 283.46,
+              "x": 1135.439,
+              "y": 293.46,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -2875,8 +2992,8 @@
             },
             {
               "time_ms": 6500,
-              "x": 1350.439,
-              "y": 283.46,
+              "x": 1335.439,
+              "y": 293.46,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -2885,7 +3002,7 @@
             {
               "time_ms": 9000,
               "x": 1960.439,
-              "y": 283.46,
+              "y": 293.46,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -2927,8 +3044,8 @@
             },
             {
               "time_ms": 4500,
-              "x": 1150.439,
-              "y": 283.46,
+              "x": 1135.439,
+              "y": 293.46,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -2936,8 +3053,8 @@
             },
             {
               "time_ms": 6500,
-              "x": 1350.439,
-              "y": 283.46,
+              "x": 1335.439,
+              "y": 293.46,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -2946,7 +3063,7 @@
             {
               "time_ms": 9000,
               "x": 1960.439,
-              "y": 283.46,
+              "y": 293.46,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -2987,8 +3104,8 @@
             },
             {
               "time_ms": 4500,
-              "x": 1330,
-              "y": 340,
+              "x": 1280,
+              "y": 435,
               "scale": 0.32,
               "rotation": 0,
               "opacity": 1,
@@ -2996,8 +3113,8 @@
             },
             {
               "time_ms": 6500,
-              "x": 1530,
-              "y": 340,
+              "x": 1480,
+              "y": 435,
               "scale": 0.32,
               "rotation": 0,
               "opacity": 1,
@@ -3006,7 +3123,7 @@
             {
               "time_ms": 9000,
               "x": 2100,
-              "y": 340,
+              "y": 435,
               "scale": 0.32,
               "rotation": 0,
               "opacity": 1,
@@ -3016,7 +3133,8 @@
           "path": "M-178 40 C-205-110-65-163 58-140 S220-6 152 100 S-160 142-178 40Z",
           "materialKey": "ink-print",
           "stroke": "#d7b767",
-          "strokeWidth": 3
+          "strokeWidth": 3,
+          "zIndex": 2
         },
         {
           "id": "EL_TAIL_2",
@@ -3046,8 +3164,8 @@
             },
             {
               "time_ms": 4500,
-              "x": 1314.64,
-              "y": 269.568,
+              "x": 1264.64,
+              "y": 364.568,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3055,8 +3173,8 @@
             },
             {
               "time_ms": 6500,
-              "x": 1514.64,
-              "y": 269.568,
+              "x": 1464.64,
+              "y": 364.568,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3065,7 +3183,7 @@
             {
               "time_ms": 9000,
               "x": 2084.64,
-              "y": 269.568,
+              "y": 364.568,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3107,8 +3225,8 @@
             },
             {
               "time_ms": 4500,
-              "x": 1314.64,
-              "y": 269.568,
+              "x": 1264.64,
+              "y": 364.568,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3116,8 +3234,8 @@
             },
             {
               "time_ms": 6500,
-              "x": 1514.64,
-              "y": 269.568,
+              "x": 1464.64,
+              "y": 364.568,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3126,7 +3244,7 @@
             {
               "time_ms": 9000,
               "x": 2084.64,
-              "y": 269.568,
+              "y": 364.568,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3167,8 +3285,8 @@
             },
             {
               "time_ms": 4500,
-              "x": 1070,
-              "y": 520,
+              "x": 1030,
+              "y": 530,
               "scale": 0.32,
               "rotation": 0,
               "opacity": 1,
@@ -3176,8 +3294,8 @@
             },
             {
               "time_ms": 6500,
-              "x": 1270,
-              "y": 520,
+              "x": 1230,
+              "y": 530,
               "scale": 0.32,
               "rotation": 0,
               "opacity": 1,
@@ -3186,7 +3304,7 @@
             {
               "time_ms": 9000,
               "x": 2190,
-              "y": 520,
+              "y": 530,
               "scale": 0.32,
               "rotation": 0,
               "opacity": 1,
@@ -3196,7 +3314,8 @@
           "path": "M-178 40 C-205-110-65-163 58-140 S220-6 152 100 S-160 142-178 40Z",
           "materialKey": "ink-print",
           "stroke": "#d7b767",
-          "strokeWidth": 3
+          "strokeWidth": 3,
+          "zIndex": 2
         },
         {
           "id": "EL_TAIL_3",
@@ -3226,8 +3345,8 @@
             },
             {
               "time_ms": 4500,
-              "x": 1092.189,
-              "y": 451.029,
+              "x": 1052.189,
+              "y": 461.029,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3235,8 +3354,8 @@
             },
             {
               "time_ms": 6500,
-              "x": 1292.189,
-              "y": 451.029,
+              "x": 1252.189,
+              "y": 461.029,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3245,7 +3364,7 @@
             {
               "time_ms": 9000,
               "x": 2212.189,
-              "y": 451.029,
+              "y": 461.029,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3287,8 +3406,8 @@
             },
             {
               "time_ms": 4500,
-              "x": 1092.189,
-              "y": 451.029,
+              "x": 1052.189,
+              "y": 461.029,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3296,8 +3415,8 @@
             },
             {
               "time_ms": 6500,
-              "x": 1292.189,
-              "y": 451.029,
+              "x": 1252.189,
+              "y": 461.029,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3306,7 +3425,7 @@
             {
               "time_ms": 9000,
               "x": 2212.189,
-              "y": 451.029,
+              "y": 461.029,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3347,8 +3466,8 @@
             },
             {
               "time_ms": 4500,
-              "x": 1200,
-              "y": 520,
+              "x": 1165,
+              "y": 590,
               "scale": 0.32,
               "rotation": 0,
               "opacity": 1,
@@ -3356,8 +3475,8 @@
             },
             {
               "time_ms": 6500,
-              "x": 1400,
-              "y": 520,
+              "x": 1365,
+              "y": 590,
               "scale": 0.32,
               "rotation": 0,
               "opacity": 1,
@@ -3366,7 +3485,7 @@
             {
               "time_ms": 9000,
               "x": 2280,
-              "y": 520,
+              "y": 590,
               "scale": 0.32,
               "rotation": 0,
               "opacity": 1,
@@ -3376,7 +3495,8 @@
           "path": "M-178 40 C-205-110-65-163 58-140 S220-6 152 100 S-160 142-178 40Z",
           "materialKey": "ink-print",
           "stroke": "#d7b767",
-          "strokeWidth": 3
+          "strokeWidth": 3,
+          "zIndex": 2
         },
         {
           "id": "EL_TAIL_4",
@@ -3406,8 +3526,8 @@
             },
             {
               "time_ms": 4500,
-              "x": 1254.901,
-              "y": 467.525,
+              "x": 1219.901,
+              "y": 537.525,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3415,8 +3535,8 @@
             },
             {
               "time_ms": 6500,
-              "x": 1454.901,
-              "y": 467.525,
+              "x": 1419.901,
+              "y": 537.525,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3425,7 +3545,7 @@
             {
               "time_ms": 9000,
               "x": 2334.901,
-              "y": 467.525,
+              "y": 537.525,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3467,8 +3587,8 @@
             },
             {
               "time_ms": 4500,
-              "x": 1254.901,
-              "y": 467.525,
+              "x": 1219.901,
+              "y": 537.525,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3476,8 +3596,8 @@
             },
             {
               "time_ms": 6500,
-              "x": 1454.901,
-              "y": 467.525,
+              "x": 1419.901,
+              "y": 537.525,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3486,7 +3606,7 @@
             {
               "time_ms": 9000,
               "x": 2334.901,
-              "y": 467.525,
+              "y": 537.525,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3527,8 +3647,8 @@
             },
             {
               "time_ms": 4500,
-              "x": 1330,
-              "y": 520,
+              "x": 1290,
+              "y": 625,
               "scale": 0.32,
               "rotation": 0,
               "opacity": 1,
@@ -3536,8 +3656,8 @@
             },
             {
               "time_ms": 6500,
-              "x": 1530,
-              "y": 520,
+              "x": 1490,
+              "y": 625,
               "scale": 0.32,
               "rotation": 0,
               "opacity": 1,
@@ -3546,7 +3666,7 @@
             {
               "time_ms": 9000,
               "x": 2370,
-              "y": 520,
+              "y": 625,
               "scale": 0.32,
               "rotation": 0,
               "opacity": 1,
@@ -3556,7 +3676,8 @@
           "path": "M-178 40 C-205-110-65-163 58-140 S220-6 152 100 S-160 142-178 40Z",
           "materialKey": "ink-print",
           "stroke": "#d7b767",
-          "strokeWidth": 3
+          "strokeWidth": 3,
+          "zIndex": 2
         },
         {
           "id": "EL_TAIL_5",
@@ -3586,8 +3707,8 @@
             },
             {
               "time_ms": 4500,
-              "x": 1405.645,
-              "y": 495.46,
+              "x": 1365.645,
+              "y": 600.46,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3595,8 +3716,8 @@
             },
             {
               "time_ms": 6500,
-              "x": 1605.645,
-              "y": 495.46,
+              "x": 1565.645,
+              "y": 600.46,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3605,7 +3726,7 @@
             {
               "time_ms": 9000,
               "x": 2445.645,
-              "y": 495.46,
+              "y": 600.46,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3647,8 +3768,8 @@
             },
             {
               "time_ms": 4500,
-              "x": 1405.645,
-              "y": 495.46,
+              "x": 1365.645,
+              "y": 600.46,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3656,8 +3777,8 @@
             },
             {
               "time_ms": 6500,
-              "x": 1605.645,
-              "y": 495.46,
+              "x": 1565.645,
+              "y": 600.46,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3666,7 +3787,7 @@
             {
               "time_ms": 9000,
               "x": 2445.645,
-              "y": 495.46,
+              "y": 600.46,
               "scale": 0.55,
               "rotation": 0,
               "opacity": 1,
@@ -3716,7 +3837,8 @@
             }
           ],
           "text": "亲水端 · 朝水",
-          "fontSize": 28
+          "fontSize": 28,
+          "zIndex": 6
         },
         {
           "id": "EL_TAIL_LABEL",
@@ -3755,7 +3877,8 @@
             }
           ],
           "text": "亲油端 · 入油",
-          "fontSize": 28
+          "fontSize": 28,
+          "zIndex": 6
         },
         {
           "id": "EL_TITLE",
@@ -3795,7 +3918,8 @@
           ],
           "text": "肥皂为什么能带走油污？",
           "fontSize": 52,
-          "fontWeight": 700
+          "fontWeight": 700,
+          "zIndex": 6
         },
         {
           "id": "EL_STAGE_NOTE",
@@ -3834,7 +3958,8 @@
             }
           ],
           "text": "搅动 → 分散 → 冲洗",
-          "fontSize": 28
+          "fontSize": 28,
+          "zIndex": 6
         },
         {
           "id": "EL_OIL_LABEL",
@@ -3892,7 +4017,8 @@
           ],
           "text": "油",
           "fontSize": 38,
-          "fontWeight": 700
+          "fontWeight": 700,
+          "zIndex": 6
         },
         {
           "id": "EL_FOOTNOTE",
@@ -3931,7 +4057,49 @@
             }
           ],
           "text": "过程示意 · 油被分散并带走，未发生化学消失",
-          "fontSize": 22
+          "fontSize": 22,
+          "zIndex": 6
+        },
+        {
+          "id": "EL_CAPTION_PAPER",
+          "label": "字幕底衬",
+          "shape": "rect",
+          "x": 0,
+          "y": 0,
+          "fill": "#29292d",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 80,
+              "y": 705,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "ease-in-cubic"
+            },
+            {
+              "time_ms": 4500,
+              "x": 80,
+              "y": 705,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "ease-in-cubic"
+            },
+            {
+              "time_ms": 9000,
+              "x": 80,
+              "y": 705,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "ease-in-cubic"
+            }
+          ],
+          "width": 1440,
+          "height": 85,
+          "cornerRadius": 4,
+          "zIndex": 5
         },
         {
           "id": "T_S03",
@@ -3972,7 +4140,8 @@
           "text": "搅动、分散，再随水流带走",
           "fontSize": 38,
           "textAnchor": "middle",
-          "fontWeight": 600
+          "fontWeight": 600,
+          "zIndex": 6
         }
       ]
     }

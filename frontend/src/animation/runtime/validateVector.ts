@@ -15,6 +15,7 @@ export function validateVector(scene: ScriptScene, resource: SceneResource) {
     for (const key of ['x','y','width','height','radius'] as const) if (!finite(object[key] ?? 0, -10000, 10000)) throw new Error('无效的几何。');
     if (object.shape === 'circle' && !(object.radius! > 0) || object.shape === 'rect' && !(object.width! > 0 && object.height! > 0)) throw new Error('无效的对象尺寸。');
     if (object.shape === 'path' && (typeof object.path !== 'string' || object.path.length > 20000 || !/^[MmLlHhVvCcSsQqTtAaZz0-9eE\s,.+\-]*$/.test(object.path))) throw new Error('无效的路径。');
+    if (object.shape === 'path' && (object.path!.match(/[-+]?(?:\d*\.)?\d+(?:[eE][-+]?\d+)?/g) ?? []).some(n => !Number.isFinite(Number(n)))) throw new Error('路径坐标必须有限。');
     if (object.shape === 'text' && (typeof object.text !== 'string' || object.text.length > 500)) throw new Error('无效的文字。');
     if (object.stroke !== undefined && !hex.test(object.stroke)) throw new Error('无效的描边。');
     const tokens = { materialKey: ['flat','paper-layer','frosted','ink-print'], lineCap: ['butt','round','square'], textAnchor: ['start','middle','end'] };

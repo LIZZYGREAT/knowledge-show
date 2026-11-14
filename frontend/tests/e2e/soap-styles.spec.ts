@@ -44,3 +44,13 @@ test('soap style real playback, backward stroke reveal and SVG node reuse', asyn
   await expect.poll(() => page.evaluate(() => window.animationBridge!.getCurrentTimeMs())).toBeGreaterThan(9800);
   await page.evaluate(() => window.animationBridge!.pause());
 });
+
+test('soap style lab compares four exact clocks without paid requests', async ({ page }) => {
+  let paidRequests = 0;
+  page.on('request', request => { if (request.method() === 'POST' && request.url().includes('/animations')) paidRequests++; });
+  await page.goto('/style-lab.html'); await page.waitForFunction(() => (window as any).styleLab);
+  await page.getByRole('button', { name:'界面机制' }).click();
+  const result = await page.evaluate(() => (window as any).styleLab.players.map((p:any) => ({ time:p.getCurrentTimeMs(), oil:p.getElementBounds('EL_OIL'), head:p.getElementBounds('EL_HEAD_2') })));
+  expect(result.every((r:any) => r.time === 13500 && r.oil && r.head)).toBe(true);
+  expect(paidRequests).toBe(0);
+});

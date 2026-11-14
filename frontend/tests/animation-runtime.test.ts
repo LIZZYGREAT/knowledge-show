@@ -61,3 +61,8 @@ it('uses outgoing easing with deterministic path drawing and legacy defaults', (
   expect(interpolate(legacy,250).x).toBe(15.625);
   expect(interpolate(legacy,250).drawProgress).toBe(1);
 });
+it('rejects non-finite coordinates hidden in SVG path exponents', () => {
+  const bundle = structuredClone(soap) as AnimationBundle;
+  Object.values(bundle.resources)[0].objects!.find(o => o.shape === 'path')!.path = 'M1e999 0L10 10Z';
+  expect(() => validateBundle(bundle)).toThrow('有限');
+});

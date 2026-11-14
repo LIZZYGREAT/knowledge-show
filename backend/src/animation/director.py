@@ -86,6 +86,7 @@ def validate_program(scene: dict[str, Any], program: dict[str, Any]) -> list[dic
             if not isinstance(value,(int,float)) or isinstance(value,bool) or not math.isfinite(value) or abs(value)>10000: raise ValueError('场景几何无效。')
         if obj['shape']=='circle' and obj.get('radius',0)<=0 or obj['shape']=='rect' and (obj.get('width',0)<=0 or obj.get('height',0)<=0): raise ValueError('场景对象尺寸必须为正数。')
         if obj['shape']=='path' and (not isinstance(obj.get('path'),str) or len(obj['path'])>20000 or not re.fullmatch(r'[MmLlHhVvCcSsQqTtAaZz0-9eE\s,.+\-]*',obj['path'])): raise ValueError('场景路径无效。')
+        if obj['shape']=='path' and any(not math.isfinite(float(n)) for n in re.findall(r'[-+]?(?:\d*\.)?\d+(?:[eE][-+]?\d+)?',obj['path'])): raise ValueError('路径坐标必须有限。')
         if obj['shape']=='text' and (not isinstance(obj.get('text'),str) or len(obj['text'])>500): raise ValueError('场景文字无效。')
         if 'stroke' in obj and not re.fullmatch(r'#[a-fA-F0-9]{6}',str(obj['stroke'])): raise ValueError('描边颜色无效。')
         for key,allowed in {'materialKey':['flat','paper-layer','frosted','ink-print'],'lineCap':['butt','round','square'],'textAnchor':['start','middle','end']}.items():

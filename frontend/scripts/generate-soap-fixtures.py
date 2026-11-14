@@ -69,7 +69,7 @@ def make_bundle(profile):
         if modern: oilkw=dict(path='M-170-132 L145-132 L175 105 L-145 138Z')
         obj('EL_OIL','油污','path',p['gold'] if not modern else p['red'],oilframes,materialKey=material,stroke=p['ink'] if modern else p['gold'],strokeWidth=6 if modern else 2,**oilkw)
         for j in range(4):
-            y=335+j*65
+            y=[285,310,335,650][j]
             obj(f'EL_FLOW_{j}','冲洗水流','path',p['blue'],path='M0 0 Q70-18 135 0 T270 0',stroke=p['blue'],strokeWidth=5 if modern else 3,fillOpacity=0,lineCap='round',frames=[frame(0,180+j*50,y,opacity=.4),frame(4500,480+j*50,y-8,opacity=.65),frame(9000,1140+j*50,y,opacity=.3)])
         if stage>=2:
             for j in range(6):
@@ -78,7 +78,7 @@ def make_bundle(profile):
                 hx=cx+230*math.cos(a); hy=cy+205*math.sin(a)
                 tx=cx+160*math.cos(a); ty=cy+140*math.sin(a)
                 startx=hx-140+(j%2)*250; starty=230-(j%2)*50
-                endx=cx+310+(j%3)*130; endy=340+(j//3)*180
+                endx=cx+[290,425,520,270,405,530][j]; endy=cy+[-170,-140,-55,40,100,135][j]
                 def trajectory(x,y):
                     if stage==2:
                         return [frame(0,startx+(x-hx),starty+(y-hy),opacity=.1),frame(1000+j*330,startx+(x-hx),starty+(y-hy),rotation=-8 if collage else 0),frame(4500,x,y),frame(9000,x,y)]
@@ -100,9 +100,14 @@ def make_bundle(profile):
         text('EL_OIL_LABEL','油',cx-15,cy+35,38,fontWeight=700)
         if stage==3: objects[-1]['keyframes']=oilframes
         text('EL_FOOTNOTE','过程示意 · 油被分散并带走，未发生化学消失',110,835,22)
+        if collage:
+            obj('EL_CAPTION_PAPER','字幕底衬','rect',p['background'],width=1440,height=85,cornerRadius=4,zIndex=5,frames=[frame(0,80,705),frame(4500,80,705),frame(9000,80,705)])
         timed=scene['timed_text'][0]; text(timed['id'],timed['text'],800,760,38,textAnchor='middle',fontWeight=600)
         elements[timed['id']]['source_ref']={'kind':'timed_text','id':timed['id']}
         for actor in objects:
+            if actor['shape']=='text': actor['zIndex']=6
+            elif actor['id']=='EL_OIL' or actor['id'].startswith('EL_DROP_'): actor['zIndex']=2
+            elif actor['id'].startswith('EL_FLOW_') or actor['id']=='EL_SURFACE': actor['zIndex']=1
             for k,f in enumerate(actor['keyframes']):
                 f['easing']='ease-out-cubic' if modern else 'ease-in-out-cubic' if paper else 'ease-in-cubic' if collage else 'smoothstep'
                 if actor['id'].startswith('EL_FLOW_'): f['drawProgress']=min(1,.2+f['time_ms']/4500)
