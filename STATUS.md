@@ -1,6 +1,6 @@
 # knowledge-show 当前项目状态
 
-> `main@82c6aaa` 已合并 PR #16，包含主链路交接修复与动画运行时/工作台能力。视频画风任务分支 `feat/video-art-styles` 基于首页分支 `feat/home-curiosity-stage`，后者承接 `fix/user-experience-design-review` 的体验修复；体验修复按 `docs/tasks/open/backend/用户体验与过度设计审查.md` 完成静音字幕约束、创作进度、动画恢复、分幕生成与知识必填门槛调整；新主题真实模型验收仍未执行。
+> `main@0c74d0a` 已合并 PR #18（包含主链路交接修复与动画运行时/工作台能力）。视频画风任务分支 `feat/video-art-styles` 基于首页分支 `feat/home-curiosity-stage`，后者承接 `fix/user-experience-design-review` 的体验修复；体验修复按 `docs/tasks/open/backend/用户体验与过度设计审查.md` 完成静音字幕约束、创作进度、动画恢复、分幕生成与知识必填门槛调整；新主题真实模型验收仍未执行。
 
 ## 主线与分支状态
 
