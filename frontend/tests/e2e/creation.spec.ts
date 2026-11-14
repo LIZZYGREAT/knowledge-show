@@ -760,15 +760,20 @@ test("ink connects silk to dice without ripple or spiral effects", async ({ page
   await page.goto("/?stage-pose=0");
   await expect(page.locator(".stage-silk")).toHaveAttribute("opacity", "1");
   await expect(page.locator(".curiosity-stage")).toHaveAttribute("data-ink", "0.000");
+  await expect(page.locator(".stage-question")).toHaveAttribute("opacity", "0");
   await page.goto(`/?stage-pose=${1.6 / 14.5}`);
   const ink = Number(await page.locator(".curiosity-stage").getAttribute("data-ink"));
   expect(ink).toBeGreaterThan(0);
   expect(ink).toBeLessThan(1);
+  await expect(page.locator(".stage-question")).toHaveAttribute("opacity", "0");
+  await page.goto(`/?stage-pose=${3.1 / 14.5}`);
+  await expect(page.locator(".stage-question")).toHaveAttribute("opacity", "1");
   await expect(page.locator(".stage-ink-ripples, .stage-vortex-front, .stage-vortex-back, .stage-die-cube")).toHaveCount(0);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   await expect(page.locator(".stage-silk")).toHaveAttribute("opacity", "0");
   await expect(page.locator(".stage-silk .flow-body")).toHaveCount(0);
+  await expect(page.locator(".stage-question")).toHaveAttribute("opacity", "1");
   expect(await page.locator(".curiosity-artwork").evaluate(svg => {
     const path = svg.querySelector<SVGPathElement>(".stage-ink-mask")!;
     return [...svg.querySelectorAll<SVGTextElement>(".stage-knowledge text")].every(text => {

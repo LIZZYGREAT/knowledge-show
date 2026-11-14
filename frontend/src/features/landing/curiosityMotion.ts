@@ -41,7 +41,8 @@ export function inkState(time: number) {
   const bloom = easeBetween(phase, .65, 2.65) * (1 - easeBetween(phase, 12, 14));
   const fold = easeBetween(phase, .55, 2.15) * (1 - easeBetween(phase, 12.4, 14.2));
   const silkOpacity = 1 - easeBetween(phase, 1.3, 2.3) * (1 - easeBetween(phase, 12.6, 14));
-  return { bloom, fold, silkOpacity, scale: 1 - fold * .94,
+  const question = easeBetween(phase, 2.4, 3.1) * (1 - easeBetween(phase, 12, 12.6));
+  return { bloom, fold, silkOpacity, question, scale: 1 - fold * .94,
     flowTime: 5.5 + Math.sin(phase / STAGE_DURATION * Math.PI * 2) * 1.1,
   };
 }

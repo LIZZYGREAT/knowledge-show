@@ -66,7 +66,7 @@ export function CuriosityStage({ pose }: { pose?: number }) {
           <path d={contour} fill={`url(#${id}-ink-wash)`} filter={`url(#${id}-wet-edge)`}/>
           <path d={contour} fill="none" stroke="#6b9380" strokeWidth="1.2" strokeOpacity={(1 - ink.bloom) * .22} filter={`url(#${id}-wet-edge)`}/>
         </g>
-        <text x="403" y="97" textAnchor="middle" className="stage-question">为什么 7 最常见？</text>
+        <text x="403" y="97" textAnchor="middle" className="stage-question" opacity={ink.question} transform={`translate(0 ${6 * (1 - ink.question)})`}>为什么 7 最常见？</text>
         <g className="stage-knowledge" mask={`url(#${id}-ink-reveal)`}>
         <g data-die="ivory" transform={`translate(${310 - unfold * 76} ${306 - unfold * 67 - Math.abs(wobble) * 12}) rotate(${-12 + wobble * 22}) scale(${1.25 - unfold * .42})`}><Die value={roll > .4 ? 1 + Math.floor(t * 8) % 6 : 3} id={id}/></g>
         <g data-die="green" transform={`translate(${443 - unfold * 120} ${320 - unfold * 68 - Math.abs(wobble) * 9}) rotate(${12 - wobble * 26}) scale(${1.25 - unfold * .42})`}><Die value={roll > .4 ? 1 + Math.floor(t * 7 + 2) % 6 : 4} id={id} green/></g>

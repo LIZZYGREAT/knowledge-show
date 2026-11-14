@@ -8,7 +8,7 @@ describe("dice demonstration", () => {
     expect(full.silkOpacity).toBe(0);
     const initial = inkState(0);
     const end = inkState(STAGE_DURATION - .001);
-    for (const key of ["bloom", "fold", "silkOpacity", "scale", "flowTime"] as const) {
+    for (const key of ["bloom", "fold", "silkOpacity", "scale", "flowTime", "question"] as const) {
       expect(end[key]).toBeCloseTo(initial[key], 3);
     }
   });
