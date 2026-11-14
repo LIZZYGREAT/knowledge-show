@@ -1,0 +1,85 @@
+{
+  "project_id": "P_MOCK_BIRTHDAY",
+  "artifact_id": "KP_MOCK_BIRTHDAY",
+  "revision": 1,
+  "brief_revision": 1,
+  "directions": [
+    {
+      "id": "D_BIRTHDAY_COLLISION",
+      "title": "23个人，为什么生日撞上的概率已经超过一半？",
+      "core_question": "人数增加时，为什么生日重复会比直觉预期更早出现？",
+      "hook": "每个人只看自己的生日像是在等一个特定日期；真正关键的却是所有人彼此之间的配对。",
+      "learning_goal": "理解互补事件、配对数量与均匀独立假设如何共同决定生日重复概率。",
+      "knowledge_refs": ["K_BIRTHDAY_MODEL", "K_BIRTHDAY_PRODUCT", "K_BIRTHDAY_THRESHOLD"],
+      "visual_potential": {
+        "level": "high",
+        "reason": "人数增加会同时增加可比较的生日配对数；未重复概率则沿着每一步条件概率连续下降。"
+      },
+      "duration_fit": {
+        "status": "adequate",
+        "reason": "一个互补事件、逐步相乘的概率变化和 23 人的结果足以形成紧凑的解释主线。"
+      },
+      "recommendation_reason": "主题本身带有反直觉结果，且概率变化能由可追踪的配对关系解释。"
+    }
+  ],
+  "recommended_direction_id": "D_BIRTHDAY_COLLISION",
+  "knowledge_units": [
+    {
+      "id": "K_BIRTHDAY_MODEL",
+      "type": "concept",
+      "content": "经典生日悖论假设一年有 365 天，每个人的生日独立且在这些日期上均匀分布。",
+      "explanation": "这是计算公式的概率模型，不包括闰日，也不声称真实人群中的生日完全均匀。",
+      "importance": "core",
+      "verification_status": "verified",
+      "conditions": ["忽略闰日。", "个体生日按相互独立、365 天均匀分布建模。"],
+      "evidence_refs": ["E_BIRTHDAY_MODEL"]
+    },
+    {
+      "id": "K_BIRTHDAY_PRODUCT",
+      "type": "derivation",
+      "content": "n 个人生日互不相同的概率为 365/365 × 364/365 × … × (365−n+1)/365；至少两人同生日的概率是 1 减去这个乘积。",
+      "explanation": "逐个加入新成员。若前面没有重复，第 k+1 个人需避开 k 个已占日期，因此条件概率为 (365−k)/365。把每一步相乘得到无重复概率，再取补事件。",
+      "importance": "core",
+      "verification_status": "verified",
+      "depends_on": ["K_BIRTHDAY_MODEL"],
+      "conditions": ["n 不超过 365。", "生日遵循前述独立、均匀模型。"],
+      "evidence_refs": ["E_BIRTHDAY_PRODUCT"],
+      "visual_potential": {
+        "level": "high",
+        "reason": "每增加一个人，可用日期数减少一个，整体无重复概率按条件概率连续相乘。"
+      }
+    },
+    {
+      "id": "K_BIRTHDAY_THRESHOLD",
+      "type": "phenomenon",
+      "content": "在经典 365 天模型中，23 个人至少两人同生日的概率约为 50.7%。",
+      "explanation": "将 n=23 代入互不相同概率的乘积，得到至少一次重复的概率约为 1−0.4927=0.5073。",
+      "importance": "core",
+      "verification_status": "verified",
+      "depends_on": ["K_BIRTHDAY_PRODUCT"],
+      "conditions": ["这是独立、均匀的 365 天模型结果，不代表所有现实人群。"],
+      "evidence_refs": ["E_BIRTHDAY_PRODUCT"]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E_BIRTHDAY_MODEL",
+      "kind": "mathematical_derivation",
+      "title": "经典生日问题的概率模型",
+      "details": "明确建模假设：365 个等可能日期，个人生日独立；计算只在这些假设下成立。"
+    },
+    {
+      "id": "E_BIRTHDAY_PRODUCT",
+      "kind": "mathematical_derivation",
+      "title": "生日重复概率的互补事件推导",
+      "details": "P(无重复)=∏(k=0..n−1)(365−k)/365；P(至少一对重复)=1−P(无重复)。n=23 时该值约为 0.5073。"
+    }
+  ],
+  "constraints": {
+    "required_knowledge_refs": ["K_BIRTHDAY_MODEL", "K_BIRTHDAY_PRODUCT"],
+    "must_not_misrepresent": [
+      "不要把 50.7% 说成真实人群中不受生日分布影响的普遍精确值。",
+      "生日悖论讨论的是任意两人之间的重复，不是某人命中特定日期的概率。"
+    ]
+  }
+}

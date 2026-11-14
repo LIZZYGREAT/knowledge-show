@@ -9,7 +9,7 @@
       "creative_mode": "visual_explain",
       "creative_idea": "希望最后有明显的规律揭示",
       "knowledge_depth": "intro",
-      "aspect_ratio": "9:16",
+      "aspect_ratio": "16:9",
       "must_avoid": [
         "不要冗长的数学推导"
       ]
@@ -17,7 +17,7 @@
     "effective": {
       "creative_mode": "visual_explain",
       "knowledge_depth": "intro",
-      "aspect_ratio": "9:16",
+      "aspect_ratio": "16:9",
       "target_duration_ms": 150000
     }
   },

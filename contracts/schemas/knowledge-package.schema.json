@@ -259,7 +259,8 @@
             "enum": [
               "external_source",
               "mathematical_derivation",
-              "user_material"
+              "user_material",
+              "internal_review"
             ]
           },
           "title": {
@@ -313,7 +314,34 @@
             "then": {
               "required": [
                 "details"
+              ],
+              "properties": {
+                "details": {
+                  "pattern": "\\S"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "internal_review"
+                }
+              },
+              "required": [
+                "kind"
               ]
+            },
+            "then": {
+              "required": [
+                "details"
+              ],
+              "properties": {
+                "details": {
+                  "pattern": "\\S"
+                }
+              }
             }
           }
         ]

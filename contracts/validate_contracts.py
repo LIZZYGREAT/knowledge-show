@@ -77,6 +77,8 @@ def check_links(objects):
     required=set(kp['constraints']['required_knowledge_refs'])
     check(required<=set(unit_map),'unknown required knowledge ref')
     check(all(unit_map[k]['verification_status']=='verified' for k in required),'required knowledge not verified')
+    for direction in directions:
+        check(required<=set(direction['knowledge_refs']),f'{direction["id"]}: global required knowledge is not available in every direction')
     # Script references. Relative timing within each scene; no voice track requirement.
     scenes=script['scenes'];unique(scenes,'scene_id','scene')
     scene_map={s['scene_id']:s for s in scenes}
@@ -171,6 +173,36 @@ def main():
         try:check_schemas(d);check_links(d)
         except Exception:pass
         else:raise AssertionError(f'negative test not caught: {name}')
-    print('PASS: five schemas, five linked examples, cross-stage checks, nine negative cases')
+    switched=copy.deepcopy(originals)
+    package=switched['knowledge-package'];script=switched['production-script'];project=switched['project-state']
+    alternative=next(direction for direction in package['directions'] if direction['id']!=package['recommended_direction_id'])
+    script['direction_id']=alternative['id'];project['decisions']['direction_id']=alternative['id']
+    selected_ref=alternative['knowledge_refs'][0]
+    for scene in script['scenes']:
+        scene['knowledge_refs']=[selected_ref]
+        for event in scene['events']:
+            if 'knowledge_refs' in event:event['knowledge_refs']=[]
+    check_schemas(switched);check_links(switched)
+    invalid_internal_review=copy.deepcopy(originals)
+    invalid_internal_review['knowledge-package']['evidence'].append({
+        'id':'E_INTERNAL_INVALID','kind':'internal_review','title':'内部检查'
+    })
+    try:
+        check_schemas(invalid_internal_review);check_links(invalid_internal_review)
+    except Exception:
+        pass
+    else:
+        raise AssertionError('internal_review without details must fail')
+    blank_internal_review=copy.deepcopy(originals)
+    blank_internal_review['knowledge-package']['evidence'].append({
+        'id':'E_INTERNAL_BLANK','kind':'internal_review','title':'空白检查','details':'  \n  '
+    })
+    try:
+        check_schemas(blank_internal_review);check_links(blank_internal_review)
+    except Exception:
+        pass
+    else:
+        raise AssertionError('internal_review with blank details must fail')
+    print('PASS: five schemas, five linked examples, cross-stage checks, eleven negative cases, alternate direction')
 
 if __name__=='__main__':main()

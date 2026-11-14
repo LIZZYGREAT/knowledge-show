@@ -4,9 +4,23 @@
 
 普通提交、样式调整、局部 Bug、试错过程不写入；完整版本历史由 Git 保存。
 
-## 待项目启动
+## 2026-11-14 — 知识层联调前最小修订完成验证
 
-当前没有已完成的项目级里程碑。
+- 结果：共享接口负责人同意后，`internal_review` 已纳入 KnowledgePackage 契约并同步校验；方向内部核心主张与全局 `required_knowledge_refs` 解耦；版本 JSON 原子发布并回读校验后才完成运行。预览页改为有密钥时 Real API 并需费用确认、无密钥时仅提供固定离线主题；结构化模型输出最多修复一次，Research discoveries 作为启发信号传递给 Creative。
+- 验证：`.venv` 中 79 项知识层测试通过；契约校验覆盖五份 Schema、五份样例、十一个负向用例及非推荐方向切换。三次真实 DeepSeek 主题验收均通过 KnowledgePackage 校验，合计 13 次模型调用、36,468 tokens、约 83.69 秒，无 Search / Fetch。
+- 边界：工作流协调器和脚本服务仍未实现，因此本次交付止于可精确读取的版本文件；将 ArtifactRef 发布到 ProjectState 的步骤留待后续集成。
+
+## 2026-11-14 — 知识层成本效率与用户体验修订完成验证
+
+- 结果：Verifier 按风险和问题类别集中核验；高风险关键缺口最多定向补证一次；Creative 修订与可选主张处理有界。人工检验页默认展示创作者预览，开发者诊断明确切换后显示。未改变公共 Schema。
+- 验证：`.venv` 中 62 项知识层测试通过，契约校验通过。真实 DeepSeek 光速精确值主题生成合法 KnowledgePackage，7 次模型调用、2 次 Search、2 次 Fetch，约 50.44 秒。
+- 限制：模型输出格式异常和网页 Fetch 404 会被保留为失败，不交付未核实内容；无来源/推导的纯基础知识仍受缺少 `internal_review` 契约类型限制，需共享接口负责人协商。
+
+## 2026-11-14 — 知识层首版在功能分支完成验证
+
+- 结果：Research、Creative、Verifier、项目隔离的 SQLite 研究库、KnowledgePackage 导出和本地 Streamlit 检验页已实现；运行闭环、定向补研和核验反馈修订均有覆盖。
+- 验证：仓库 `.venv` 中 54 项知识层测试通过，契约校验通过；真实 DeepSeek 验收覆盖生日悖论、物理创意优先/直观演示、Attention 进阶和自定义方向。
+- 影响：未修改公共 Schema；当前实现位于 `feat/knowledge-layer-implementation`，脚本、动画和共享工作流仍待集成。Fetch 的失败请求会被记录，且不作为知识证据使用。
 
 <!-- 新增重要记录时使用简短形式：
 ## YYYY-MM-DD — 一句话描述结果
