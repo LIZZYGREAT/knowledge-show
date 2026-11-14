@@ -91,6 +91,7 @@
   <div class="topbar">
     <div class="dot"></div>
     <div class="title">world.execute(me);</div>
+    <div class="badge">编辑器原型 · 演示数据</div>
     <div class="badge">16:9</div>
     <div class="badge" id="durBadge">3:27</div>
     <div class="spacer"></div>
@@ -104,9 +105,9 @@
       <div class="stage" id="stage">
         <div class="frame" id="frame">
           <iframe id="player" src="/mv?t=15" allow="autoplay"></iframe>
-          <div class="load" id="load">正在载入渲染器…</div>
+          <div class="load" id="load">等待外部动画运行时…</div>
         </div>
-        <div class="stage-foot" id="stageFoot">正在载入</div>
+        <div class="stage-foot" id="stageFoot">尚未连接预览</div>
         <div class="playbar"><div class="pbtn" id="playBtn">▶</div><span id="curTime">0:00 / 3:27</span></div>
       </div>
 
@@ -136,9 +137,7 @@
     <div class="chat">
       <div class="chat-head">对话修改</div>
       <div class="msgs">
-        <div class="msg ai"><span class="who">白咲</span>world.execute(me); 的渲染器接进来了，时间轴按叙事段落切。点段落或拖时间轴都能定位。</div>
-        <div class="msg me">先看看整体节奏</div>
-        <div class="msg ai"><span class="who">白咲</span>好，空格开始播。哪段拖了、哪个转场太快，跟我说。</div>
+        <div class="msg ai"><span class="who">原型说明</span>时间轴和组件胶囊使用演示数据。真实动画预览、元件框选和修订请求尚未接入。</div>
       </div>
       <div class="input" id="chatInput" contenteditable="true" data-ph="说说想改哪里…" spellcheck="false"></div>
     </div>
@@ -155,6 +154,7 @@ const CHAPTERS = [
 
 let total = 207;
 let ready = false, W = null, seekEl = null, playEl = null;
+const previewPollStartedAt = performance.now();
 
 const player = document.getElementById('player');
 const load = document.getElementById('load');
@@ -209,6 +209,11 @@ function waitForPreview() {
       return;
     }
   } catch (e) {}
+  if (performance.now() - previewPollStartedAt > 10000) {
+    load.textContent = '未检测到动画运行时';
+    stageFoot.textContent = '配置 MV_ROOT 并刷新；时间轴为演示数据';
+    return;
+  }
   setTimeout(waitForPreview, 250);
 }
 
@@ -231,7 +236,7 @@ const chatEl = document.querySelector('.chat');
 const msgsEl = document.querySelector('.msgs');
 const chatInput = document.getElementById('chatInput');
 
-let selected = null;        // 当前选中的时间轴组件 { track, idx }
+let selected = null;        // 原型 UI 状态 { track, idx }，不是跨层元件身份
 
 // 纸面低饱和多色板：鼠尾草 / 雾蓝 / 沙金 / 陶土 / 青灰 / 藕紫
 const PALETTE = [
@@ -394,7 +399,6 @@ function addClip(laneEl, blk, o) {
   el.dataset.start = blk.start;
   el.dataset.end = blk.end;
   el.dataset.label = o.label;
-  el.dataset.id = o.track + ':' + o.idx;
   const chapter = blk.chapter || o.chapter;
   if (chapter) el.dataset.chapter = chapter;
   if (blk.ord) el.dataset.ord = blk.ord;
@@ -616,20 +620,13 @@ window.addEventListener('pointermove', (e) => {
 window.addEventListener('pointerup', endClipDrag);
 window.addEventListener('pointercancel', endClipDrag);
 
-// 组件胶囊：把时间轴块的身份带进消息里，供后端会话识别。
-// 契约（data-*，克隆进消息后保留）：
-//   id        稳定标识：track:idx，如 caption:1 / scene:3
-//   track     scene|subject|caption|annotation|fx
-//   chapter   所属段落名，如 副歌
-//   ord       同一段落内同轨道的序号（1 起）
-//   startMs/endMs  组件的绝对时间（毫秒）
-//   label/name     原始块标签与展示名
+// 演示胶囊只保留本地 UI 文案和时间范围；没有 element_id / ArtifactRef，
+// 也不会被提交为机器可解析的修订请求。
 function insertChip(clip) {
   const name = clipChipText(clip);
   const chip = document.createElement('span');
   chip.className = 'chip';
   chip.contentEditable = 'false';
-  chip.dataset.id = clip.dataset.id;
   chip.dataset.track = clip.dataset.track;
   chip.dataset.chapter = clip.dataset.chapter || '';
   chip.dataset.ord = clip.dataset.ord || '';
@@ -654,12 +651,7 @@ function insertChip(clip) {
   const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
 }
 
-// 【后端接入点】右侧对话对应的是一个独立的修订会话：自有上下文和工具，
-// 不共享本页状态。载荷 = 消息正文 + 胶囊上的 data-*（见 insertChip 上方契约，
-// 即被引用的时间轴组件/范围）。会话拿到后判断意见归属层——
-// 方向/知识 → 知识层，节奏 → 脚本层，画面 → 动画层——派给该层的会话做局部
-// 修订，回收新版本。下面的本地追加只是原型演示，真实接入时替换成发往会话。
-// 页面与会话具体怎么部署后续再定，这里不写死地址和进程。
+// 原型对话只在本页面追加气泡，不发送网络请求，也不创建 RevisionRequest。
 function sendChat() {
   const hasChip = !!chatInput.querySelector('.chip');
   const text = (chatInput.innerText || '').replace(/\u00a0/g, ' ').trim();
