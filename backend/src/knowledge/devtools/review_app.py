@@ -39,6 +39,16 @@ CREATIVE_MODES = {
     "自定义": "custom",
 }
 KNOWLEDGE_DEPTHS = {"遵循默认": None, "入门": "intro", "均衡": "balanced", "进阶": "advanced"}
+USER_STAGE_MESSAGES = {
+    "brief": "正在梳理你的主题",
+    "research": "正在了解主题中的关键知识",
+    "search": "正在核对必要信息",
+    "fetch": "正在核对必要信息",
+    "creative": "正在寻找值得讲述的角度",
+    "verifier": "正在检查关键知识和适用条件",
+    "delivery": "正在整理可继续制作的方案",
+    "complete": "正在整理可继续制作的方案",
+}
 
 
 def _research_store() -> ResearchStore:
@@ -63,15 +73,7 @@ def _stored_run_view(run: Any, store: ResearchStore) -> dict[str, Any]:
         "started_at": run.started_at.isoformat(),
         "brief": brief,
         "events": events,
-        "issues": [
-            {
-                "issue": event["issue"] or event["summary"],
-                "recommendation": event.get("recommendation", ""),
-                "status": event.get("stats", {}).get("status", "open"),
-            }
-            for event in events
-            if event.get("issue") or event.get("phase") == "verifier" and event.get("event_type") == "progress"
-        ],
+        "issues": _run_issues(events),
         "package": package,
         "error": failed if run.status == "failed" else None,
         "rating": run.human_rating,
@@ -86,6 +88,36 @@ def _load_run_history(project_id: str) -> list[dict[str, Any]]:
 
 def _split_lines(text: str) -> list[str]:
     return [line.strip() for line in text.splitlines() if line.strip()]
+
+
+def _run_issues(events: list[dict[str, Any]]) -> list[dict[str, str]]:
+    return [
+        {
+            "issue": event.get("issue") or event["summary"],
+            "recommendation": event.get("recommendation", ""),
+            "status": str(event.get("stats", {}).get("status", "open")),
+            "category": str(event.get("stats", {}).get("category", "other")),
+            "risk_level": str(event.get("stats", {}).get("risk_level", "high")),
+        }
+        for event in events
+        if event.get("issue")
+        or event.get("phase") == "verifier" and event.get("event_type") == "progress"
+    ]
+
+
+def _user_progress_message(event: dict[str, Any]) -> str:
+    if event.get("event_type") == "failed":
+        return "正在整理目前可用的信息"
+    return USER_STAGE_MESSAGES.get(event.get("phase", ""), "正在准备你的创作方向")
+
+
+def _user_failure_message(run: dict[str, Any]) -> str:
+    categories = {issue.get("category") for issue in run.get("issues", [])}
+    if "contract_limitation" in categories:
+        return "这个基础知识方向暂时无法整理成可靠方案。可以补充具体问题或换个关注点后重试。"
+    if "needs_evidence" in categories:
+        return "这个方向的关键内容暂时缺少可靠依据。可以调整关注点或稍后重试。"
+    return "这次内容准备遇到了问题，可以重试或调整主题。"
 
 
 def _build_user_input(form: dict[str, Any]) -> dict[str, Any]:
@@ -109,18 +141,29 @@ def _build_user_input(form: dict[str, Any]) -> dict[str, Any]:
     return user_input
 
 
-def _run_user_input(user_input: dict[str, Any], mode_label: str) -> dict[str, Any]:
+def _run_user_input(
+    user_input: dict[str, Any],
+    mode_label: str,
+    *,
+    developer_diagnostics: bool = False,
+) -> dict[str, Any]:
     brief = build_brief(user_input)
     events: list[dict[str, Any]] = []
-    progress = st.status(f"{mode_label}：开始研究…", expanded=True)
+    progress = st.status("正在梳理你的主题", expanded=developer_diagnostics)
 
     def receive_event(event: dict[str, Any]) -> None:
         events.append(event)
-        phase = event["phase"]
-        icon = "⚠️" if event["event_type"] == "failed" else "✓"
-        progress.write(f"{icon} **{phase}** · {event['summary']}")
-        if event.get("error"):
-            progress.write(f"错误：{event['error']}")
+        if developer_diagnostics:
+            icon = "⚠️" if event["event_type"] == "failed" else "✓"
+            progress.write(f"{icon} **{event['phase']}** · {event['summary']}")
+            if event.get("error"):
+                progress.write(f"内部错误：{event['error']}")
+        else:
+            progress.update(
+                label=_user_progress_message(event),
+                state="running",
+                expanded=False,
+            )
 
     mode = MODE_LABELS[mode_label]
     project_id = st.session_state.setdefault("knowledge_project_id", "P_LOCAL_KNOWLEDGE_REVIEW")
@@ -137,10 +180,14 @@ def _run_user_input(user_input: dict[str, Any], mode_label: str) -> dict[str, An
                 run_options=RunOptions(mode=mode, store=store),
             )
         )
-        progress.update(label=f"{mode_label}：KnowledgePackage 已校验", state="complete")
+        progress.update(label="创作方向已准备好", state="complete")
     except Exception as exc:
         error = _safe_error(exc)
-        progress.update(label=f"{mode_label}：运行失败", state="error")
+        progress.update(label="本次内容准备暂时未能完成", state="error")
+        if not developer_diagnostics:
+            progress.write(
+                _user_failure_message({"error": error, "issues": _run_issues(events)})
+            )
 
     run_id = next((event.get("run_id") for event in events if event.get("run_id")), "RUN_UNKNOWN")
     return {
@@ -151,15 +198,7 @@ def _run_user_input(user_input: dict[str, Any], mode_label: str) -> dict[str, An
         "started_at": started_at,
         "brief": brief,
         "events": events,
-        "issues": [
-            {
-                "issue": event.get("issue", event["summary"]),
-                "recommendation": event.get("recommendation", ""),
-                "status": event.get("stats", {}).get("status", "open"),
-            }
-            for event in events
-            if event.get("issue") or event.get("phase") == "verifier" and event.get("event_type") == "progress"
-        ],
+        "issues": _run_issues(events),
         "package": package,
         "error": error,
         "rating": None,
@@ -282,39 +321,60 @@ def _render_package(package: dict[str, Any], run: dict[str, Any]) -> None:
                 st.caption(json.dumps(event["stats"], ensure_ascii=False))
 
 
-def _render_selected_run(run: dict[str, Any]) -> None:
-    st.markdown(f"**当前运行：{run['mode_label']} · {run['run_id']}**")
-    if run["error"]:
-        st.error(f"未形成可交付知识包。阶段性信息保留在运行记录中。\n\n{run['error']}")
-        with st.expander("查看已完成阶段"):
-            for event in run["events"]:
-                st.write(f"{event['phase']} / {event['event_type']} · {event['summary']}")
-                if event.get("error"):
-                    st.warning(event["error"])
-    elif run["package"]:
-        _render_package(run["package"], run)
-        st.download_button(
-            "下载 KnowledgePackage JSON",
-            data=_package_download(run["package"]),
-            file_name=f"{run['package']['artifact_id']}-r{run['package']['revision']}.json",
-            mime="application/json",
-            key=f"package_download_{run['run_id']}",
-        )
+def _render_user_package(package: dict[str, Any]) -> None:
+    recommended_id = package["recommended_direction_id"]
+    direction_by_id = {direction["id"]: direction for direction in package["directions"]}
+    recommended = direction_by_id[recommended_id]
 
-    st.subheader("人工检验记录")
+    st.markdown("### 推荐的讲述方向")
+    st.markdown(f"## {recommended['title']}")
+    st.markdown(f"**可以围绕这个问题展开：** {recommended['core_question']}")
+    st.markdown(f"**为什么值得看：** {recommended['hook']}")
+    st.markdown(f"**看完会理解：** {recommended['learning_goal']}")
+    if recommended.get("recommendation_reason"):
+        st.caption(recommended["recommendation_reason"])
+
+    units_by_id = {unit["id"]: unit for unit in package["knowledge_units"]}
+    units = [units_by_id[item] for item in recommended["knowledge_refs"]]
+    if units:
+        st.markdown("### 这条视频会讲清楚")
+        for unit in units:
+            st.markdown(f"- **{unit['content']}**")
+            if unit.get("explanation") and unit["explanation"] != unit["content"]:
+                st.caption(unit["explanation"])
+            if unit.get("conditions"):
+                st.caption("成立条件：" + "；".join(unit["conditions"]))
+
+    alternatives = [
+        direction for direction in package["directions"]
+        if direction["id"] != recommended_id
+    ]
+    if alternatives:
+        with st.expander("看看其他讲述方向"):
+            for direction in alternatives:
+                st.markdown(f"**{direction['title']}**")
+                st.write(direction["core_question"])
+                st.caption(direction["hook"])
+
+
+def _render_review_form(run: dict[str, Any]) -> None:
+    st.subheader("这个方向适合你吗？")
+    st.caption("评价和备注只保存在本地，不会自动改写本次结果。")
     with st.form(f"review_{run['run_id']}"):
         rating_labels = {
-            "可继续使用": "usable",
-            "需要调整": "needs_adjustment",
-            "当前不可用": "unusable",
+            "愿意继续制作": "usable",
+            "希望调整方向": "needs_adjustment",
+            "目前不合适": "unusable",
         }
         selected_label = next(
             (label for label, value in rating_labels.items() if value == run.get("rating")),
-            "可继续使用",
+            "愿意继续制作",
         )
-        rating_label = st.radio("人工判断", list(rating_labels), index=list(rating_labels).index(selected_label))
-        note = st.text_area("备注", value=run.get("note", ""), max_chars=2000)
-        submitted = st.form_submit_button("保存人工检验记录")
+        rating_label = st.radio(
+            "你的感受", list(rating_labels), index=list(rating_labels).index(selected_label)
+        )
+        note = st.text_area("你想补充或调整什么？", value=run.get("note", ""), max_chars=2000)
+        submitted = st.form_submit_button("保存反馈")
     if submitted:
         run["rating"] = rating_labels[rating_label]
         run["note"] = note
@@ -327,21 +387,53 @@ def _render_selected_run(run: dict[str, Any]) -> None:
             run if item["run_id"] == run["run_id"] else item
             for item in st.session_state["knowledge_runs"]
         ]
-        st.success("人工检验记录已保存到当前本地页面会话。")
+        st.success("反馈已保存在本地。")
 
-    st.download_button(
-        "下载本次输入、备注与运行摘要",
-        data=_run_export(run),
-        file_name=f"{run['run_id']}-review.json",
-        mime="application/json",
-        key=f"run_download_{run['run_id']}",
-    )
+
+def _render_selected_run(
+    run: dict[str, Any], *, developer_diagnostics: bool = False
+) -> None:
+    if developer_diagnostics:
+        st.markdown(f"**运行：{run['mode_label']} · {run['run_id']}**")
+        if run["error"]:
+            st.error(f"未形成可交付知识包。内部错误：{run['error']}")
+            with st.expander("查看阶段与运行事件"):
+                for event in run["events"]:
+                    st.write(f"{event['phase']} / {event['event_type']} · {event['summary']}")
+                    if event.get("error"):
+                        st.warning(event["error"])
+        elif run["package"]:
+            _render_package(run["package"], run)
+            st.download_button(
+                "下载 KnowledgePackage JSON",
+                data=_package_download(run["package"]),
+                file_name=f"{run['package']['artifact_id']}-r{run['package']['revision']}.json",
+                mime="application/json",
+                key=f"package_download_{run['run_id']}",
+            )
+    elif run["error"]:
+        st.warning(_user_failure_message(run))
+    elif run["package"]:
+        _render_user_package(run["package"])
+    else:
+        st.info("目前没有可展示的讲述方向。你可以重试或调整主题。")
+
+    _render_review_form(run)
+
+    if developer_diagnostics:
+        st.download_button(
+            "下载本次输入、备注与运行摘要",
+            data=_run_export(run),
+            file_name=f"{run['run_id']}-review.json",
+            mime="application/json",
+            key=f"run_download_{run['run_id']}",
+        )
 
 
 def main() -> None:
-    st.set_page_config(page_title="知识层人工检验", layout="wide")
-    st.title("知识层人工检验 · 本地开发入口")
-    st.caption("本页面只监听本机。Mock 是固定离线资料；Real API 调用 DeepSeek。")
+    st.set_page_config(page_title="知识方向预览", layout="wide")
+    st.title("知识方向预览")
+    st.caption("本地预览知识视频的主题方向、看点和核心知识。")
 
     if "knowledge_project_id" not in st.session_state:
         st.session_state["knowledge_project_id"] = "P_LOCAL_KNOWLEDGE_REVIEW"
@@ -352,9 +444,15 @@ def main() -> None:
     if "selected_run_id" not in st.session_state:
         st.session_state["selected_run_id"] = None
 
+    developer_diagnostics = st.checkbox("显示开发者诊断", value=False)
+    if developer_diagnostics:
+        mode_label = st.radio("内部运行方式", list(MODE_LABELS), horizontal=True)
+    else:
+        mode_label = "离线 Mock"
+
     input_column, result_column = st.columns([1, 1.6], gap="large")
     with input_column:
-        st.subheader("输入")
+        st.subheader("你想制作什么主题？")
         with st.form("knowledge_request"):
             topic = st.text_input("主题 *", value="生日悖论", max_chars=500)
             focus = st.text_input("具体方向（可选）", max_chars=500)
@@ -367,8 +465,7 @@ def main() -> None:
             creative_mode_notes = ""
             if creative_mode == "自定义":
                 creative_mode_notes = st.text_area("自定义模式说明 *", max_chars=1000)
-            mode_label = st.radio("运行模式", list(MODE_LABELS), horizontal=True)
-            submitted = st.form_submit_button("开始研究", type="primary", use_container_width=True)
+            submitted = st.form_submit_button("生成方向建议", type="primary", use_container_width=True)
 
         if submitted:
             if not topic.strip():
@@ -391,34 +488,48 @@ def main() -> None:
                         }
                     ),
                     mode_label,
+                    developer_diagnostics=developer_diagnostics,
                 )
                 st.session_state["knowledge_runs"].insert(0, record)
                 st.session_state["selected_run_id"] = record["run_id"]
 
         if st.session_state["knowledge_runs"]:
             labels = [
-                f"{run['started_at'][:19]} · {run['mode_label']} · {run['brief']['user_input']['topic']} · {run['run_id']}"
+                f"{run['started_at'][:19]} · {run['brief']['user_input']['topic']} · "
+                + (
+                    next(
+                        (item['title'] for item in run['package']['directions']
+                         if item['id'] == run['package']['recommended_direction_id']),
+                        "已准备方向",
+                    )
+                    if run.get("package")
+                    else "暂未完成"
+                )
                 for run in st.session_state["knowledge_runs"]
             ]
             selected = st.selectbox("历史运行", labels, index=0)
             selected_run = st.session_state["knowledge_runs"][labels.index(selected)]
             st.session_state["selected_run_id"] = selected_run["run_id"]
-            if st.button("重新运行所选输入", use_container_width=True):
-                record = _run_user_input(selected_run["brief"]["user_input"], selected_run["mode_label"])
+            if st.button("再试一次", use_container_width=True):
+                record = _run_user_input(
+                    selected_run["brief"]["user_input"],
+                    mode_label,
+                    developer_diagnostics=developer_diagnostics,
+                )
                 st.session_state["knowledge_runs"].insert(0, record)
                 st.session_state["selected_run_id"] = record["run_id"]
 
     with result_column:
-        st.subheader("运行状态与本次结果")
+        st.subheader("开发者诊断" if developer_diagnostics else "方向建议")
         selected_id = st.session_state.get("selected_run_id")
         selected_run = next(
             (run for run in st.session_state["knowledge_runs"] if run["run_id"] == selected_id),
             None,
         )
         if not selected_run:
-            st.info("提交主题后查看阶段进度与推荐方向。")
+            st.info("提交主题后，这里会显示推荐方向和核心看点。")
         else:
-            _render_selected_run(selected_run)
+            _render_selected_run(selected_run, developer_diagnostics=developer_diagnostics)
 
 
 if __name__ == "__main__":
