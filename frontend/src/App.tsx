@@ -1,7 +1,17 @@
 import { flushSync } from "react-dom";
 import { useEffect, useRef, useState } from "react";
-import { createProject, startScriptJob, testModelConnection } from "./common/api";
-import { initialDraft, toUserInput } from "./common/creation";
+import {
+  createProject,
+  getProject,
+  startScriptJob,
+  testModelConnection,
+} from "./common/api";
+import {
+  fromUserInput,
+  initialDraft,
+  sameUserInput,
+  toUserInput,
+} from "./common/creation";
 import { LandingHero } from "./features/landing/LandingHero";
 import { CreationComposer } from "./features/creation/CreationComposer";
 import { CreationConfirm } from "./features/creation/CreationConfirm";
@@ -40,6 +50,9 @@ export default function App() {
     ...initialDraft,
     topic: taskSession?.topic ?? "",
   }));
+  const initialTaskSession = useRef(taskSession);
+  const [restoringProject, setRestoringProject] = useState(Boolean(taskSession));
+  const [resumeError, setResumeError] = useState("");
   const [projectId, setProjectId] = useState(taskSession?.projectId ?? "");
   const [jobId, setJobId] = useState(taskSession?.jobId ?? "");
   const [settings, setSettings] = useState(false);
@@ -51,6 +64,41 @@ export default function App() {
   const content = useRef<HTMLDivElement>(null);
   const [transitioning, setTransitioning] = useState(false);
   const transition = useRef<ViewTransition | null>(null);
+
+  useEffect(() => {
+    const session = initialTaskSession.current;
+    if (!session) return;
+    let active = true;
+    void getProject(session.projectId)
+      .then((project) => {
+        if (!active) return;
+        const restored = fromUserInput(project.brief.user_input);
+        setDraft(restored);
+        setProjectId(project.project_id);
+        setTaskSession((current) => {
+          if (!current || current.projectId !== project.project_id) return current;
+          const next = { ...current, topic: restored.topic };
+          try {
+            sessionStorage.setItem(TASK_SESSION_KEY, JSON.stringify(next));
+          } catch {
+            // The active task remains available in memory for this page session.
+          }
+          return next;
+        });
+      })
+      .catch(() => {
+        if (!active || session.jobId) return;
+        setResumeError(
+          "无法读取原项目的完整创作要求。请放弃旧项目、重新填写偏好后再开始，避免使用不完整的需求。",
+        );
+      })
+      .finally(() => {
+        if (active) setRestoringProject(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => () => transition.current?.skipTransition(), []);
   useEffect(() => {
@@ -85,6 +133,7 @@ export default function App() {
   }
 
   function review() {
+    if (restoringProject || resumeError) return;
     try {
       toUserInput(draft);
       setError("");
@@ -115,6 +164,7 @@ export default function App() {
   }
 
   async function submit() {
+    if (restoringProject || resumeError) return;
     if (!connection.connected || !connection.key) {
       setConfirm(false);
       setResumeConfirm(true);
@@ -125,13 +175,21 @@ export default function App() {
     setSubmitting(true);
     setError("");
     try {
+      const userInput = toUserInput(draft);
       let targetProjectId = projectId;
+      if (targetProjectId) {
+        const current = await getProject(targetProjectId);
+        if (!sameUserInput(current.brief.user_input, userInput)) {
+          targetProjectId = "";
+        }
+      }
       if (!targetProjectId) {
-        const created = await createProject(toUserInput(draft));
+        const created = await createProject(userInput);
         targetProjectId = created.project_id;
         setProjectId(targetProjectId);
-        persistTask({ projectId: targetProjectId, jobId: "", topic: draft.topic });
       }
+      setJobId("");
+      persistTask({ projectId: targetProjectId, jobId: "", topic: draft.topic });
       const started = await startScriptJob(targetProjectId, connection.key);
       const next = {
         projectId: targetProjectId,
@@ -176,6 +234,14 @@ export default function App() {
       setConfirm(true);
       setResumeConfirm(false);
     }
+  }
+
+  function startFreshProject() {
+    const topic = draft.topic || taskSession?.topic || "";
+    clearTask();
+    setDraft({ ...initialDraft, topic });
+    setResumeError("");
+    setError("");
   }
 
   return (
@@ -233,13 +299,21 @@ export default function App() {
       >
         {page === "landing" ? (
           <LandingHero onStart={() => navigate("composing")} />
+        ) : page === "composing" && restoringProject ? (
+          <main className="generation" role="status">
+            正在恢复原项目的创作要求…
+          </main>
+        ) : page === "composing" && resumeError ? (
+          <main className="generation">
+            <p className="current-action" role="alert">{resumeError}</p>
+            <button className="primary" onClick={startFreshProject}>
+              放弃旧项目并重新填写 →
+            </button>
+          </main>
         ) : page === "composing" ? (
           <CreationComposer
             draft={draft}
-            onChange={(next) => {
-              if (projectId && next.topic !== draft.topic) clearTask();
-              setDraft(next);
-            }}
+            onChange={setDraft}
             onSubmit={review}
             onDemo={() => navigate("demo")}
             error={error}
@@ -251,6 +325,7 @@ export default function App() {
           />
         ) : jobId ? (
           <TaskProgress
+            key={jobId}
             jobId={jobId}
             topic={draft.topic}
             hasApiKey={connection.connected && Boolean(connection.key)}

@@ -15,6 +15,11 @@ export type ProductionScriptSummary = {
   total_duration_ms: number;
   scenes: { scene_id: string; objective: string }[];
 };
+export type ProjectSnapshot = {
+  project_id: string;
+  revision: number;
+  brief: { user_input: Record<string, unknown> };
+};
 
 export class ApiClientError extends Error {
   readonly code: string;
@@ -78,6 +83,12 @@ export function createProject(userInput: Record<string, unknown>) {
     method: "POST",
     body: JSON.stringify({ user_input: userInput }),
   });
+}
+
+export function getProject(projectId: string) {
+  return request<ProjectSnapshot>(
+    `/api/projects/${encodeURIComponent(projectId)}`,
+  );
 }
 
 export function startScriptJob(

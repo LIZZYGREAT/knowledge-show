@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { initialDraft, toUserInput } from "../src/common/creation";
+import {
+  fromUserInput,
+  initialDraft,
+  sameUserInput,
+  toUserInput,
+} from "../src/common/creation";
 import {
   applyEvent,
   emptyProgress,
@@ -42,6 +47,36 @@ describe("brief user_input boundary", () => {
         creative_mode_notes: "保留的草稿",
       }),
     ).not.toHaveProperty("creative_mode_notes");
+  });
+  it("restores all committed preferences and compares canonical input snapshots", () => {
+    const draft = {
+      ...initialDraft,
+      topic: "时间的方向",
+      focus: "熵增",
+      creative_mode: "story" as const,
+      knowledge_depth: "advanced" as const,
+      creative_idea: "从一片冰开始",
+      art_style: "纸张质感",
+      must_include: "例子\n公式",
+      must_avoid: "术语",
+    };
+    const userInput = toUserInput(draft);
+    expect(fromUserInput(userInput)).toEqual(draft);
+    expect(
+      sameUserInput(userInput, {
+        must_avoid: ["术语"],
+        art_style: "纸张质感",
+        creative_idea: "从一片冰开始",
+        knowledge_depth: "advanced",
+        creative_mode: "story",
+        focus: "熵增",
+        topic: "时间的方向",
+        must_include: ["例子", "公式"],
+      }),
+    ).toBe(true);
+    expect(sameUserInput(userInput, { ...userInput, focus: "热力学第二定律" })).toBe(
+      false,
+    );
   });
 });
 describe("truthful event progress", () => {
