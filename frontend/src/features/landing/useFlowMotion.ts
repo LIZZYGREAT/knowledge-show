@@ -9,14 +9,18 @@ export function useFlowMotion(
 ) {
   const [time, setTime] = useState(() =>
     window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      ? INTRO_DURATION
+      ? INTRO_DURATION / 1000
       : 0,
   );
   const [paused, setPaused] = useState(true);
+  const [compact, setCompact] = useState(() => window.innerWidth < 768);
   const elapsed = useRef(0);
 
   useEffect(() => {
     if (!animate) return;
+    const size = window.matchMedia("(max-width: 767px)");
+    const resize = () => setCompact(size.matches);
+    size.addEventListener("change", resize);
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     let frame = 0;
     let last = 0;
@@ -29,7 +33,7 @@ export function useFlowMotion(
       if (disposed) return;
       if (last) elapsed.current += Math.min(now - last, 48);
       last = now;
-      if (now - lastPaint >= FRAME_INTERVAL) {
+      if (now - lastPaint >= FRAME_INTERVAL - 1) {
         lastPaint = now;
         setTime(elapsed.current / 1000);
       }
@@ -70,6 +74,7 @@ export function useFlowMotion(
       disposed = true;
       cancelAnimationFrame(frame);
       observer.disconnect();
+      size.removeEventListener("change", resize);
       document.removeEventListener("visibilitychange", sync);
       window.removeEventListener("focus", handleFocus);
       window.removeEventListener("blur", handleBlur);
@@ -77,5 +82,5 @@ export function useFlowMotion(
     };
   }, [target, animate]);
 
-  return { time, paused };
+  return { time, paused, compact };
 }

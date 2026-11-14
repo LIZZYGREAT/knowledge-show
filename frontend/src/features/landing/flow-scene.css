@@ -1,15 +1,15 @@
 .living-flow-scene {
-  margin: -8px -28px -12px -16px;
+  margin: -20px -28px -12px -30px;
   min-width: 0;
   align-self: center;
   position: relative;
   view-transition-name: flow-scene;
+  pointer-events: none;
 }
 .flow-theatre {
   position: relative;
   width: 100%;
   aspect-ratio: 800 / 640;
-  overflow: visible;
   isolation: isolate;
 }
 .flow-artwork {
@@ -17,83 +17,73 @@
   width: 100%;
   height: 100%;
   overflow: visible;
-  transform-box: fill-box;
-  transform-origin: center;
 }
 .idea-seed {
   display: block;
-  width: 5.6%;
+  width: 4.2%;
   aspect-ratio: 1;
   position: absolute;
   transform: translate(-50%, -50%);
   view-transition-name: idea-seed;
   z-index: 2;
   border-radius: 50%;
-  isolation: isolate;
   pointer-events: none;
-  border: 1px solid #cfad7270;
-  background: #cfad7212;
+  border: 1px solid #d2b57b80;
+  background: #f3e7bd18;
+}
+.idea-seed::after {
+  content: "";
+  position: absolute;
+  inset: -23%;
+  border: 1px solid #cfad7228;
+  border-radius: inherit;
 }
 .seed-core {
   display: block;
   position: absolute;
-  width: 32%;
-  height: 32%;
-  left: 34%;
-  top: 34%;
+  width: 24%;
+  height: 24%;
+  left: 38%;
+  top: 38%;
   border-radius: 50%;
-  background: #cfad72;
-  box-shadow: 0 0 0 2px #f7f7f2, 0 0 12px 3px #cfad7240;
-}
-.living-flow-scene[data-settled="true"] .seed-core {
-  animation: seed-rest 6s ease-in-out infinite;
-}
-.living-flow-scene[data-paused="true"] .seed-core {
-  animation-play-state: paused;
-}
-.living-flow-scene[data-paused="true"] .flow-bubble,
-.living-flow-scene[data-paused="true"] .flow-seed-halo {
-  animation-play-state: paused;
+  background: #d5b36e;
+  box-shadow: 0 0 9px 3px #efd3a04d;
 }
 .living-flow-scene figcaption {
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  font-size: 11px;
+  letter-spacing: .14em;
   color: var(--ks-muted);
   margin-top: -3px;
 }
-.flow-bubble {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: bubble-drift 5.4s ease-in-out infinite alternate;
+.living-flow-scene figcaption span {
+  width: 25px;
+  height: 1px;
+  background: #cfad7280;
 }
-.flow-bubble-1 { animation-delay: -2.1s; animation-duration: 6.7s; }
-.flow-bubble-2 { animation-delay: -3.8s; animation-duration: 7.2s; }
-.flow-bubble-3 { animation-delay: -1.2s; animation-duration: 5.8s; }
-.flow-seed-halo {
-  animation: halo-breathe 4s ease-in-out infinite;
+::view-transition-old(flow-scene) {
+  animation: flow-gather .42s cubic-bezier(.4, 0, .8, .3) both;
+  transform-origin: 54% 54%;
 }
-@keyframes bubble-drift {
-  to { transform: translate(4px, -8px) scale(1.18); opacity: .54; }
+::view-transition-new(flow-scene) {
+  animation: flow-return .45s ease both;
 }
-@keyframes halo-breathe {
-  50% { opacity: .55; }
+@keyframes flow-gather {
+  to { transform: scale(.08) rotate(-18deg); opacity: 0; filter: blur(3px); }
 }
-@keyframes seed-rest {
-  50% { transform: translateY(-2px) scale(1.06); }
+@keyframes flow-return {
+  from { opacity: 0; }
 }
 @media (max-width: 900px) {
-  .living-flow-scene { margin: -8px -14px 0; }
+  .living-flow-scene { margin: -8px -16px 0; }
+  .living-flow-scene figcaption { gap: 8px; font-size: 10px; letter-spacing: .03em; }
+  .living-flow-scene figcaption span { width: 12px; }
 }
 @media (max-width: 600px) {
-  .living-flow-scene { margin: -22px -14px -2px; }
-  .flow-theatre { aspect-ratio: 800 / 530; }
-  .flow-artwork { height: 118%; }
-  .idea-seed { width: 6.5%; }
-  .living-flow-scene figcaption { font-size: 11px; letter-spacing: .08em; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .flow-bubble,
-  .flow-seed-halo,
-  .seed-core { animation: none !important; }
+  .living-flow-scene { margin: -12px 0 2px; }
+  .flow-theatre { aspect-ratio: 800 / 640; }
+  .living-flow-scene figcaption { margin-top: -12px; font-size: 10px; }
 }

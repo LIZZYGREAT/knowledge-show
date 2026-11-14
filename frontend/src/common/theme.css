@@ -1013,63 +1013,6 @@ summary span {
 .field-wide {
   grid-column: 1 / -1;
 }
-.creation-flourish {
-  width: min(84%, 880px);
-  height: 50px;
-  margin: -13px auto 22px;
-  color: #7fa88b;
-  pointer-events: none;
-}
-.creation-flourish svg {
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-.creation-flourish path,
-.mode-ornament path {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.2;
-  stroke-linecap: round;
-}
-.creation-flourish path:nth-child(2) {
-  opacity: .43;
-  stroke-width: .8;
-}
-.creation-flourish .flourish-gold {
-  stroke: var(--ks-warm);
-  stroke-width: .9;
-  opacity: .72;
-}
-.creation-flourish .flourish-sprig {
-  stroke: #6b9a76;
-  stroke-width: 1.3;
-}
-.creation-flourish circle {
-  fill: #8db89a;
-}
-.creation-flourish .flourish-dot-gold {
-  fill: var(--ks-warm);
-}
-.mode-ornament {
-  width: 170px;
-  height: 22px;
-  display: block;
-  margin: 9px 0 0 auto;
-  color: #87a991;
-  pointer-events: none;
-}
-.mode-ornament path:first-child {
-  opacity: .7;
-}
-.mode-ornament path:nth-child(2) {
-  stroke: #78967c;
-  stroke-width: 1;
-}
-.mode-ornament circle {
-  fill: var(--ks-warm);
-  opacity: .8;
-}
 .composer form {
   position: relative;
 }
@@ -1223,20 +1166,6 @@ summary span {
   }
   .composer h1 {
     font-size: 36px;
-  }
-  .creation-flourish {
-    width: 100%;
-    height: 24px;
-    margin: -10px auto 20px;
-  }
-  .creation-flourish path:nth-child(2),
-  .creation-flourish .flourish-gold {
-    display: none;
-  }
-  .mode-ornament {
-    width: 120px;
-    height: 18px;
-    margin-top: 6px;
   }
   .topic-stage {
     padding: 16px;

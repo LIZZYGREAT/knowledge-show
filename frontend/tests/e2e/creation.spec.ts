@@ -213,3 +213,80 @@ test("flow scene grows continuously and pauses on blur", async ({ page }) => {
     .poll(async () => Number(await stage.getAttribute("data-pose")))
     .toBeGreaterThan(Number(paused));
 });
+
+test("flow key poses have a substantial, distinct silhouette and a static review mode", async ({ page }) => {
+  const paths: string[] = [];
+  for (const pose of [0.5 / 5.5, 3 / 5.5, 1]) {
+    await page.goto(`/?flow-pose=${pose}`);
+    await expect(page.locator(".living-flow-scene")).toHaveAttribute("data-paused", "true");
+    const body = page.locator(".flow-body");
+    const path = (await body.getAttribute("d"))!;
+    expect(path).not.toMatch(/NaN|Infinity/);
+    paths.push(path);
+    const bounds = await body.boundingBox();
+    expect(bounds!.width).toBeGreaterThan(15);
+    if (pose > 0.5) {
+      const scene = await page.locator(".flow-artwork").boundingBox();
+      expect(bounds!.width).toBeGreaterThan(scene!.width * 0.55);
+      expect(bounds!.height).toBeGreaterThan(scene!.height * 0.5);
+    }
+  }
+  expect(new Set(paths).size).toBe(3);
+});
+
+test("silhouette and attached motes continue moving after the opening settles", async ({ page }) => {
+  await page.goto("/");
+  const stage = page.locator(".living-flow-scene");
+  await expect(stage).toHaveAttribute("data-settled", "true", { timeout: 12000 });
+  const path = await page.locator(".flow-body").getAttribute("d");
+  const mote = await page.locator(".flow-motes circle").first().getAttribute("cx");
+  await expect.poll(() => page.locator(".flow-body").getAttribute("d")).not.toBe(path);
+  await expect.poll(() => page.locator(".flow-motes circle").first().getAttribute("cx")).not.toBe(mote);
+});
+
+test("ornaments stay decorative while focus, textarea resize and preferences change", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await page.getByRole("button", { name: "开始创作" }).click();
+  const topic = page.getByLabel("你想让大家了解什么？");
+  await topic.fill("一个很长的问题\n".repeat(12));
+  await topic.focus();
+  await page.getByText("更多创作偏好", { exact: false }).click();
+  await page.getByRole("button", { name: "自定义", exact: true }).click();
+  await page.getByLabel("你的讲述方式").fill("像散步一样讲述");
+  for (const width of [375, 768, 1280, 1920]) {
+    await page.setViewportSize({ width, height: 1000 });
+    const result = await page.locator(".composer").evaluate(el => {
+      const ornaments = [...el.querySelectorAll(".editorial-ornament")];
+      const fields = [...el.querySelectorAll("input, textarea, button, summary, label, h1")];
+      const overlap = ornaments.filter(ornament => {
+        const a = ornament.getBoundingClientRect();
+        if (!a.width || !a.height) return false;
+        return fields.some(field => {
+          const b = field.getBoundingClientRect();
+          return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+        });
+      });
+      return {
+        overflow: document.documentElement.scrollWidth > innerWidth,
+        hidden: ornaments.every(node => !!node.closest('[aria-hidden="true"]')),
+        passive: ornaments.every(node => getComputedStyle(node).pointerEvents === "none"),
+        overlap: overlap.map(node => node.getAttribute("class")),
+      };
+    });
+    expect(result).toEqual({ overflow: false, hidden: true, passive: true, overlap: [] });
+    await expect(topic).toHaveValue("一个很长的问题\n".repeat(12));
+  }
+});
+
+test("early navigation and rapid return keep only one shared seed and preserve input", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "开始创作" }).click();
+  await page.getByLabel("你想让大家了解什么？").fill("往返时保留好奇心");
+  await page.getByRole("button", { name: "knowledge.show 首页" }).click();
+  await expect(page.locator(".living-flow-scene")).toBeVisible();
+  await page.getByRole("button", { name: "开始创作" }).click();
+  await expect(page.locator(".idea-seed")).toHaveCount(1);
+  await expect(page.getByLabel("你想让大家了解什么？")).toHaveValue("往返时保留好奇心");
+  await expect(page.locator("#main-content")).toHaveAttribute("data-transition", "idle");
+});

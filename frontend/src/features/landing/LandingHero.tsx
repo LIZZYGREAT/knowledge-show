@@ -1,5 +1,11 @@
 import { LivingFlowScene } from "./LivingFlowScene";
 export function LandingHero({ onStart }: { onStart: () => void }) {
+  const rawPose = import.meta.env.DEV
+    ? new URLSearchParams(window.location.search).get("flow-pose")
+    : null;
+  const pose = rawPose !== null && rawPose.trim() !== "" && Number.isFinite(Number(rawPose))
+    ? Math.max(0, Math.min(1, Number(rawPose)))
+    : undefined;
   return (
     <main className="landing">
       <div className="hero-copy">
@@ -15,7 +21,7 @@ export function LandingHero({ onStart }: { onStart: () => void }) {
         </button>
         <p className="quiet">只要一个想法，剩下的交给我们。</p>
       </div>
-      <LivingFlowScene />
+      <LivingFlowScene pose={pose} />
       <footer className="landing-footer">
         <span>好奇心，是所有好故事的开始。</span>
         <span>
