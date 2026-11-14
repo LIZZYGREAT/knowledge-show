@@ -27,23 +27,21 @@ npm run test:e2e
 - `toUserInput` 生成符合现行 `ProjectState.brief.user_input` 的字段，空选填项省略，希望包含/避开按行拆分并去重。`auto` 保留给协调器解析，不在前端伪造 `effective`；约定的生产默认值为 16:9、165000ms。
 - 原生 dialog 设置抽屉，焦点约束、Escape 关闭与焦点恢复；连接测试是用户显式触发的一次真实请求。密钥默认遮掩，仅组件/Context 内存保存，无浏览器持久化、URL、日志或自动请求。
 - 正式创作提交 `user_input` 创建 ProjectState，再启动知识→脚本任务。页面通过本地 `/api` 代理轮询任务并读取精确 ProductionScript；刷新后在当前浏览器标签会话恢复 project/job 标识，API Key 不持久化。
-- ProductionScript 发布后展示脚本主旨、场景数和时长，并明确“等待动画制作”。没有正式且可播放的 AnimationManifest 时不开放视频预览或工作台。
+- ProductionScript 发布后可显式发起动画制作；刷新会恢复制作状态。只有实际浏览器检查和精确资源加载成功后才开放工作台；Key 仅用于本次模型请求。
 - 明确标识的流程演示，手动推进可复现事件，最多四条事件气泡，失败停止动效、可重试、返回保留输入。演示不会调用 API、生成文件或开放工作台。
 
-## 尚待动画层接入
+## 动画制作与工作台
 
-本地后端启动方式及实际端点见 [API 对接登记](../docs/work/contracts/API.md)。当前前端没有持久保存密钥；模型连接与生成只会在明确提交后发生。后台诊断、异常栈和模型原始消息不会直接显示给普通用户。
+先启动本地后端，方法见 [API 对接登记](../docs/work/contracts/API.md)。正式流程在脚本发布后点击“开始制作动画”，制作完成进入 `/workbench.html?project_id=...`。该入口和独立 HTML 共用一个 Adapter/Player，场景、clip 与对象轨道全部来自当前脚本、Manifest 和资源；支持拖动、缩放、胶囊反馈、当前帧 bbox、局部修改、版本回退与实际 MP4 下载。
 
-当前没有通用 AnimationManifest 播放适配器、多场景预览、工作台修订 UI 或视频导出。后端的动画交接接口会返回当前精确 ProductionScript；动画资源尚未就绪时，普通页面保持等待状态，不把品牌场景或固定 PN P0 样例当作当前项目的成片。修订请求接口只接收并保存 Schema-valid 请求，不表示已经执行修改。
+无需模型的开发样片：`/workbench.html?demo=pn`。它明确标注固定 PN 样片，不代替用户项目；四种视频风格独立于网页主题。纯视频入口 `/animation-render.html` 同时供工作台 iframe 与导出使用，不带编辑覆盖物。原 `/animation-preview.html` 保留单幕研发检查。
 
-当前已通过 `npm run build`、`npm test`（10 项）及 Playwright E2E（20 项 Chromium）。浏览器回归覆盖响应式布局、表单保留、流程演示、真实任务的 API Mock、刷新恢复、密钥不落盘、等待动画状态，以及动画 P0 Seek、对象身份、暂停和样式隔离。E2E 在本机需为 Chromium 配置系统库；其他环境按 Playwright 的运行库要求准备。
+导出需要已构建的 `dist/`、Playwright Chromium、FFmpeg 和 ffprobe。可配置 `ANIMATION_FFMPEG` / `ANIMATION_FFPROBE` 的绝对路径；未安装时返回真实失败，不生成假下载。完整离线验收、运行时约束与实测结果见 [动画运行说明](../docs/work/frontend/animation/运行时与首幕预览.md)。没有配音和音效。
+
+当前验证包括生产构建、13 项逻辑测试、真实工作台和既有创作页浏览器回归；具体计数以 STATUS 为准。
 
 开发服务器可使用 `/?flow-pose=0.0909`、`/?flow-pose=0.5455`、`/?flow-pose=1` 固定检查初始、高光和完整姿态；参数仅在 Vite 开发模式生效，值为 0–1，正式构建忽略此参数。正常入口不带参数，连续播放完整动画。
 
 当前 WSL 环境缺少浏览器系统库，验证时将 libnspr4、libnss3、libasound2 与中文字体解包到 `/tmp` 并通过 `LD_LIBRARY_PATH` / `FONTCONFIG_FILE` 使用；这些属于本机测试环境，不进入项目依赖或产物。其他环境按 Playwright 的运行库要求准备。
 
 目前浏览器自动检查覆盖 Chromium；Windows 本机中文字体、Safari 及真实移动设备仍需人工验收。
-
-## 动画 P0 独立预览
-
-启动 Vite 后访问 `/animation-preview.html`，可播放 PN v2 固定脚本的 S01（0–15s）、拖动时间并检查对象边界。视频美术在 Shadow DOM 中独立渲染；此入口仅为研发试作。实现范围、稳定 ID、Seek 取消和 P1 接口见 [运行时与首幕预览](../docs/work/frontend/animation/运行时与首幕预览.md)。工作台接入与成片导出尚未实现。

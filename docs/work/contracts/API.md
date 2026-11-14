@@ -32,11 +32,17 @@ API Key 由显式操作提交。模型连接测试会实际请求 DeepSeek；生
 | 读取当前精确脚本 | `{artifact_id, revision}` → `ProductionScript` | `GET /api/projects/{project_id}/production-script` | 已实现；重验上下游引用 |
 | 确定创作方向 | `{direction_id, expected_project_revision}` → ProjectState | `POST /api/projects/{project_id}/direction` | 已实现；方向变化会使脚本/动画引用失效 |
 | 动画输入交接 | 项目配置、精确脚本 ArtifactRef 与完整脚本 | `GET /api/projects/{project_id}/handoff/animation` | 已实现；无脚本为 `awaiting_script`，有脚本但无动画为 `awaiting_animation` |
-| 查询预览就绪状态 | 当前 Manifest 与真实可加载资源状态 | `GET /api/projects/{project_id}/preview` | 已实现未就绪回执；当前没有通用 Manifest 播放适配器 |
-| 接收动画 Manifest 候选 | Schema、脚本引用、场景/事件覆盖与本地资源文件 → 候选回执 | `POST /api/projects/{project_id}/animation-manifest` | 已实现候选校验与保存；通用播放器未接入，不发布 ProjectState 当前引用 |
-| 发布当前动画 Manifest / 进入真实预览 | 已校验 Manifest 且被播放器解析、实际资源可加载 → 当前 AnimationManifest | 待定 | 未实现；固定 PN P0 预览不是本项目的正式视频 |
+| 查询预览就绪状态 | 当前 Manifest 与真实可加载资源状态 | `GET /api/projects/{project_id}/preview` | 检查当前精确版本、资源内容和真实播放器检查回执；通过才返回 ready 与工作台/bundle URL |
+| 接收动画 Manifest 候选 | Schema、脚本引用、场景/事件覆盖与本地资源文件 → 候选回执 | `POST /api/projects/{project_id}/animation-manifest` | 仅接收候选，不直接发布当前引用；正式发布使用下列生成入口 |
+| 发起动画制作 | `{expected_project_revision, style_id?, custom_profile?, api_key?}` → 动画任务编号 | `POST /api/projects/{project_id}/animations` | 后台构思/验证/实际渲染，CAS 发布；失败保留旧版 |
+| 动画制作状态 | 安全文案、当前预览与任务 | `GET /api/projects/{project_id}/animations/status`、`GET /api/projects/{project_id}/animations/jobs/{job_id}` | 刷新恢复；服务重启标记 interrupted |
+| 获取已检查场景资源 | 精确动画版本 → 内部 bundle | `GET /api/projects/{project_id}/animations/{artifact_id}/r{revision}/bundle` | 重验不可覆盖文件、资源与检查回执；附当前 ProjectState revision 供提交反馈 |
+| 风格档案 | 四套视频独立美术档案 | `GET /api/animation/styles` | 支持 auto/custom，不决定知识对象或事件 |
+| 执行定向修订 | `{request: RevisionRequest, api_key?}` → 新动画或 upstream_required | `POST /api/projects/{project_id}/animations/revise` | 校验版本与锚点；只重做选中场景，涉知识/时间的请求另存上游路由 |
+| 历史与回退 | 精确 ArtifactRef 与 expected_project_revision | `GET /api/projects/{project_id}/animations/versions`、`POST /api/projects/{project_id}/animations/activate` | 仅激活仍匹配当前脚本/brief 且已检查的旧版 |
 | 接收修订请求 | Schema-valid `RevisionRequest` + 精确目标版本 → `received` 回执 | `POST /api/projects/{project_id}/revision-requests` | 已实现接收、持久化与版本校验；不执行自动修改，原成果不变 |
-| 确认与导出 | 已确认动画产物 → 视频文件 | 待定 | 未实现 |
+| 导出视频 | `{artifact_ref}` → 导出任务编号 | `POST /api/projects/{project_id}/animations/export` | 当前已检查版本；同一 Player 逐帧截图与 FFmpeg 编码 |
+| 导出进度和下载 | 实际帧数、编码状态、完成后下载 URL | `GET /api/projects/{project_id}/animations/exports/{export_id}`、`GET /api/projects/{project_id}/animations/exports/{export_id}/video` | ffprobe 确认时长和尺寸后才开放 MP4；重启中断需重新导出 |
 
 脚本任务的 `script_ready` 只表示合法 ProductionScript 已发布，动画阶段保持 `pending`，不表示视频已生成。任务响应只含过滤后的用户语义，不回传模型调用明细或 traceback。
 
@@ -47,7 +53,7 @@ PYTHONPATH=backend/src .venv/bin/python -m uvicorn api.app:app --host 127.0.0.1 
 cd frontend && npm run dev
 ```
 
-真实 API 确认后，此处仅补方法、路径、鉴权（如需）、异步状态、错误语义和负责人；请求/响应对象引用 Schema，不另抄一份字段表。
+动画生成状态为 queued/running/completed/failed/interrupted；候选和失败版本不替换当前成果。内部 bundle/StyleProfile 是动画实现细节，不是第六份公共 Schema。新主题需要本次 API Key；精确匹配 PN 历史样本可离线生成。导出需要先构建前端，并安装 Chromium、FFmpeg、ffprobe。配音和音效尚未接入。
 
 ## 三、变更与验证
 

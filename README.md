@@ -1,6 +1,6 @@
 # knowledge-show
 
-> 面向普通创作者的 AI 知识短视频制作项目。`main` 已包含知识层首版（PR #5）、跨层脚本契约（PR #6）、React 创作入口（PR #7）、独立时间轴编辑器原型（PR #8）、前端视觉重构（PR #9）以及脚本工作流和动画 P0 预览（PR #12）。当前工作分支 `feat/non-animation-mainline` 在此基础上已打通本地任务 API、React 创作页到知识→脚本生成的任务流程、精确脚本动画交接，以及动画 Manifest 候选校验和修订请求接收。候选 Manifest 尚不发布为项目当前动画；通用播放器、工作台、自动修订和视频导出仍待实现。
+> 面向普通创作者的 AI 知识短视频制作项目。已具备本地知识→脚本任务、动画生成与实际播放检查、真实时间轴工作台、定向修订和同源 MP4 导出。动画层已验收完整 PN 固定样本；新主题通过模型生成受控矢量场景，仍需逐片审美与知识审核。
 
 ## 项目目标
 
@@ -19,7 +19,7 @@
 
 ## 当前可运行范围
 
-仓库已包含五类 **跨阶段数据契约**、连贯 Mock 示例及校验脚本。知识层可运行完整研究、创意、核验与 KnowledgePackage JSON 交付，并提供本地检验页。脚本层可调用 DeepSeek Responses API，也支持注入 Fake LLM；生成结果经 Schema、跨层引用和时间线校验，最多进行一次受限修复，再以不可覆盖版本文件发布。工作流与本地 HTTP API 可创建项目、持久化并查询任务，按精确版本运行至脚本完成；React 创作页已消费该任务接口，并在刷新后恢复项目和任务。动画交接返回当前 ProductionScript；Manifest 只通过结构、引用和本地资源校验后作为候选保存，通用播放器未接入前不会成为当前项目动画，也不会开放正式预览。固定 PN 结 S01 的 15 秒 P0 预览仍是独立研发入口，独立时间轴编辑器仍使用演示数据。当前分支尚未进行真实模型脚本验收，修订请求也尚未执行自动修改。启动说明见 [API 对接文档](docs/work/contracts/API.md) 与 [前端说明](frontend/README.md)，状态以 [STATUS.md](STATUS.md) 为准。
+仓库包含五类跨阶段契约及校验工具。知识与脚本层按精确版本交接；动画层消费已发布脚本，生成独立风格场景，经过 Schema、引用、资源与实际浏览器检查后才发布当前 AnimationManifest。React 创作页可发起动画制作、恢复任务并进入工作台。工作台复用同一 Player，支持多场景 Seek、真实元件框选、携带精确版本的反馈、局部修订、版本回退和 MP4 导出。PN v2 固定样本已完成 165 秒实际导出；没有配音或音效。通用新主题模型入口已实现并经注入客户端验证，本轮未付费调用模型验收新主题。启动见 [API 文档](docs/work/contracts/API.md)、[前端说明](frontend/README.md) 与 [动画运行说明](docs/work/frontend/animation/运行时与首幕预览.md)，当前状态以 [STATUS.md](STATUS.md) 为准。
 
 在仓库根目录激活 `.venv` 后，可运行知识层测试和契约校验：
 
@@ -62,8 +62,9 @@ PYTHONPATH=backend/src STREAMLIT_SERVER_ADDRESS=127.0.0.1 STREAMLIT_SERVER_PORT=
 | `backend/src/knowledge/`、`backend/src/script/` | 知识层和脚本层；当前分支已有脚本生成与正式版本发布 |
 | `backend/src/workflow/` | ProjectState 版本存储、知识包到脚本编排、Manifest 候选和修订请求的校验接收 |
 | `backend/src/api/` | 本地任务 API：项目、任务、产物、方向、动画交接、预览状态和修订请求 |
-| `frontend/src/features/`、`frontend/src/animation/` | 用户流程与动画实现；含固定 PN S01 的独立动画研发预览 |
-| `frontend/src/features/revision/editor-layout.html` | 独立时间轴 UI 原型，演示数据与真实动画运行时未连接 |
+| `frontend/src/features/`、`frontend/src/animation/` | 创作流程、隔离视频舞台、多场景运行时与真实工作台 |
+| `frontend/src/features/revision/editor-layout.html` | 真实时间轴工作台，与产品入口共用 Adapter 和 Player |
+| `backend/src/animation/`、`frontend/scripts/render-video.mjs` | 受控场景生成、不可覆盖发布、局部修订与逐帧编码 |
 | `contracts/schemas/` | **唯一机器可读契约**（五类 JSON Schema） |
 | `contracts/examples/` | Mock 联调样例 |
 | `contracts/validate_contracts.py` | Schema 与跨对象一致性校验 |
