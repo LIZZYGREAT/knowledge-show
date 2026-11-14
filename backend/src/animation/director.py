@@ -75,7 +75,7 @@ def validate_program(scene: dict[str, Any], program: dict[str, Any]) -> list[dic
     ids: set[str] = set()
     for obj in objects:
         if not isinstance(obj,dict) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,63}',str(obj.get('id',''))) or obj['id'] in ids: raise ValueError('场景对象 ID 无效或重复。')
-        if set(obj)-{'id','label','shape','x','y','width','height','radius','path','text','fill','keyframes'}: raise ValueError('场景对象包含不支持的字段。')
+        if set(obj)-{'id','label','shape','x','y','width','height','radius','path','text','fill','keyframes','stroke','strokeWidth','cornerRadius','fillOpacity','lineCap','materialKey','fontSize','fontWeight','textAnchor','zIndex'}: raise ValueError('场景对象包含不支持的字段。')
         ids.add(obj['id'])
         if obj.get('shape') not in ['circle','rect','path','text'] or not isinstance(obj.get('label'),str) or not obj['label']: raise ValueError('场景对象类型无效。')
         if not re.fullmatch(r'#[a-fA-F0-9]{6}', str(obj.get('fill',''))): raise ValueError('场景对象颜色无效。')
@@ -85,6 +85,13 @@ def validate_program(scene: dict[str, Any], program: dict[str, Any]) -> list[dic
         if obj['shape']=='circle' and obj.get('radius',0)<=0 or obj['shape']=='rect' and (obj.get('width',0)<=0 or obj.get('height',0)<=0): raise ValueError('场景对象尺寸必须为正数。')
         if obj['shape']=='path' and (not isinstance(obj.get('path'),str) or len(obj['path'])>20000 or not re.fullmatch(r'[MmLlHhVvCcSsQqTtAaZz0-9eE\s,.+\-]*',obj['path'])): raise ValueError('场景路径无效。')
         if obj['shape']=='text' and (not isinstance(obj.get('text'),str) or len(obj['text'])>500): raise ValueError('场景文字无效。')
+        if 'stroke' in obj and not re.fullmatch(r'#[a-fA-F0-9]{6}',str(obj['stroke'])): raise ValueError('描边颜色无效。')
+        for key,allowed in {'materialKey':['flat','paper-layer','frosted','ink-print'],'lineCap':['butt','round','square'],'textAnchor':['start','middle','end']}.items():
+            if key in obj and obj[key] not in allowed: raise ValueError('外观标识无效。')
+        for key,(low,high) in {'strokeWidth':(0,30),'cornerRadius':(0,500),'fillOpacity':(0,1),'fontSize':(8,160),'fontWeight':(100,900),'zIndex':(-100,100)}.items():
+            if key not in obj: continue
+            value=obj[key]
+            if not isinstance(value,(int,float)) or isinstance(value,bool) or not math.isfinite(value) or not low<=value<=high: raise ValueError('外观参数无效。')
         frames=obj.get('keyframes')
         if not isinstance(frames,list) or not 2<=len(frames)<=64: raise ValueError('场景关键帧数量无效。')
         previous=-1

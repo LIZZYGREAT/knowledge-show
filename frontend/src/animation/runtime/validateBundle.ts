@@ -1,4 +1,5 @@
 import type { AnimationBundle } from './BundleTypes';
+import { validateVector } from './validateVector';
 export function validateBundle(bundle: AnimationBundle) {
   const { manifest: manifest, script, resources } = bundle;
   if (manifest.project_id !== script.project_id || manifest.production_script_ref.artifact_id !== script.artifact_id || manifest.production_script_ref.revision !== script.revision || manifest.total_duration_ms !== script.total_duration_ms) throw new Error('动画和脚本版本或时长不匹配。');
@@ -9,6 +10,7 @@ export function validateBundle(bundle: AnimationBundle) {
     const resource = resources[clip.resource_ref];
     if (!['pn-scene', 'vector-scene'].includes(resource.kind) || resource.sceneId !== scene.scene_id) throw new Error('当前播放器不支持这个场景资源。');
     if (resource.kind === 'pn-scene' && !/^S0[1-7]$/.test(resource.sceneId)) throw new Error('PN 场景 ID 无效。');
+    if (resource.kind === 'vector-scene') validateVector(scene, resource);
     cursor += clip.duration_ms; ids.add(clip.clip_id);
   }
   if (cursor !== manifest.total_duration_ms) throw new Error('动画未覆盖完整脚本。');

@@ -36,3 +36,15 @@ describe('manifest validation and independent art', () => {
     expect(() => resolveStyle('not-a-style')).toThrow();
   });
 });
+
+import soap from './fixtures/soap-style-lab/style-paper-editorial.json';
+import type { AnimationBundle } from '../src/animation/runtime/BundleTypes';
+it('loads styled vectors and rejects unrecognized materials or unsafe paint', () => {
+  const bundle = structuredClone(soap) as AnimationBundle;
+  expect(validateBundle(bundle)).toBe(bundle);
+  const object = Object.values(bundle.resources)[0].objects![0];
+  (object as any).materialKey = 'unknown';
+  expect(() => validateBundle(bundle)).toThrow();
+  object.materialKey = 'flat'; object.stroke = 'url(https://invalid)';
+  expect(() => validateBundle(bundle)).toThrow();
+});
