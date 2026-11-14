@@ -1,3 +1,4 @@
+import { StageDie } from "./StageDie";
 import { useId, useRef } from "react";
 import { FlowArtwork, IdeaSeed } from "./LivingFlowScene";
 import { flowState, surfaceAt } from "./flowGeometry";
@@ -5,34 +6,12 @@ import "./curiosity-stage.css";
 import { useFlowMotion } from "./useFlowMotion";
 import { combinationState, stageState, inkState, inkContour, STAGE_DURATION, STATIC_STAGE_TIME } from "./curiosityMotion";
 
-const pips: Record<number, number[][]> = {
-  1: [[0, 0]], 2: [[-16, -16], [16, 16]],
-  3: [[-16, -16], [0, 0], [16, 16]],
-  4: [[-16, -16], [16, -16], [-16, 16], [16, 16]],
-  5: [[-16, -16], [16, -16], [0, 0], [-16, 16], [16, 16]],
-  6: [[-16, -16], [16, -16], [-16, 0], [16, 0], [-16, 16], [16, 16]],
-};
-
-function Die({ value, id, green = false }: { value: number; id: string; green?: boolean }) {
-  return <g className="stage-die">
-    <ellipse cy="44" rx="43" ry="10" fill="#254f4220" />
-    <path d="M-37-26 Q-37-34-29-37 L26-46 Q33-47 38-39 L47 17 Q48 25 40 30 L-17 43 Q-25 45-30 37Z" fill={green ? "#416b60" : "#c9c5b4"} />
-    <path d="M-29-37 26-46 Q33-47 38-39 L29-29-29-19Z" fill={green ? "#9ab9a1" : "#fffef3"} />
-    <rect x="-37" y="-31" width="70" height="70" rx="10" fill={`url(#${id}-${green ? "green" : "ivory"})`} stroke={green ? "#608575" : "#d9d4c3"} />
-    <path d="M-28-27H22" stroke="#fff" strokeOpacity=".5" strokeLinecap="round" />
-    {pips[value].map(([x, y], i) => <g key={i} transform={`translate(${x - 2} ${y + 3})`}>
-      <circle cy="1" r="4.6" fill={green ? "#244d42" : "#c5c0af"} />
-      <circle r="4.2" fill={green ? "#fff8dd" : "#315f52"} />
-    </g>)}
-  </g>;
-}
-
 export function CuriosityStage({ pose }: { pose?: number }) {
   const ref = useRef<HTMLElement>(null);
   const motion = useFlowMotion(ref, pose === undefined, STATIC_STAGE_TIME);
   const time = pose === undefined ? motion.time : pose * STAGE_DURATION;
   const { t, unfold, result, roll } = stageState(time);
-  const wobble = Math.sin(t * 15) * roll;
+
   const ink = inkState(time);
   const contour = inkContour(ink.bloom);
   const seedU = Math.min(.88, flowState(ink.flowTime).extent);
@@ -69,8 +48,8 @@ export function CuriosityStage({ pose }: { pose?: number }) {
         </g>
         <text x="403" y="97" textAnchor="middle" className="stage-question" opacity={ink.question} transform={`translate(0 ${6 * (1 - ink.question)})`}>为什么 7 最常见？</text>
         <g className="stage-knowledge" mask={`url(#${id}-ink-reveal)`}>
-        <g data-die="ivory" transform={`translate(${310 - unfold * 76} ${306 - unfold * 67 - Math.abs(wobble) * 12}) rotate(${-12 + wobble * 22}) scale(${1.25 - unfold * .42})`}><Die value={roll > .4 ? 1 + Math.floor(t * 8) % 6 : 3} id={id}/></g>
-        <g data-die="green" transform={`translate(${443 - unfold * 120} ${320 - unfold * 68 - Math.abs(wobble) * 9}) rotate(${12 - wobble * 26}) scale(${1.25 - unfold * .42})`}><Die value={roll > .4 ? 1 + Math.floor(t * 7 + 2) % 6 : 4} id={id} green/></g>
+        <g data-die="ivory" transform={`translate(${310 - unfold * 76} ${306 - unfold * 67}) rotate(-8) scale(${1.25 - unfold * .42})`}><StageDie time={t}/></g>
+        <g data-die="green" transform={`translate(${443 - unfold * 120} ${320 - unfold * 68}) rotate(8) scale(${1.25 - unfold * .42})`}><StageDie time={t} green/></g>
         <text x={380 - unfold * 102} y={405 - unfold * 76} opacity={roll > .2 ? 0 : 1} textAnchor="middle" className="stage-equation">3 + 4 = 7</text>
         <path opacity={unfold} pathLength="1" strokeDasharray="1" strokeDashoffset={1 - unfold} d="M341 278Q383 269 405 229" fill="none" stroke="#b7a269" strokeWidth="1"/>
         <g className="stage-matrix" opacity={.08 + unfold * .92}>
