@@ -41,7 +41,7 @@
 
 - 前端任务：`docs/tasks/open/frontend/前端视觉问题审查与重构方案.md` 已通过 PR #9 集成视觉修订；任务仍在 `open/`，待负责人确认后关闭。真实 API 连接、生成事件订阅及工作台交接等待上游能力。
 - 跨层任务：`docs/tasks/open/backend/knowledge-show-main-跨层契约修订与分支整合执行方案.md` 的实现已通过 PR #6 进入 `main`；任务仍留在 `open/`，等待负责人确认后关闭。
-- 当前任务：`docs/tasks/open/backend/编辑器元件定位契约修订方案.md`，分支 `fix/editor-element-selection-contract` 从 `main@03de6c9` 创建。共享契约语义已获确认；本轮落实稳定元件 ID 索引与精确版本锚点。当前无动画运行时，因此真实 bbox 联调仍待实现。
+- 当前任务：`docs/tasks/open/backend/编辑器元件定位契约修订方案.md`，分支 `fix/editor-element-selection-contract` 从 `main@03de6c9` 创建，PR #10 已向 `main` 提交审核。共享契约语义已获确认；本轮落实稳定元件 ID 索引与精确版本锚点。当前无动画运行时，因此真实 bbox 联调仍待实现。
 - 前序知识层任务已按 PR #5 集成进 `main`；脚本提示词源分支仅定向引入了所需文件，没有合并其余历史提交。
 
 更新规则：只有形成稳定能力、任务发生交接、出现重要阻塞或完成集成时更新此文档。尚未验证的功能不得写成“已完成”。
