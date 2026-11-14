@@ -16,17 +16,37 @@ export default function App() {
   const [error, setError] = useState("");
   const connection = useEphemeralKey();
   const content = useRef<HTMLDivElement>(null);
+  const [transitioning, setTransitioning] = useState(false);
+  const transition = useRef<ViewTransition | null>(null);
+  useEffect(() => () => transition.current?.skipTransition(), []);
   useEffect(() => {
     window.scrollTo(0, 0);
     content.current?.focus();
   }, [page]);
   function navigate(next: typeof page) {
+    if (next === page) return;
+    transition.current?.skipTransition();
     if (
-      "startViewTransition" in document &&
+      typeof document.startViewTransition === "function" &&
       !window.matchMedia("(prefers-reduced-motion: reduce)").matches
     ) {
-      document.startViewTransition(() => flushSync(() => setPage(next)));
-    } else setPage(next);
+      const active = document.startViewTransition(() =>
+        flushSync(() => {
+          setTransitioning(true);
+          setPage(next);
+        }),
+      );
+      transition.current = active;
+      void active.finished.finally(() => {
+        if (transition.current === active) {
+          transition.current = null;
+          setTransitioning(false);
+        }
+      });
+    } else {
+      setTransitioning(false);
+      setPage(next);
+    }
   }
   function review() {
     try {
@@ -70,7 +90,9 @@ export default function App() {
           <span className="brand-mark">
             k<span>·</span>
           </span>
-          knowledge<span className="brand-dot">.</span>show
+          <span className="brand-wordmark">
+            knowledge<span className="brand-dot">.</span>show
+          </span>
         </button>
         <div className="header-right">
           <span
@@ -98,7 +120,12 @@ export default function App() {
           </button>
         </div>
       </header>
-      <div id="main-content" ref={content} tabIndex={-1}>
+      <div
+        id="main-content"
+        ref={content}
+        tabIndex={-1}
+        data-transition={transitioning ? "entering" : "idle"}
+      >
         {page === "landing" ? (
           <LandingHero onStart={() => navigate("composing")} />
         ) : page === "composing" ? (
