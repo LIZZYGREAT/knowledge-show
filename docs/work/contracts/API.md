@@ -18,7 +18,7 @@
 
 服务入口为 `backend/src/api/app.py` 的 `api.app:app`，本地开发绑定 `127.0.0.1:8000`。Vite 将 `/api` 代理到该地址。服务只允许回环请求，并只接受本地开发 Origin；不用于公开互联网或多用户部署。
 
-API Key 由显式操作提交。模型连接测试会实际请求 DeepSeek；生成任务在知识层 LLM、Search/Fetch 与脚本层客户端中逐请求注入该 Key。密钥不进入 `.env`、ProjectState、Job 快照或前端存储。HTTP 错误只返回有限错误码和用户文案，服务日志不记录密钥和原始异常。
+API Key 由显式操作提交。模型连接测试会实际请求 DeepSeek；生成任务在知识层 LLM、Search/Fetch 与脚本层客户端中逐请求注入该 Key。密钥不进入 `.env`、ProjectState、Job 快照或前端存储。HTTP 错误只返回有限错误码和用户文案；后台任务日志只记录 Job ID、失败阶段、公开错误码和异常类型，不记录密钥、原始异常内容或 traceback。
 
 | 对接行为 | 逻辑输入 / 输出 | 传输端点 | 实施状态 |
 | --- | --- | --- | --- |
@@ -35,7 +35,7 @@ API Key 由显式操作提交。模型连接测试会实际请求 DeepSeek；生
 | 查询预览就绪状态 | 当前 Manifest 与真实可加载资源状态 | `GET /api/projects/{project_id}/preview` | 已实现未就绪回执；当前没有通用 Manifest 播放适配器 |
 | 接收动画 Manifest 候选 | Schema、脚本引用、场景/事件覆盖与本地资源文件 → 候选回执 | `POST /api/projects/{project_id}/animation-manifest` | 已实现候选校验与保存；通用播放器未接入，不发布 ProjectState 当前引用 |
 | 发布当前动画 Manifest / 进入真实预览 | 已校验 Manifest 且被播放器解析、实际资源可加载 → 当前 AnimationManifest | 待定 | 未实现；固定 PN P0 预览不是本项目的正式视频 |
-| 接收修订请求 | Schema-valid `RevisionRequest` + 精确目标版本 → `received` 回执 | `POST /api/projects/{project_id}/revision-requests` | 已实现接收、持久化与版本校验；不执行自动修改，原成果不变 |
+| 接收修订请求 | Schema-valid `RevisionRequest` + 精确目标版本和可解析锚点 → `received` 回执 | `POST /api/projects/{project_id}/revision-requests` | 校验项目及目标 ArtifactRef；场景/事件/文字从当前精确 ProductionScript 解析，clip/元件从精确 AnimationManifest 解析，时间范围不得越界。当前没有正式 Manifest 读取器，因此 `render_element` 等动画锚点在默认 API 中会被拒绝；候选 Manifest 不作为已发布文件。只持久化回执，不执行自动修改，原成果不变 |
 | 确认与导出 | 已确认动画产物 → 视频文件 | 待定 | 未实现 |
 
 脚本任务的 `script_ready` 只表示合法 ProductionScript 已发布，动画阶段保持 `pending`，不表示视频已生成。任务响应只含过滤后的用户语义，不回传模型调用明细或 traceback。

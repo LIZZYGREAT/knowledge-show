@@ -1,6 +1,6 @@
 # knowledge-show 系统架构与数据流
 
-> 本文描述已确定的**概念架构与仓库模块边界**。`main` 已包含 PR #5 知识层、PR #6 跨层脚本契约、PR #7 React 创作入口、PR #8 独立时间轴原型、PR #9 视觉重构，以及 PR #12 的脚本工作流和固定 PN 结 S01 动画 P0 预览。当前 `feat/non-animation-mainline` 另已集成本地任务 API、React 知识→脚本任务接入、精确脚本动画交接、Manifest 候选校验和 RevisionRequest 接收。候选 Manifest 尚未发布到 ProjectState，也不能通过通用播放器预览；工作台、自动修订与视频导出仍待实现。字段及类型由 `contracts/` 中的现行定义负责。
+> 本文描述已确定的**概念架构与仓库模块边界**。`main@16affe4` 已合并 PR #13，包含本地任务 API、React 知识→脚本任务接入、精确脚本动画交接、Manifest 候选校验和 RevisionRequest 接收。当前分支 `fix/main-handoff-correctness` 补充完整需求快照/恢复、脚本摘要独立重读、候选当前性与关系校验、精确 RevisionRequest 锚点校验和安全失败诊断，尚待集成。候选 Manifest 尚未发布到 ProjectState，也不能通过通用播放器预览；工作台、自动修订与视频导出仍待实现。字段及类型由 `contracts/` 中的现行定义负责。
 
 ## 一、整体工作流
 
@@ -23,7 +23,7 @@ flowchart TB
     W -.-> A
 ```
 
-生产主线为 **知识 → 脚本 → 动画**。协调器维护共享需求、当前产物引用和修订路由。用户可提前选择方向，也可直接采用系统推荐生成首版。知识层内部不限制单向研究流程：知识发现与创意构想互相提出问题，经过必要核验后再收敛为公开的 `KnowledgePackage`。当前分支由 React 创作页通过本地 API 创建 ProjectState 并启动可恢复查询的后台 Job，工作流读取精确 KnowledgePackage、生成或复用 ProductionScript。`script_ready` 代表脚本已正式发布；动画交接 API 返回精确脚本版本。Manifest 候选可以按脚本和本地资源校验并单独保存，但尚无通用播放器，因此不写入 ProjectState 当前动画引用，也不开放为正式预览。动画 P0 仍独立播放固定脚本样例。
+生产主线为 **知识 → 脚本 → 动画**。协调器维护共享需求、当前产物引用和修订路由。用户可提前选择方向，也可直接采用系统推荐生成首版。知识层内部不限制单向研究流程：知识发现与创意构想互相提出问题，经过必要核验后再收敛为公开的 `KnowledgePackage`。main 上的 React 创作页通过本地 API 创建 ProjectState 并启动可恢复查询的后台 Job，工作流读取精确 KnowledgePackage、生成或复用 ProductionScript。当前分支确保完整用户偏好与 ProjectState 一致，并允许 `script_ready` 后单独恢复脚本摘要。`script_ready` 代表脚本已正式发布；动画交接 API 返回精确脚本版本。Manifest 候选按当前脚本/Brief 精确引用和关键关系校验后单独保存，但尚无通用播放器，因此不写入 ProjectState 当前动画引用，也不开放为正式预览。RevisionRequest 仍只回执接收；当前分支额外检查实体锚点是否能从精确目标版本解析。动画 P0 仍独立播放固定脚本样例。
 
 **共同创作目标**：最终作品应围绕值得观看的知识主线，建立真实可感知的视觉对象、清楚的观看重心和自然连续的变化。纯标题、公式、静态卡片和图表的轮流切换不构成合格的主要动画表达。这是三层共同保障的产品目标，不能靠单一层的字段或 Schema 自动验收。
 
@@ -66,21 +66,21 @@ flowchart TD
 
 当前知识包允许在 `knowledge_units[]` 中使用 `verification_status = needs_review` 保留待处理线索，但**候选方向和脚本只能引用 `verified` 知识**。内部 ResearchStore 可保留更丰富的研究草稿；对外引用权限由现行契约决定。
 
-知识层以 `${KNOWLEDGE_EXPORT_DIR}/{artifact_id}-r{revision}.json` 交付具体版本。写入使用原子发布并在运行完成前重新读取和校验；版本内容不可被静默覆盖。脚本消费者应使用协调器发布的精确 `ArtifactRef`，不读取知识层 SQLite。当前分支的工作流持久化 ProjectState revision JSON，读取精确知识包版本并选择系统默认方向；脚本层调用 DeepSeek Responses API（客户端可注入 Fake），按契约生成并校验 ProductionScript，最多执行一次受限修复，最后以不可覆盖的版本文件发布。真实模型验收尚未进行。上游知识包或方向变化时会失效当前脚本/动画引用；脚本任务可复用仍匹配当前项目版本的已发布脚本。
+知识层以 `${KNOWLEDGE_EXPORT_DIR}/{artifact_id}-r{revision}.json` 交付具体版本。写入使用原子发布并在运行完成前重新读取和校验；版本内容不可被静默覆盖。脚本消费者应使用协调器发布的精确 `ArtifactRef`，不读取知识层 SQLite。main 上的工作流持久化 ProjectState revision JSON，读取精确知识包版本并选择系统默认方向；脚本层调用 DeepSeek Responses API（客户端可注入 Fake），按契约生成并校验 ProductionScript，最多执行一次受限修复，最后以不可覆盖的版本文件发布。真实模型验收尚未进行。上游知识包或方向变化时会失效当前脚本/动画引用；脚本任务可复用仍匹配当前项目版本的已发布脚本。
 
 ## 四、目录到模块的映射
 
 | 仓库位置 | 规划中的职责 | 当前情况 |
 | --- | --- | --- |
 | `backend/src/knowledge/` | 研究、创意探索、知识管理、事实核验与知识包交付 | 首版与 16:9 配置已进入 `main` |
-| `backend/src/script/` | 选材、叙事主线、场景事件、时间规划和脚本输出 | 当前分支有模型客户端、结构化生成、有限修复、契约校验和版本发布；真实模型验收待做 |
-| `backend/src/workflow/` | 跨层项目状态、执行编排、版本与修订路由 | 当前分支支持 ProjectState 版本存储、知识包到脚本编排、Manifest 候选校验和 RevisionRequest 接收；自动修订路由未实现 |
-| `backend/src/api/` | 前后端本地任务入口 | 当前分支提供项目、任务、产物、方向、动画交接、预览状态、Manifest 候选和修订请求端点；仅限本机开发 |
+| `backend/src/script/` | 选材、叙事主线、场景事件、时间规划和脚本输出 | main 有模型客户端、结构化生成、有限修复、契约校验和版本发布；真实模型验收待做 |
+| `backend/src/workflow/` | 跨层项目状态、执行编排、版本与修订路由 | main 支持 ProjectState 版本存储、知识包到脚本编排、Manifest 候选校验和 RevisionRequest 接收；当前分支补充候选当前性与锚点定位检查，自动修订路由未实现 |
+| `backend/src/api/` | 前后端本地任务入口 | main 提供项目、任务、产物、方向、动画交接、预览状态、Manifest 候选和修订请求端点；当前分支为已发布知识包/脚本提供精确锚点解析，并为正式 Manifest 读取器保留注入接口；仅限本机开发 |
 | `backend/src/common/` | 确需共享的后端基础逻辑 | 占位目录 |
-| `frontend/src/features/creation/` | 需求表达与提交确认 | 当前分支表单已提交到项目/任务 API，刷新可恢复项目和任务；API Key 不持久化 |
-| `frontend/src/features/landing/`、`progress/`、`settings/` | 品牌入口、阶段展示、会话连接设置 | 真实脚本任务状态和连接检查已接入；仍使用用户语义状态文案 |
+| `frontend/src/features/creation/` | 需求表达与提交确认 | main 上的表单已提交到项目/任务 API；当前分支保证完整偏好恢复、变化后使用新项目；API Key 不持久化 |
+| `frontend/src/features/landing/`、`progress/`、`settings/` | 品牌入口、阶段展示、会话连接设置 | 真实脚本任务状态和连接检查已接入；当前分支支持脚本 GET 失败后单独重读；仍使用用户语义状态文案 |
 | `frontend/src/features/preview/` | 动态预览与产物查看 | P0 独立研发入口 `/animation-preview.html`；正式工作流的预览端点会在播放器未适配时返回 `not_ready` |
-| `frontend/src/features/revision/` | 用户反馈入口及修订结果呈现 | 含独立 HTML 时间轴原型；不是 React 产品路由，仍用演示数据。后端只验证并保存 RevisionRequest，未执行自动修改 |
+| `frontend/src/features/revision/` | 用户反馈入口及修订结果呈现 | 含独立 HTML 时间轴原型；不是 React 产品路由，仍用演示数据。后端校验 RevisionRequest 版本与可定位锚点并保存，未执行自动修改 |
 | `frontend/src/animation/runtime/` | 动画播放、场景装配和渲染运行时 | P0 单场景播放器：Seek、播放暂停、元件边界、资源清理；Manifest 与工作台适配待 P1 |
 | `frontend/src/animation/scenes/` | 场景实现与必要复用 | 固定 PN v2 S01（15s）可执行场景，独立视频美术 |
 | `contracts/` | 独立于业务代码的机器契约和 Mock | 已建立 |
@@ -107,6 +107,6 @@ PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests/knowledge -q
 .venv/bin/python contracts/validate_contracts.py
 ```
 
-当前交接补全运行 `PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests/api backend/tests/script backend/tests/integration -q`，21 项通过；契约校验、前端生产构建、10 项前端单测和 20 项 Playwright E2E 通过。本地 Uvicorn 健康检查返回 `{"status":"ok"}`；Playwright 本机需通过 `LD_LIBRARY_PATH` 提供 Chromium 系统库。此前知识层 83 项测试及工作流 3 项测试也通过。真实模型脚本验收尚未进行；历史固定 Mock Smoke 不代表真实脚本生成质量。通用 Manifest 播放、工作台联动、正式预览、自动修订、导出及锚点播放仍待实现；契约校验也**不能代替事实核验、创意质量、脚本可看性或最终观感检查**。
+当前 `fix/main-handoff-correctness` 分支运行知识层测试 83 项、脚本/集成/API 测试 24 项、契约校验、Python 编译、前端生产构建、前端单测 11 项和 Playwright E2E 24 项，均通过；Uvicorn `/api/health` 返回 `{"status":"ok"}`。Playwright 使用隔离 Vite 端口 5174（默认 5173 已被其他本机服务占用），Chromium 系统库通过 `LD_LIBRARY_PATH` 提供。另以 FakeServices 完成从创建项目到 `script_ready` 的 Mock 闭环，0 次真实模型调用。真实模型脚本验收尚未进行；Mock 结果不代表真实脚本生成质量。通用 Manifest 播放、工作台联动、正式预览、自动修订、导出及锚点播放仍待实现；契约校验也**不能代替事实核验、创意质量、脚本可看性或最终观感检查**。
 
 分工与协作规则见 `docs/work/目录结构与分工.md` 和 `docs/work/workflow.md`。

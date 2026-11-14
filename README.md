@@ -1,6 +1,6 @@
 # knowledge-show
 
-> 面向普通创作者的 AI 知识短视频制作项目。`main` 已包含知识层首版（PR #5）、跨层脚本契约（PR #6）、React 创作入口（PR #7）、独立时间轴编辑器原型（PR #8）、前端视觉重构（PR #9）以及脚本工作流和动画 P0 预览（PR #12）。当前工作分支 `feat/non-animation-mainline` 在此基础上已打通本地任务 API、React 创作页到知识→脚本生成的任务流程、精确脚本动画交接，以及动画 Manifest 候选校验和修订请求接收。候选 Manifest 尚不发布为项目当前动画；通用播放器、工作台、自动修订和视频导出仍待实现。
+> 面向普通创作者的 AI 知识短视频制作项目。`main` 已包含知识层首版、跨层脚本契约、React 创作入口、独立时间轴原型、视觉重构，以及 PR #12/#13 带入的脚本工作流、本地任务 API、创作页任务接入、精确脚本动画交接和动画候选/修订请求入口。当前分支 `fix/main-handoff-correctness` 在此基础上修复完整需求快照复用、终态脚本重读、动画候选当前性与 Manifest 关键约束、RevisionRequest 锚点定位及失败日志诊断；这些修订尚待集成。候选 Manifest 不发布为当前动画；通用播放器、工作台、自动修订和视频导出仍待实现。
 
 ## 项目目标
 
@@ -19,7 +19,7 @@
 
 ## 当前可运行范围
 
-仓库已包含五类 **跨阶段数据契约**、连贯 Mock 示例及校验脚本。知识层可运行完整研究、创意、核验与 KnowledgePackage JSON 交付，并提供本地检验页。脚本层可调用 DeepSeek Responses API，也支持注入 Fake LLM；生成结果经 Schema、跨层引用和时间线校验，最多进行一次受限修复，再以不可覆盖版本文件发布。工作流与本地 HTTP API 可创建项目、持久化并查询任务，按精确版本运行至脚本完成；React 创作页已消费该任务接口，并在刷新后恢复项目和任务。动画交接返回当前 ProductionScript；Manifest 只通过结构、引用和本地资源校验后作为候选保存，通用播放器未接入前不会成为当前项目动画，也不会开放正式预览。固定 PN 结 S01 的 15 秒 P0 预览仍是独立研发入口，独立时间轴编辑器仍使用演示数据。当前分支尚未进行真实模型脚本验收，修订请求也尚未执行自动修改。启动说明见 [API 对接文档](docs/work/contracts/API.md) 与 [前端说明](frontend/README.md)，状态以 [STATUS.md](STATUS.md) 为准。
+仓库已包含五类 **跨阶段数据契约**、连贯 Mock 示例及校验脚本。知识层可运行完整研究、创意、核验与 KnowledgePackage JSON 交付，并提供本地检验页。脚本层可调用 DeepSeek Responses API，也支持注入 Fake LLM；生成结果经 Schema、跨层引用和时间线校验，最多进行一次受限修复，再以不可覆盖版本文件发布。`main` 上的工作流与本地 HTTP API 可创建项目、持久化并查询任务，按精确版本运行至脚本完成；React 创作页消费该任务接口。当前修订分支补上偏好完整恢复、需求变化时的新项目处理，以及脚本摘要独立重读。动画交接返回当前 ProductionScript；Manifest 只通过结构、引用和本地资源校验后作为候选保存，通用播放器未接入前不会成为当前项目动画，也不会开放正式预览。固定 PN 结 S01 的 15 秒 P0 预览仍是独立研发入口，独立时间轴编辑器仍使用演示数据。当前分支尚未进行真实模型脚本验收；RevisionRequest 目前只接收，不执行自动修改。启动说明见 [API 对接文档](docs/work/contracts/API.md) 与 [前端说明](frontend/README.md)，状态以 [STATUS.md](STATUS.md) 为准。
 
 在仓库根目录激活 `.venv` 后，可运行知识层测试和契约校验：
 
@@ -51,7 +51,7 @@ PYTHONPATH=backend/src STREAMLIT_SERVER_ADDRESS=127.0.0.1 STREAMLIT_SERVER_PORT=
 
 `main` 上的知识层已有 83 项测试通过；契约校验覆盖五类 Schema、连贯样例、负例、旧版本兼容和非推荐方向切换。四份历史 ProductionScript 也通过新版 Schema 校验。既有真实 API 验收覆盖基础定义、进阶自注意力机制和带 `focus` / `must_include` 的骰子概率主题。本次跨层消费 Smoke 使用已发布知识包和固定 ProjectState / ProductionScript Mock，不调用 API；它检查版本引用、方向、时间轴及锚点事件映射。PR #9 的首轮视觉重构通过了生产构建、7 项逻辑测试和 11 项 Chromium 浏览器测试。青绿流场与创作页装饰分支通过生产构建、10 项逻辑测试和 15 项 Chromium 浏览器测试，并检查了五种屏宽、关键姿态及实际开场录屏。
 
-此前脚本测试 10 项、工作流集成测试 3 项、知识层 83 项、契约校验、前端生产构建和 10 项前端单测均通过。本次交接补全另运行 API、脚本和工作流测试共 21 项、契约校验、前端生产构建、10 项前端单测及 20 项 Playwright E2E，均通过；Uvicorn 本地健康检查返回 `{"status":"ok"}`。Playwright 本机需通过 `LD_LIBRARY_PATH` 提供 Chromium 系统库。真实模型脚本验收尚未执行。
+此前主工作流交接补全通过 API、脚本和集成测试 21 项、契约校验、前端构建、10 项前端单测及 20 项 Playwright E2E；Uvicorn 本地健康检查返回 `{"status":"ok"}`。本次 `fix/main-handoff-correctness` 分支的完整验证结果见 [STATUS.md](STATUS.md)。Playwright 本机需通过 `LD_LIBRARY_PATH` 提供 Chromium 系统库。真实模型脚本验收尚未执行。
 
 ## 目录与文档入口
 
@@ -59,9 +59,9 @@ PYTHONPATH=backend/src STREAMLIT_SERVER_ADDRESS=127.0.0.1 STREAMLIT_SERVER_PORT=
 | --- | --- |
 | `AGENTS.md` | Agent 接手、授权、修改与交付约定 |
 | `STATUS.md` | 当前状态、负责人、阻塞及下次集成 |
-| `backend/src/knowledge/`、`backend/src/script/` | 知识层和脚本层；当前分支已有脚本生成与正式版本发布 |
-| `backend/src/workflow/` | ProjectState 版本存储、知识包到脚本编排、Manifest 候选和修订请求的校验接收 |
-| `backend/src/api/` | 本地任务 API：项目、任务、产物、方向、动画交接、预览状态和修订请求 |
+| `backend/src/knowledge/`、`backend/src/script/` | 知识层和脚本层；main 已有脚本生成与正式版本发布 |
+| `backend/src/workflow/` | ProjectState 版本存储、知识包到脚本编排、Manifest 候选和修订锚点校验接收 |
+| `backend/src/api/` | main 上的本地任务 API：项目、任务、产物、方向、动画交接、预览状态和修订请求 |
 | `frontend/src/features/`、`frontend/src/animation/` | 用户流程与动画实现；含固定 PN S01 的独立动画研发预览 |
 | `frontend/src/features/revision/editor-layout.html` | 独立时间轴 UI 原型，演示数据与真实动画运行时未连接 |
 | `contracts/schemas/` | **唯一机器可读契约**（五类 JSON Schema） |
