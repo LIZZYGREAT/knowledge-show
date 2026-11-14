@@ -71,6 +71,7 @@
               "scene",
               "script_event",
               "timed_text",
+              "render_element",
               "clip",
               "clip_event",
               "time_range",
@@ -105,6 +106,7 @@
                     "scene",
                     "script_event",
                     "timed_text",
+                    "render_element",
                     "clip",
                     "clip_event"
                   ]

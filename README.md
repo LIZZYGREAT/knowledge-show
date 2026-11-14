@@ -1,6 +1,6 @@
 # knowledge-show
 
-> 面向普通创作者的 AI 知识短视频制作项目。`main` 已通过 PR #5 集成知识层与 16:9 首版配置，并通过 PR #6 纳入 v0.3 脚本写作提示词和可选事件锚点契约。当前前端功能在独立任务分支开发；脚本生成执行器、共享工作流、动画运行时和视频导出仍未实现。
+> 面向普通创作者的 AI 知识短视频制作项目。`main` 已包含知识层首版（PR #5）、跨层脚本契约（PR #6）、React 创作入口（PR #7）、独立时间轴编辑器原型（PR #8）和前端视觉重构（PR #9）。脚本生成执行器、共享工作流、动画运行时和视频导出仍未实现。
 
 ## 项目目标
 
@@ -19,7 +19,7 @@
 
 ## 当前可运行范围
 
-仓库已包含五类 **跨阶段数据契约**、连贯 Mock 示例及校验脚本。知识层可运行完整研究、创意、核验与 KnowledgePackage JSON 交付，并提供本地检验页。当前前端分支提供创作入口、设置抽屉和明确标注的流程演示，启动说明见 [前端说明](frontend/README.md)。脚本层已有可复用的 v0.3 写作提示词和 ProductionScript 契约，但尚无生成执行器；真实生成接口、动画预览、跨层工作流和视频导出仍未集成。以 [STATUS.md](STATUS.md) 为准。
+仓库已包含五类 **跨阶段数据契约**、连贯 Mock 示例及校验脚本。知识层可运行完整研究、创意、核验与 KnowledgePackage JSON 交付，并提供本地检验页。前端创作入口已在 `main`；独立时间轴编辑器仍是硬编码演示数据的原型，未读取真实 Manifest，也未接入动画元件定位。脚本层已有可复用的 v0.3 写作提示词和 ProductionScript 契约，但尚无生成执行器；真实生成接口、动画预览、跨层工作流和视频导出仍未集成。启动说明见 [前端说明](frontend/README.md)，状态以 [STATUS.md](STATUS.md) 为准。
 
 在仓库根目录激活 `.venv` 后，可运行知识层测试和契约校验：
 
@@ -34,7 +34,7 @@ PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests/knowledge -q
 PYTHONPATH=backend/src STREAMLIT_SERVER_ADDRESS=127.0.0.1 STREAMLIT_SERVER_PORT=8501 .venv/bin/python -m streamlit run backend/src/knowledge/devtools/review_app.py
 ```
 
-当前集成分支的 83 项知识层测试通过；契约校验覆盖五类 Schema、连贯样例、十三种负例和非推荐方向切换。四份历史 ProductionScript 也通过新版 Schema 校验。真实 API 验收覆盖基础定义、进阶自注意力机制和带 `focus` / `must_include` 的骰子概率主题。本次跨层消费 Smoke 使用已发布知识包和固定 ProjectState / ProductionScript Mock，不调用 API；它检查版本引用、方向、时间轴及锚点事件映射，不代表真实脚本生成或动画播放已打通。前端分支的纸艺视觉重构已通过生产构建、7 项逻辑测试和 11 项 Chromium 浏览器测试，覆盖五种屏宽、字段保留及实体转场。
+当前主线记录了 83 项知识层测试通过；契约校验覆盖五类 Schema、连贯样例、负例、旧版本兼容和非推荐方向切换。四份历史 ProductionScript 也通过新版 Schema 校验。真实 API 验收覆盖基础定义、进阶自注意力机制和带 `focus` / `must_include` 的骰子概率主题。本次跨层消费 Smoke 使用已发布知识包和固定 ProjectState / ProductionScript Mock，不调用 API；它检查版本引用、方向、时间轴及锚点事件映射，不代表真实脚本生成或动画播放已打通。PR #9 的纸艺视觉重构记录了生产构建、7 项逻辑测试和 11 项 Chromium 浏览器测试通过，覆盖五种屏宽、字段保留及实体转场。
 
 ## 目录与文档入口
 
@@ -45,6 +45,7 @@ PYTHONPATH=backend/src STREAMLIT_SERVER_ADDRESS=127.0.0.1 STREAMLIT_SERVER_PORT=
 | `backend/src/knowledge/`、`backend/src/script/` | 知识和脚本的独立开发工作区 |
 | `backend/src/workflow/`、`backend/src/api/` | 待实现的共享编排与对接入口 |
 | `frontend/src/features/`、`frontend/src/animation/` | 用户流程与动画实现工作区 |
+| `frontend/src/features/revision/editor-layout.html` | 独立时间轴 UI 原型，演示数据与真实动画运行时未连接 |
 | `contracts/schemas/` | **唯一机器可读契约**（五类 JSON Schema） |
 | `contracts/examples/` | Mock 联调样例 |
 | `contracts/validate_contracts.py` | Schema 与跨对象一致性校验 |

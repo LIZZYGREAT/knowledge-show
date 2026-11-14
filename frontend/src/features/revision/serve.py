@@ -2,10 +2,12 @@
 """本地预览时间轴编辑器原型（editor-layout.html）。
 
 预览播放的 world.execute(me) 渲染器是独立检出，路径用 MV_ROOT 环境变量指定，
-默认取同级的 world-execute-me-lyric-mv；端口用 PORT 覆盖。
+默认取仓库根目录下的 world-execute-me-lyric-mv；端口用 PORT 覆盖。
+服务默认只监听本机；需要局域网访问时显式设置 EDITOR_HOST=0.0.0.0。
 
     MV_ROOT=~/world-execute-me-lyric-mv python3 serve.py
     # 打开 http://127.0.0.1:16339/editor
+    EDITOR_HOST=0.0.0.0 MV_ROOT=~/world-execute-me-lyric-mv python3 serve.py
 """
 import mimetypes
 import os
@@ -19,6 +21,7 @@ MV_ROOT = os.environ.get(
     os.path.abspath(os.path.join(ROOT, "../../../../world-execute-me-lyric-mv")),
 )
 PORT = int(os.environ.get("PORT", "16339"))
+EDITOR_HOST = os.environ.get("EDITOR_HOST", "127.0.0.1")
 
 FILES = {
     "/": "editor-layout.html",
@@ -84,5 +87,5 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    print("serving on http://127.0.0.1:%d/editor (MV_ROOT=%s)" % (PORT, MV_ROOT), flush=True)
-    ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
+    print("serving on http://%s:%d/editor (MV_ROOT=%s)" % (EDITOR_HOST, PORT, MV_ROOT), flush=True)
+    ThreadingHTTPServer((EDITOR_HOST, PORT), Handler).serve_forever()

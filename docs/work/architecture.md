@@ -1,6 +1,6 @@
 # knowledge-show 系统架构与数据流
 
-> 本文描述已确定的**概念架构与仓库模块边界**。知识层已通过 PR #5 集成进 `main`；当前代码含 v0.3 脚本写作提示词和可选事件锚点契约，但没有脚本生成执行器、共享工作流或动画运行时。字段及类型由 `contracts/` 中的现行定义负责。
+> 本文描述已确定的**概念架构与仓库模块边界**。`main` 已包含 PR #5 知识层、PR #6 跨层脚本契约、PR #7 React 创作入口、PR #8 独立时间轴原型和 PR #9 视觉重构；当前仍没有脚本生成执行器、共享工作流或动画运行时。字段及类型由 `contracts/` 中的现行定义负责。
 
 ## 一、整体工作流
 
@@ -59,8 +59,8 @@ flowchart TD
 | `ProjectState` | 协调器 | `brief.user_input`、`brief.effective`、已选择方向、当前产物引用 | 各层共享用户意图和版本 |
 | `KnowledgePackage` | 知识层 | 候选、知识单元、证据、必要条件与限制 | 供脚本层选材与策划 |
 | `ProductionScript` | 脚本层 | 选定方向、时间线、可选关键事件锚点、文字及语义引用 | 指导动态场景实现 |
-| `AnimationManifest` | 动画层 | 动画片段、时间范围、脚本引用及资源索引 | 支持预览、修订和导出 |
-| `RevisionRequest` | 反馈发起方 / 协调器 | 修改目标、原版本、对象锚点、反馈与保留要求 | 定位问题并控制修订范围 |
+| `AnimationManifest` | 动画层 | 动画片段、时间范围、脚本引用、资源及可选元件 ID 索引 | 支持预览、定向修订和导出 |
+| `RevisionRequest` | 反馈发起方 / 协调器 | 修改目标、原版本、对象锚点（含渲染元件）、反馈与保留要求 | 定位问题并控制修订范围 |
 
 **权威字段与校验**：`contracts/schemas/`、`contracts/examples/`、`contracts/validate_contracts.py`；职责和引用语义见 `contracts/接口契约与协作规范.md`。这份文档不复制全部 Schema 字段。
 
@@ -80,8 +80,8 @@ flowchart TD
 | `frontend/src/features/creation/` | 需求表达与提交确认 | 独立前端已实现表单、偏好和确认，待接任务 API |
 | `frontend/src/features/landing/`、`progress/`、`settings/` | 品牌入口、阶段展示、会话连接设置 | 视觉骨架和显式流程演示已实现，真实连接与事件流待接入 |
 | `frontend/src/features/preview/` | 动态预览与产物查看 | 占位目录，真实媒体与工作台待实现 |
-| `frontend/src/features/revision/` | 用户反馈入口及修订结果呈现 | 占位目录 |
-| `frontend/src/animation/runtime/` | 动画播放、场景装配和渲染运行时 | 占位目录 |
+| `frontend/src/features/revision/` | 用户反馈入口及修订结果呈现 | 含独立 HTML 时间轴原型；不是 React 产品路由，仍用演示数据 |
+| `frontend/src/animation/runtime/` | 动画播放、场景装配和渲染运行时 | 占位目录；当前无真实预览与元件包围盒查询 |
 | `frontend/src/animation/scenes/` | 场景实现与必要复用 | 占位目录 |
 | `contracts/` | 独立于业务代码的机器契约和 Mock | 已建立 |
 
@@ -107,6 +107,6 @@ PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests/knowledge -q
 .venv/bin/python contracts/validate_contracts.py
 ```
 
-当前整合分支的 83 项知识层测试通过；契约脚本覆盖五类公开对象、十三种负例、非推荐方向、锚点类型与 Mock 消费关联。四份历史脚本通过 ProductionScript Schema。另以本机已发布知识包和固定 ProjectState / ProductionScript Mock 完成 16:9 版本引用 Smoke，未调用在线 API；它不代表真实脚本生成已接通。实际动画运行时尚未实现，因此播放是否命中锚点仍待运行时测试；契约校验也**不能代替事实核验、创意质量、脚本可看性或最终观感检查**。
+当前整合分支的 83 项知识层测试通过；契约脚本覆盖五类公开对象、可选元件索引、`render_element` 版本与 ID 校验、历史 Manifest 兼容和负例。四份历史脚本通过 ProductionScript Schema。另以本机已发布知识包和固定 ProjectState / ProductionScript Mock 完成 16:9 版本引用 Smoke，未调用在线 API；它不代表真实脚本生成已接通。实际动画运行时尚未实现，因此帧包围盒、高亮与锚点播放仍待运行时测试；契约校验也**不能代替事实核验、创意质量、脚本可看性或最终观感检查**。
 
 分工与协作规则见 `docs/work/目录结构与分工.md` 和 `docs/work/workflow.md`。

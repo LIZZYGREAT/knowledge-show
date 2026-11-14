@@ -9,6 +9,18 @@
   },
   "total_duration_ms": 150000,
   "preview_ref": "preview://P001/AM001/r1",
+  "selectable_elements": [
+    {
+      "id": "T01",
+      "source_ref": {
+        "kind": "timed_text",
+        "id": "T01"
+      }
+    },
+    {
+      "id": "EL_S01_BARRIER"
+    }
+  ],
   "clips": [
     {
       "clip_id": "C01",
