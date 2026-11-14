@@ -45,6 +45,43 @@
       "type": "string",
       "minLength": 1
     },
+    "selectable_elements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+          },
+          "source_ref": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "enum": [
+                  "timed_text",
+                  "script_event"
+                ]
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+              }
+            },
+            "required": [
+              "kind",
+              "id"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
     "clips": {
       "type": "array",
       "items": {

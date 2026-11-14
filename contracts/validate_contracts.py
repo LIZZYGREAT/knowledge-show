@@ -138,6 +138,17 @@ def check_links(objects):
                 check(event_map.get(id_)==sid,'internal event references foreign script event')
             clip_events[ev['id']]=clip['clip_id'];last=ev['offset_ms']
     check(cursor==am['total_duration_ms'],'clips do not cover whole animation')
+    selectable_elements=am.get('selectable_elements',[])
+    unique(selectable_elements,'id','selectable render element')
+    selectable_ids={element['id'] for element in selectable_elements}
+    for element in selectable_elements:
+        source=element.get('source_ref')
+        if not source:continue
+        if source['kind']=='timed_text':
+            check(source['id'] in text_map,f"selectable element {element['id']} references unknown timed_text")
+            check(element['id']==source['id'],'timed_text selectable element must reuse its source id')
+        elif source['kind']=='script_event':
+            check(source['id'] in event_map,f"selectable element {element['id']} references unknown script_event")
     anchor_points=[]
     for scene in scenes:
         for event in scene['events']:
@@ -163,6 +174,9 @@ def check_links(objects):
     for anchor in feedback['anchors']:
         kind=anchor['kind']
         if kind in ids:check(anchor['id'] in ids[kind],f'unknown feedback anchor {kind}')
+        if kind=='render_element':
+            check(feedback['target_artifact']['kind']=='animation_manifest','render_element anchor must target an animation_manifest')
+            check(anchor['id'] in selectable_ids,f'unknown feedback anchor {kind}')
         if kind=='time_range':
             check(anchor['start_ms']<anchor['end_ms']<=am['total_duration_ms'],'invalid feedback time range')
         if kind=='whole_artifact':check('id' not in anchor,'whole_artifact must not contain id')
@@ -180,6 +194,15 @@ def main():
       'stale upstream ref':lambda d:d['production-script']['knowledge_package_ref'].update(revision=2),
       'overridden explicit creative mode':lambda d:d['project-state']['brief']['effective'].update(creative_mode='story'),
       'unknown timed text anchor':lambda d:d['revision-request']['anchors'].append({'kind':'timed_text','id':'T_UNKNOWN'}),
+      'duplicate selectable element id':lambda d:d['animation-manifest']['selectable_elements'].append(copy.deepcopy(d['animation-manifest']['selectable_elements'][0])),
+      'invalid selectable element id':lambda d:d['animation-manifest']['selectable_elements'][0].update(id='caption:1'),
+      'unknown timed text source':lambda d:d['animation-manifest']['selectable_elements'][0]['source_ref'].update(id='T_UNKNOWN'),
+      'unknown script event source':lambda d:d['animation-manifest']['selectable_elements'][1].update(source_ref={'kind':'script_event','id':'EV_UNKNOWN'}),
+      'timed text source id must be reused':lambda d:d['animation-manifest']['selectable_elements'][0].update(id='T99'),
+      'render element anchor requires id':lambda d:d['revision-request']['anchors'][1].pop('id'),
+      'unknown render element anchor':lambda d:d['revision-request']['anchors'][1].update(id='EL_UNKNOWN'),
+      'render element target must be animation manifest':lambda d:(d['revision-request']['target_artifact'].update(kind='production_script',artifact_id='PS001')),
+      'render element target must use current manifest revision':lambda d:d['revision-request']['target_artifact'].update(revision=2),
       'bad status':lambda d:d['knowledge-package']['knowledge_units'][0].update(verification_status='maybe'),
       'invalid duration fit':lambda d:d['knowledge-package']['directions'][0]['duration_fit'].update(status='perfect'),
       'event anchor must be boolean':lambda d:d['production-script']['scenes'][2]['events'][1].update(anchor='true'),
@@ -204,6 +227,18 @@ def main():
     for scene in anchorless['production-script']['scenes']:
         for event in scene['events']:event.pop('anchor',None)
     check_schemas(anchorless);check_links(anchorless)
+    legacy_manifest=copy.deepcopy(originals)
+    legacy_manifest['animation-manifest'].pop('selectable_elements')
+    legacy_manifest['revision-request']['anchors']=[
+        anchor for anchor in legacy_manifest['revision-request']['anchors']
+        if anchor['kind']!='render_element'
+    ]
+    check_schemas(legacy_manifest);check_links(legacy_manifest)
+    event_sourced_element=copy.deepcopy(originals)
+    event_sourced_element['animation-manifest']['selectable_elements'][1]['source_ref']={
+        'kind':'script_event','id':'EV01'
+    }
+    check_schemas(event_sourced_element);check_links(event_sourced_element)
     explicit_false=copy.deepcopy(originals)
     explicit_false['production-script']['scenes'][2]['events'][1]['anchor']=False
     check_schemas(explicit_false);check_links(explicit_false)
@@ -229,7 +264,7 @@ def main():
         raise AssertionError('internal_review with blank details must fail')
     anchor_points=check_links(originals)
     check(bool(anchor_points),'linked example does not exercise an anchored event')
-    print('PASS: five schemas, five linked examples, cross-stage checks, thirteen negative cases, optional anchors, alternate direction')
+    print(f'PASS: five schemas, five linked examples, cross-stage checks, {len(negatives)+2} negative cases, legacy manifest compatibility, optional anchors, alternate direction')
     project,kp,script,_,_=(originals[x] for x in NAMES)
     summary=', '.join(f'{event_id}@{absolute_ms}ms' for _,event_id,absolute_ms in anchor_points)
     print(

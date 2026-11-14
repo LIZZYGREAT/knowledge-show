@@ -15,6 +15,10 @@
       "id": "C03"
     },
     {
+      "kind": "render_element",
+      "id": "EL_S01_BARRIER"
+    },
+    {
       "kind": "time_range",
       "start_ms": 27000,
       "end_ms": 33000
