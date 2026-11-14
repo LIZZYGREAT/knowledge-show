@@ -1,14 +1,22 @@
 import asyncio
+import json
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
 from knowledge.brief import build_brief
+from knowledge.llm_client import ModelOutputError
+from knowledge.models import Claim, ClaimEvidence, ClaimStatus
 from knowledge.mock_data import MockFixtureNotFound
 from knowledge.package import validate_knowledge_package
+from knowledge.research import stable_id
 from knowledge.search_client import FetchPage, SearchHit
-from knowledge.service import RunOptions, generate_knowledge_package
+from knowledge.service import (
+    RunOptions,
+    export_knowledge_package,
+    generate_knowledge_package,
+)
 from knowledge.store import ResearchStore
 
 
@@ -43,6 +51,31 @@ def test_mock_workflow_returns_valid_public_package_and_safe_events(tmp_path):
     assert len(store.list_run_events("P_TEST_KNOWLEDGE", run_id)) == len(events)
     assert (tmp_path / "exports" / f"{package['artifact_id']}-r1.json").is_file()
     assert (tmp_path / "exports" / f"{run_id}.json").is_file()
+    version_one = tmp_path / "exports" / f"{package['artifact_id']}-r1.json"
+    assert json.loads(version_one.read_text(encoding="utf-8")) == package
+
+    unchanged = asyncio.run(
+        generate_knowledge_package(
+            "P_TEST_KNOWLEDGE",
+            brief,
+            run_options=RunOptions(
+                mode="mock", store=store, export_dir=str(tmp_path / "exports")
+            ),
+        )
+    )
+    assert unchanged["revision"] == 1
+    revised = asyncio.run(
+        generate_knowledge_package(
+            "P_TEST_KNOWLEDGE",
+            build_brief({"topic": "生日悖论"}),
+            run_options=RunOptions(
+                mode="mock", store=store, export_dir=str(tmp_path / "exports")
+            ),
+        )
+    )
+    assert revised["revision"] == 2
+    assert version_one.is_file()
+    assert (tmp_path / "exports" / f"{package['artifact_id']}-r2.json").is_file()
     store.save_review("P_TEST_KNOWLEDGE", run_id, "usable", "候选主线清晰")
     assert store.get_run("P_TEST_KNOWLEDGE", run_id).human_note == "候选主线清晰"
 
@@ -67,6 +100,101 @@ def test_mock_unknown_topic_fails_without_a_package_and_reports_failure(tmp_path
     assert events[-1]["event_type"] == "failed"
     assert "离线 Mock" in events[-1]["error"]
     assert store.get_run("P_TEST_KNOWLEDGE", events[0]["run_id"]).status == "failed"
+
+
+def test_exported_package_version_is_immutable(tmp_path):
+    package = asyncio.run(
+        generate_knowledge_package(
+            "P_IMMUTABLE_EXPORT",
+            build_brief({"topic": "生日悖论"}),
+            run_options=RunOptions(
+                mode="mock",
+                store=ResearchStore(tmp_path / "knowledge.sqlite3"),
+                export_dir=str(tmp_path / "exports"),
+            ),
+        )
+    )
+    path = tmp_path / "exports" / f"{package['artifact_id']}-r1.json"
+    original = path.read_bytes()
+    conflict = {**package, "directions": [dict(package["directions"][0])]}
+    conflict["directions"][0]["title"] = "不同内容不应覆盖已发布版本"
+
+    with pytest.raises(FileExistsError, match="different content"):
+        export_knowledge_package(conflict, tmp_path / "exports")
+
+    assert path.read_bytes() == original
+    assert not list((tmp_path / "exports").glob("*.tmp"))
+
+
+def test_export_failure_does_not_publish_run_package_reference(tmp_path):
+    export_blocker = tmp_path / "not-a-directory"
+    export_blocker.write_text("block package export", encoding="utf-8")
+    events = []
+    store = ResearchStore(tmp_path / "knowledge.sqlite3")
+    with pytest.raises(FileExistsError):
+        asyncio.run(
+            generate_knowledge_package(
+                "P_EXPORT_FAILURE",
+                build_brief({"topic": "生日悖论"}),
+                on_event=events.append,
+                run_options=RunOptions(
+                    mode="mock", store=store, export_dir=str(export_blocker)
+                ),
+            )
+        )
+
+    failed = store.get_run("P_EXPORT_FAILURE", events[0]["run_id"])
+    assert failed.status == "failed"
+    assert failed.package_artifact_id is None
+    assert failed.package_revision is None
+    assert not any(
+        event["phase"] == "delivery" and event["event_type"] == "completed"
+        for event in events
+    )
+
+
+def test_failed_format_repair_records_model_calls_and_token_usage(tmp_path):
+    class MalformedClient:
+        def __init__(self):
+            self.calls = 0
+
+        async def generate_json(self, **kwargs):
+            self.calls += 1
+            raise ModelOutputError(
+                "invalid JSON",
+                raw_output="{",
+                usage={
+                    "input_tokens": self.calls,
+                    "output_tokens": 2,
+                    "total_tokens": self.calls + 2,
+                },
+            )
+
+    events = []
+    llm = MalformedClient()
+    with pytest.raises(ModelOutputError, match="invalid JSON"):
+        asyncio.run(
+            generate_knowledge_package(
+                "P_FORMAT_REPAIR_FAILURE",
+                build_brief({"topic": "a structured topic"}),
+                on_event=events.append,
+                run_options=RunOptions(
+                    mode="real",
+                    max_model_calls=2,
+                    clients={"llm": llm, "search": None},
+                    store=ResearchStore(tmp_path / "knowledge.sqlite3"),
+                    export_dir=str(tmp_path / "exports"),
+                ),
+            )
+        )
+
+    assert llm.calls == 2
+    failed = events[-1]
+    assert failed["event_type"] == "failed"
+    assert failed["stats"]["model_calls"] == 2
+    assert failed["stats"]["input_tokens"] == 3
+    assert failed["stats"]["output_tokens"] == 4
+    assert failed["stats"]["total_tokens"] == 7
 
 
 class FakeRoleClient:
@@ -120,6 +248,7 @@ class CreativeResearchLoopClient:
         self.calls = []
         self.research_calls = 0
         self.creative_calls = 0
+        self.creative_discoveries = []
 
     async def generate_json(self, *, role, **kwargs):
         self.calls.append(role)
@@ -140,7 +269,7 @@ class CreativeResearchLoopClient:
                         }
                     ],
                     "search_tasks": [],
-                    "discoveries": [],
+                    "discoveries": ["每增加一个人，新增的配对数量都会变化。"],
                 }
             else:
                 value = {
@@ -157,10 +286,14 @@ class CreativeResearchLoopClient:
                         }
                     ],
                     "search_tasks": [],
-                    "discoveries": [],
+                    "discoveries": [
+                        "每增加一个人，新增的配对数量都会变化。",
+                        "生日碰撞的机会来自多人之间的配对关系。",
+                    ],
                 }
         elif role == "creative":
             self.creative_calls += 1
+            self.creative_discoveries.append(kwargs["data"]["research_discoveries"])
             claims = [0] if self.creative_calls == 1 else [0, 1]
             value = {
                 "candidates": [
@@ -205,13 +338,21 @@ class CreativeResearchLoopClient:
 
 
 class VerifierRevisionClient:
-    def __init__(self, *, required_unsupported=False, problem_category="fact_problem", low_risk=False):
+    def __init__(
+        self,
+        *,
+        required_unsupported=False,
+        problem_category="fact_problem",
+        low_risk=False,
+        high_risk=False,
+    ):
         self.calls = []
         self.refinement_data = None
         self.creative_feedback = []
         self.required_unsupported = required_unsupported
         self.problem_category = problem_category
         self.low_risk = low_risk
+        self.high_risk = high_risk
         self.verifier_calls = 0
 
     async def generate_json(self, *, role, **kwargs):
@@ -230,9 +371,21 @@ class VerifierRevisionClient:
                         "derivation_steps": "There are two equiprobable outcomes, heads and tails.",
                     },
                     {
-                        "content": "A model-only claim without evidence.",
-                        "explanation": "No source or derivation is provided.",
-                        "conditions": [],
+                        "content": (
+                            "A dated experiment began in 1901."
+                            if self.high_risk
+                            else "A fair coin has two equally likely outcomes: heads and tails."
+                            if self.low_risk
+                            else "A model-only claim without evidence."
+                        ),
+                        "explanation": (
+                            "The historical date identifies when the experiment began."
+                            if self.high_risk
+                            else "This is the stable definition of a fair two-sided coin."
+                            if self.low_risk
+                            else "No source or derivation is provided."
+                        ),
+                        "conditions": ["The coin has heads and tails."] if self.low_risk else [],
                         "related_concepts": [],
                         "depends_on": [],
                         "provenance": "model_generated",
@@ -285,7 +438,12 @@ class VerifierRevisionClient:
                             risk_level="high",
                         )
                     elif self.low_risk:
-                        review["risk_level"] = "low"
+                        review.update(
+                            risk_level="low",
+                            concise_basis=(
+                                "The stable definition and stated condition agree with two equally likely outcomes."
+                            ),
+                        )
                 reviews.append(review)
             value = {
                 "reviews": reviews,
@@ -437,6 +595,7 @@ def test_real_workflow_with_injected_clients_returns_valid_package_without_netwo
                 allow_search=False,
                 clients={"llm": llm, "search": None},
                 store=store,
+                export_dir=str(tmp_path / "exports"),
             ),
         )
     )
@@ -468,6 +627,7 @@ def test_real_workflow_keeps_model_only_claims_unverified(tmp_path):
                     allow_search=False,
                     clients={"llm": FakeRoleClient(supported=False), "search": None},
                     store=ResearchStore(tmp_path / "model-only.sqlite3"),
+                    export_dir=str(tmp_path / "exports"),
                 ),
             )
         )
@@ -492,6 +652,7 @@ def test_high_risk_required_claim_gets_one_targeted_evidence_attempt(tmp_path):
                 max_model_calls=8,
                 clients={"llm": llm, "search": search},
                 store=ResearchStore(tmp_path / "knowledge.sqlite3"),
+                export_dir=str(tmp_path / "exports"),
             ),
         )
     )
@@ -520,6 +681,7 @@ def test_verifier_gap_gets_targeted_search_even_if_research_omits_search_task(tm
                 max_model_calls=8,
                 clients={"llm": llm, "search": search},
                 store=ResearchStore(tmp_path / "knowledge.sqlite3"),
+                export_dir=str(tmp_path / "exports"),
             ),
         )
     )
@@ -589,6 +751,7 @@ def test_unverified_optional_claim_does_not_trigger_creative_rewrite(tmp_path):
                 allow_search=False,
                 clients={"llm": llm, "search": None},
                 store=ResearchStore(tmp_path / "knowledge.sqlite3"),
+                export_dir=str(tmp_path / "exports"),
             ),
         )
     )
@@ -598,33 +761,102 @@ def test_unverified_optional_claim_does_not_trigger_creative_rewrite(tmp_path):
     assert len(package["knowledge_units"]) == 1
 
 
-def test_low_risk_claim_reports_contract_limit_without_retrying_or_faking_evidence(tmp_path):
+def test_low_risk_claim_with_specific_basis_delivers_internal_review(tmp_path):
     events = []
+    store = ResearchStore(tmp_path / "knowledge.sqlite3")
     llm = VerifierRevisionClient(
         required_unsupported=True, problem_category="none", low_risk=True
+    )
+    package = asyncio.run(
+        generate_knowledge_package(
+            "P_INTERNAL_REVIEW",
+            build_brief({"topic": "公平硬币的概率"}),
+            on_event=events.append,
+            run_options=RunOptions(
+                mode="real",
+                allow_search=False,
+                clients={"llm": llm, "search": None},
+                store=store,
+                export_dir=str(tmp_path / "exports"),
+            ),
+        )
+    )
+
+    internal = [item for item in package["evidence"] if item["kind"] == "internal_review"]
+    assert llm.calls == ["research", "creative", "verifier"]
+    assert len(internal) == 1
+    assert "definition" in internal[0]["details"]
+    assert package["constraints"]["required_knowledge_refs"] == []
+    claim_id = next(
+        unit["id"]
+        for unit in package["knowledge_units"]
+        if unit["content"].startswith("A fair coin has two equally likely outcomes: heads")
+    )
+    assert (
+        store.list_evidence("P_INTERNAL_REVIEW", claim_id=claim_id)[0].evidence_kind
+        == "internal_review"
+    )
+    assert events[-1]["event_type"] == "completed"
+
+
+def test_high_risk_claim_cannot_use_internal_review_even_with_low_risk_label(tmp_path):
+    events = []
+    store = ResearchStore(tmp_path / "knowledge.sqlite3")
+    project_id = "P_INTERNAL_REVIEW_HIGH_RISK"
+    high_risk_text = "A dated experiment began in 1901."
+    claim = store.save_claim(
+        Claim(
+            id=stable_id("CLM_", project_id, high_risk_text + "\0"),
+            project_id=project_id,
+            content=high_risk_text,
+            explanation="The historical date identifies when the experiment began.",
+            status=ClaimStatus.VERIFIED,
+        )
+    )
+    store.save_evidence(
+        ClaimEvidence(
+            id="EVD_INAPPROPRIATE_INTERNAL",
+            project_id=project_id,
+            claim_id=claim.id,
+            evidence_kind="internal_review",
+            internal_review_details=(
+                "The stable definition and stated condition agree with this result."
+            ),
+        )
+    )
+    llm = VerifierRevisionClient(
+        required_unsupported=True, problem_category="none", low_risk=True, high_risk=True
     )
     with pytest.raises(ValueError, match="No candidate direction"):
         asyncio.run(
             generate_knowledge_package(
-                "P_INTERNAL_REVIEW_LIMIT",
-                build_brief({"topic": "公平硬币的概率"}),
+                project_id,
+                build_brief({"topic": "a dated experiment"}),
                 on_event=events.append,
                 run_options=RunOptions(
                     mode="real",
                     allow_search=False,
                     clients={"llm": llm, "search": None},
-                    store=ResearchStore(tmp_path / "knowledge.sqlite3"),
+                    store=store,
+                    export_dir=str(tmp_path / "exports"),
                 ),
             )
         )
 
     assert llm.calls == ["research", "creative", "verifier"]
-    limitation = next(event for event in events if event.get("stats", {}).get("category") == "contract_limitation")
-    assert "没有可记录内部复核" in limitation["issue"]
+    issue = next(
+        event
+        for event in events
+        if event.get("stats", {}).get("category") == "needs_evidence"
+    )
+    assert "缺少来源或推导" in issue["issue"]
+    assert [
+        item.evidence_kind for item in store.list_evidence(project_id, claim_id=claim.id)
+    ] == ["internal_review"]
     assert events[-1]["event_type"] == "failed"
 
 
-def test_missing_api_key_is_reported_as_a_research_phase_failure(monkeypatch):
+def test_missing_api_key_is_reported_as_a_research_phase_failure(monkeypatch, tmp_path):
     import knowledge.service as service_module
     from knowledge.config import KnowledgeSettings
     from knowledge.llm_client import APIKeyMissingError
@@ -648,7 +880,11 @@ def test_missing_api_key_is_reported_as_a_research_phase_failure(monkeypatch):
                 "P_TEST_KNOWLEDGE",
                 build_brief({"topic": "生日悖论"}),
                 on_event=events.append,
-                run_options=RunOptions(mode="real"),
+                run_options=RunOptions(
+                    mode="real",
+                    store=ResearchStore(tmp_path / "knowledge.sqlite3"),
+                    export_dir=str(tmp_path / "exports"),
+                ),
             )
         )
 

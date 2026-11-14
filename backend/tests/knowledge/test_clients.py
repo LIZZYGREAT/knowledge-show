@@ -4,15 +4,23 @@ from types import SimpleNamespace
 
 import httpx
 import pytest
+from pydantic import BaseModel
 
 from knowledge.config import KnowledgeSettings, load_settings
-from knowledge.llm_client import APIKeyMissingError, DeepSeekClient
+from knowledge.llm_client import (
+    APIKeyMissingError,
+    DeepSeekClient,
+    ModelOutputError,
+    ModelResult,
+    generate_validated_json,
+)
 from knowledge.search_client import (
     DeepSeekSearchClient,
     FetchAPIError,
     SearchAPIError,
     normalize_url,
 )
+from knowledge.service import ModelCallBudget
 
 
 def settings(api_key="test-key"):
@@ -87,6 +95,176 @@ def test_responses_api_client_extracts_text_from_message_items():
     )
 
     assert result.value == {"answer": True}
+
+
+class _Answer(BaseModel):
+    answer: str
+
+
+def test_structured_output_syntax_error_gets_one_repair_and_aggregates_usage():
+    class Client:
+        def __init__(self):
+            self.outputs = [
+                ModelOutputError(
+                    "invalid JSON",
+                    raw_output="{",
+                    usage={"input_tokens": 2, "output_tokens": 3, "total_tokens": 5},
+                ),
+                ModelResult(
+                    {"answer": "fixed"},
+                    {"input_tokens": 7, "output_tokens": 11, "total_tokens": 18},
+                ),
+            ]
+            self.calls = []
+
+        async def generate_json(self, **kwargs):
+            self.calls.append(kwargs)
+            output = self.outputs.pop(0)
+            if isinstance(output, Exception):
+                raise output
+            return output
+
+    client = Client()
+    budget = ModelCallBudget(client, limit=2)
+    parsed, usage = asyncio.run(
+        generate_validated_json(
+            budget,
+            _Answer,
+            role="research",
+            prompt="Return one answer.",
+            data={"topic": "test"},
+        )
+    )
+
+    assert parsed.answer == "fixed"
+    assert len(client.calls) == budget.calls == 2
+    assert usage == budget.usage == {
+        "input_tokens": 9,
+        "output_tokens": 14,
+        "total_tokens": 23,
+    }
+    assert "untrusted data" in client.calls[1]["prompt"]
+    assert client.calls[1]["data"]["invalid_output"] == "{"
+
+
+def test_structured_output_field_error_gets_one_bounded_repair():
+    class Client:
+        def __init__(self):
+            self.calls = 0
+
+        async def generate_json(self, **kwargs):
+            self.calls += 1
+            value = {"other": "bad shape"} if self.calls == 1 else {"answer": "valid"}
+            return ModelResult(
+                value,
+                {"input_tokens": 1, "output_tokens": 2, "total_tokens": 3},
+            )
+
+    client = Client()
+    parsed, usage = asyncio.run(
+        generate_validated_json(
+            ModelCallBudget(client, limit=2),
+            _Answer,
+            role="creative",
+            prompt="Return the answer field.",
+            data={"topic": "test"},
+        )
+    )
+
+    assert parsed.answer == "valid"
+    assert client.calls == 2
+    assert usage["total_tokens"] == 6
+
+
+def test_structured_output_repair_respects_model_call_budget():
+    class Client:
+        def __init__(self):
+            self.calls = 0
+
+        async def generate_json(self, **kwargs):
+            self.calls += 1
+            return ModelResult(
+                {"other": "bad shape"},
+                {"input_tokens": 1, "output_tokens": 1, "total_tokens": 2},
+            )
+
+    client = Client()
+    budget = ModelCallBudget(client, limit=1)
+    with pytest.raises(RuntimeError, match=r"model-call limit \(1\)"):
+        asyncio.run(
+            generate_validated_json(
+                budget,
+                _Answer,
+                role="verifier",
+                prompt="Return an answer.",
+                data={"topic": "test"},
+            )
+        )
+
+    assert client.calls == budget.calls == 1
+    assert budget.usage["total_tokens"] == 2
+
+
+def test_failed_output_repair_keeps_token_usage_for_both_model_calls():
+    class Client:
+        def __init__(self):
+            self.calls = 0
+
+        async def generate_json(self, **kwargs):
+            self.calls += 1
+            raise ModelOutputError(
+                "invalid JSON",
+                raw_output="{",
+                usage={
+                    "input_tokens": self.calls,
+                    "output_tokens": 2,
+                    "total_tokens": self.calls + 2,
+                },
+            )
+
+    client = Client()
+    budget = ModelCallBudget(client, limit=2)
+    with pytest.raises(ModelOutputError, match="invalid JSON"):
+        asyncio.run(
+            generate_validated_json(
+                budget,
+                _Answer,
+                role="research",
+                prompt="Return an answer.",
+                data={"topic": "test"},
+            )
+        )
+
+    assert client.calls == budget.calls == 2
+    assert budget.usage == {
+        "input_tokens": 3,
+        "output_tokens": 4,
+        "total_tokens": 7,
+    }
+
+
+def test_http_failure_is_not_retried_as_output_repair():
+    class Client:
+        def __init__(self):
+            self.calls = 0
+
+        async def generate_json(self, **kwargs):
+            self.calls += 1
+            raise RuntimeError("DeepSeek request failed with HTTP 401")
+
+    client = Client()
+    with pytest.raises(RuntimeError, match="HTTP 401"):
+        asyncio.run(
+            generate_validated_json(
+                ModelCallBudget(client, limit=3),
+                _Answer,
+                role="research",
+                prompt="Return an answer.",
+                data={"topic": "test"},
+            )
+        )
+
+    assert client.calls == 1
 
 
 def test_search_parses_fields_and_deduplicates_urls():

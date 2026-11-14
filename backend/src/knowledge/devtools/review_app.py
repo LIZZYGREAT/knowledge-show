@@ -20,6 +20,7 @@ load_dotenv(ROOT / ".env")
 
 from knowledge.brief import build_brief  # noqa: E402
 from knowledge.config import load_settings  # noqa: E402
+from knowledge.mock_data import mock_topic_supported, supported_mock_topics  # noqa: E402
 from knowledge.service import (  # noqa: E402
     RunOptions,
     _safe_error,
@@ -29,7 +30,12 @@ from knowledge.service import (  # noqa: E402
 from knowledge.store import ResearchStore  # noqa: E402
 
 
-MODE_LABELS = {"离线 Mock": "mock", "Real API": "real"}
+MODE_LABELS = {
+    "离线示例体验": "mock",
+    "Mock": "mock",
+    "离线 Mock": "mock",
+    "Real API": "real",
+}
 CREATIVE_MODES = {
     "遵循默认": None,
     "创意优先": "creative",
@@ -69,7 +75,7 @@ def _stored_run_view(run: Any, store: ResearchStore) -> dict[str, Any]:
         "run_id": run.id,
         "project_id": run.project_id,
         "mode": run.mode,
-        "mode_label": "离线 Mock" if run.mode == "mock" else "Real API",
+        "mode_label": "离线示例体验" if run.mode == "mock" else "Real API",
         "started_at": run.started_at.isoformat(),
         "brief": brief,
         "events": events,
@@ -445,14 +451,29 @@ def main() -> None:
         st.session_state["selected_run_id"] = None
 
     developer_diagnostics = st.checkbox("显示开发者诊断", value=False)
+    settings = load_settings()
     if developer_diagnostics:
-        mode_label = st.radio("内部运行方式", list(MODE_LABELS), horizontal=True)
+        mode_label = st.radio("内部运行方式", ["Mock", "Real API"], horizontal=True)
     else:
-        mode_label = "离线 Mock"
+        mode_label = "Real API" if settings.api_key else "离线示例体验"
+
+    if mode_label == "Real API":
+        st.info("本次会使用在线模型生成，可能产生调用费用。点击生成前请确认。")
+        if not settings.api_key:
+            st.warning("当前没有配置在线模型密钥，请在仓库根目录 .env 中配置后重启页面。")
+    elif not developer_diagnostics:
+        st.info(
+            "当前为离线示例体验，只支持这些固定主题："
+            + "、".join(supported_mock_topics())
+            + "。配置在线模型密钥后可生成其他主题。"
+        )
 
     input_column, result_column = st.columns([1, 1.6], gap="large")
     with input_column:
         st.subheader("你想制作什么主题？")
+        fee_confirmed = True
+        if MODE_LABELS[mode_label] == "real":
+            fee_confirmed = st.checkbox("我已了解本次在线生成可能产生调用费用。")
         with st.form("knowledge_request"):
             topic = st.text_input("主题 *", value="生日悖论", max_chars=500)
             focus = st.text_input("具体方向（可选）", max_chars=500)
@@ -465,13 +486,26 @@ def main() -> None:
             creative_mode_notes = ""
             if creative_mode == "自定义":
                 creative_mode_notes = st.text_area("自定义模式说明 *", max_chars=1000)
-            submitted = st.form_submit_button("生成方向建议", type="primary", use_container_width=True)
+            submitted = st.form_submit_button(
+                "生成方向建议",
+                type="primary",
+                use_container_width=True,
+                disabled=not fee_confirmed or not settings.api_key
+                if MODE_LABELS[mode_label] == "real"
+                else False,
+            )
 
         if submitted:
             if not topic.strip():
                 st.error("请先填写主题。")
             elif creative_mode == "自定义" and not creative_mode_notes.strip():
                 st.error("自定义创作模式需要填写说明。")
+            elif MODE_LABELS[mode_label] == "mock" and not mock_topic_supported(topic):
+                st.warning(
+                    "这个主题没有对应的固定离线示例。可尝试："
+                    + "、".join(supported_mock_topics())
+                    + "；或配置在线模型后再生成。"
+                )
             else:
                 record = _run_user_input(
                     _build_user_input(
@@ -510,7 +544,21 @@ def main() -> None:
             selected = st.selectbox("历史运行", labels, index=0)
             selected_run = st.session_state["knowledge_runs"][labels.index(selected)]
             st.session_state["selected_run_id"] = selected_run["run_id"]
-            if st.button("再试一次", use_container_width=True):
+            retry_confirmed = True
+            if MODE_LABELS[mode_label] == "real":
+                retry_confirmed = st.checkbox(
+                    "我已了解再次在线生成可能产生调用费用。",
+                    key="knowledge_retry_fee_confirmation",
+                )
+            if st.button(
+                "再试一次",
+                use_container_width=True,
+                disabled=(
+                    not retry_confirmed or not settings.api_key
+                    if MODE_LABELS[mode_label] == "real"
+                    else False
+                ),
+            ):
                 record = _run_user_input(
                     selected_run["brief"]["user_input"],
                     mode_label,

@@ -7,9 +7,10 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field, ValidationError, field_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 
 from .config import KnowledgeSettings, load_settings
+from .llm_client import generate_validated_json
 from .models import Claim, ClaimEvidence, ClaimStatus, Provenance, ResearchTask, Source, TaskStatus
 from .search_client import DeepSeekSearchClient, SearchAPIError, SearchHit
 
@@ -138,8 +139,44 @@ class ResearchResult:
     open_issues: list[dict[str, str]] = field(default_factory=list)
     usage: list[dict[str, int]] = field(default_factory=list)
     summary: str = ""
+    discoveries: list[str] = field(default_factory=list)
     search_count: int = 0
     fetch_count: int = 0
+
+
+def _append_discoveries(target: list[str], discoveries: list[str | dict[str, Any]]) -> None:
+    seen = {item.casefold() for item in target}
+    text_keys = {
+        "observation",
+        "discovery",
+        "insight",
+        "description",
+        "content",
+        "finding",
+        "why_it_matters",
+        "why_surprising",
+        "现象",
+        "发现",
+        "启发",
+        "描述",
+    }
+    for item in discoveries:
+        if isinstance(item, str):
+            text = item.strip()
+        elif isinstance(item, dict):
+            parts = [
+                str(value).strip()
+                for key, value in item.items()
+                if key in text_keys and isinstance(value, str) and value.strip()
+            ]
+            text = "；".join(dict.fromkeys(parts))
+        else:
+            continue
+        text = " ".join(text.split())[:500]
+        key = text.casefold()
+        if text and key not in seen:
+            target.append(text)
+            seen.add(key)
 
 
 class ResearchAgent:
@@ -198,17 +235,16 @@ class ResearchAgent:
             '"derivation_steps":""}],"search_tasks":[{"question":"...","purpose":"...",'
             '"claim_indices":[]}],"discoveries":[]}. At most 8 claims and 2 focused search tasks.'
         )
-        initial = await self.llm.generate_json(
+        plan, initial_usage = await generate_validated_json(
+            self.llm,
+            ResearchPlan,
             role="research",
             prompt=prompt,
             data={"brief": brief, "prior_claims": prior_claims},
         )
-        try:
-            plan = ResearchPlan.model_validate(initial.value)
-        except ValidationError as exc:
-            raise ValueError(_validation_summary("Research", exc)) from exc
-        result.usage.append(initial.usage)
+        result.usage.append(initial_usage)
         result.summary = plan.summary
+        _append_discoveries(result.discoveries, plan.discoveries)
         result.claims, plan = await self._make_claims_with_dependency_repair(
             project_id, plan, result.usage
         )
@@ -324,7 +360,9 @@ class ResearchAgent:
                     if task.initiated_by == "verifier"
                     else ""
                 )
-                output = await self.llm.generate_json(
+                plan, followup_usage = await generate_validated_json(
+                    self.llm,
+                    ResearchPlan,
                     role="research",
                     prompt=(
                         task_priority
@@ -351,11 +389,8 @@ class ResearchAgent:
                         "prior_claims": prior_claims,
                     },
                 )
-                try:
-                    plan = ResearchPlan.model_validate(output.value)
-                except ValidationError as exc:
-                    raise ValueError(_validation_summary("Research follow-up", exc)) from exc
-                result.usage.append(output.usage)
+                result.usage.append(followup_usage)
+                _append_discoveries(result.discoveries, plan.discoveries)
                 new_claims, plan = await self._make_claims_with_dependency_repair(
                     project_id, plan, result.usage
                 )
@@ -461,7 +496,9 @@ class ResearchAgent:
             "progress",
             "Research 返回了无效的主张依赖索引，正在进行一次有界校正。",
         )
-        repair = await self.llm.generate_json(
+        corrected, repair_usage = await generate_validated_json(
+            self.llm,
+            ResearchPlan,
             role="research",
             prompt=(
                 "Correct only depends_on references in this research plan. Keep each claim's content, "
@@ -473,11 +510,7 @@ class ResearchAgent:
             ),
             data={"research_plan": plan.model_dump(mode="json"), "validation_error": message},
         )
-        usage.append(repair.usage)
-        try:
-            corrected = ResearchPlan.model_validate(repair.value)
-        except ValidationError as exc:
-            raise ValueError(_validation_summary("Research dependency correction", exc)) from exc
+        usage.append(repair_usage)
         if len(corrected.claims) != len(plan.claims) or any(
             original.model_dump(exclude={"depends_on"})
             != revised.model_dump(exclude={"depends_on"})
@@ -786,6 +819,13 @@ class ResearchAgent:
                 "title": "可复核推导",
                 "details": evidence.derivation_steps,
             }
+        if evidence.evidence_kind == "internal_review":
+            return {
+                "id": evidence.id,
+                "kind": "internal_review",
+                "title": "内部轻量核查",
+                "details": evidence.internal_review_details,
+            }
         return {
             "id": evidence.id,
             "kind": "user_material",
@@ -804,7 +844,9 @@ class ResearchAgent:
             }
             for source in result.sources
         ]
-        review_result = await self.llm.generate_json(
+        reviewed, review_usage = await generate_validated_json(
+            self.llm,
+            SourceReview,
             role="research",
             prompt=(
                 "For each initial claim, check whether an actual fetched source directly supports it, "
@@ -820,11 +862,7 @@ class ResearchAgent:
                 "source_pages": source_blocks,
             },
         )
-        try:
-            reviewed = SourceReview.model_validate(review_result.value)
-        except ValidationError as exc:
-            raise ValueError(_validation_summary("Research source review", exc)) from exc
-        result.usage.append(review_result.usage)
+        result.usage.append(review_usage)
         for review in reviewed.reviews:
             if review.claim_index >= len(result.claims) or review.source_index >= len(result.sources):
                 continue
@@ -936,13 +974,3 @@ def _dependency_index(
     ):
         return candidates[0][1]
     raise ValueError(f"Research dependency label could not be matched: {reference[:80]}")
-
-
-def _validation_summary(role: str, error: ValidationError) -> str:
-    details = error.errors(include_input=False)[:5]
-    brief = "; ".join(
-        f"{'.'.join(map(str, item['loc']))}: {item['msg']}" for item in details
-    )
-    remainder = max(0, error.error_count() - len(details))
-    suffix = f" (and {remainder} more shape errors)" if remainder else ""
-    return f"{role} response shape did not match the required fields: {brief}{suffix}"

@@ -5,8 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Literal
 
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, model_validator
 
+from .llm_client import generate_validated_json
 from .models import CreativeLead, ResearchTask
 from .research import ResearchResult, stable_id
 
@@ -155,6 +156,7 @@ class CreativeAgent:
                 for task in research.tasks
                 if task.status.value == "open"
             ],
+            "research_discoveries": list(research.discoveries),
         }
         if existing is not None:
             data["existing_directions"] = [
@@ -196,6 +198,11 @@ class CreativeAgent:
             "as a boolean. Do not include IDs. Research task fields are question, purpose, "
             "claim_indices, and candidate_index."
         )
+        prompt += (
+            " Research discoveries are heuristic creative leads, not independently verified facts. "
+            "Use them to notice possible surprises or causal arcs, but anchor every factual direction "
+            "in the supplied claims and do not cite a discovery unless its linked claim supports it."
+        )
         if existing is not None:
             prompt += (
                 " Exact top-level JSON keys: candidates, research_tasks, summary. Each candidate must "
@@ -205,15 +212,13 @@ class CreativeAgent:
                 "Use only claim indices supplied in the data. Mark exactly one candidate recommended. "
                 "When no further task is warranted, return research_tasks as an empty array."
             )
-        output = await self.llm.generate_json(
+        parsed, _usage = await generate_validated_json(
+            self.llm,
+            CreativeOutput,
             role="creative",
             prompt=prompt,
             data=data,
         )
-        try:
-            parsed = CreativeOutput.model_validate(output.value)
-        except ValidationError as exc:
-            raise ValueError(_validation_summary(exc)) from exc
         leads: list[CreativeLead] = []
         for candidate in parsed.candidates:
             self._validate_indices(candidate.claim_indices, len(research.claims), "candidate")
@@ -272,7 +277,7 @@ class CreativeAgent:
             candidates=parsed.candidates,
             leads=leads,
             research_tasks=tasks,
-            usage=output.usage,
+            usage=_usage,
             summary=parsed.summary,
         )
 
@@ -339,13 +344,3 @@ def _visual_level(value: str) -> str:
     if any(marker in text for marker in ("中等", "适中", "medium", "moderate")):
         return "medium"
     return "unknown"
-
-
-def _validation_summary(error: ValidationError) -> str:
-    details = error.errors(include_input=False)[:5]
-    brief = "; ".join(
-        f"{'.'.join(map(str, item['loc']))}: {item['msg']}" for item in details
-    )
-    remainder = max(0, error.error_count() - len(details))
-    suffix = f" (and {remainder} more shape errors)" if remainder else ""
-    return f"Creative response shape did not match the required fields: {brief}{suffix}"

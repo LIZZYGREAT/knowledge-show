@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 
+import pytest
+
 from knowledge.models import (
     Claim,
     ClaimEvidence,
@@ -100,6 +102,50 @@ def test_store_keeps_claim_evidence_and_dependency_retrieval_project_scoped(tmp_
     assert retrieved["evidence"] == [evidence]
     assert [item.id for item in store.get_related_claims(claim.id, project_id="P_ALPHA")] == [prerequisite.id]
     assert store.get_claim_and_evidence(claim.id, project_id="P_BETA") is None
+
+
+def test_internal_review_evidence_is_project_scoped(tmp_path):
+    store = _store(tmp_path)
+    claim = store.save_claim(
+        Claim(
+            id="CLM_INTERNAL",
+            project_id="P_ALPHA",
+            content="A standard six-sided die has six faces.",
+            status=ClaimStatus.VERIFIED,
+        )
+    )
+    evidence = store.save_evidence(
+        ClaimEvidence(
+            id="EVD_INTERNAL",
+            project_id="P_ALPHA",
+            claim_id=claim.id,
+            evidence_kind="internal_review",
+            internal_review_details="The stable definition and stated face count agree.",
+        )
+    )
+
+    assert store.list_evidence("P_ALPHA", claim_id=claim.id) == [evidence]
+    assert store.list_evidence("P_BETA", claim_id=claim.id) == []
+
+
+def test_internal_review_requires_specific_details_and_cannot_claim_external_basis():
+    base = {
+        "id": "EVD_INTERNAL",
+        "project_id": "P_ALPHA",
+        "claim_id": "CLM_INTERNAL",
+        "evidence_kind": "internal_review",
+    }
+    with pytest.raises(ValueError, match="requires concrete review details"):
+        ClaimEvidence.model_validate(base)
+
+    with pytest.raises(ValueError, match="cannot claim a source or derivation"):
+        ClaimEvidence.model_validate(
+            {
+                **base,
+                "internal_review_details": "The stable definition is consistent.",
+                "locator": "https://example.org",
+            }
+        )
 
 
 def test_store_deduplicates_tasks_and_filters_open_tasks(tmp_path):

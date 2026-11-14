@@ -34,7 +34,8 @@
       "knowledge_refs": [
         "K01",
         "K03",
-        "K04"
+        "K04",
+        "K06"
       ],
       "visual_potential": {
         "level": "high",
@@ -116,6 +117,17 @@
       ]
     },
     {
+      "id": "K06",
+      "type": "fact",
+      "content": "标准六面骰有六个面。",
+      "explanation": "这是“六面骰”这一名称对应的基本定义。",
+      "importance": "supporting",
+      "verification_status": "verified",
+      "evidence_refs": [
+        "E03"
+      ]
+    },
+    {
       "id": "K05",
       "type": "example",
       "content": "某个尚未核实的历史骰子故事可能用于创意延伸。",
@@ -137,13 +149,16 @@
       "kind": "mathematical_derivation",
       "title": "大数定律的简单应用",
       "details": "令 X_i 表示第 i 次投掷点数和为某值的指标变量，独立同分布时样本均值依概率收敛到期望。"
+    },
+    {
+      "id": "E03",
+      "kind": "internal_review",
+      "title": "内部轻量核查",
+      "details": "按六面骰的基本定义检查名称与面数一致。"
     }
   ],
   "constraints": {
     "required_knowledge_refs": [],
-    "must_not_misrepresent": [
-      "不要把点数和 2 至 12 描述为等概率。",
-      "如果使用 36 个等可能结果，需保留公平且独立的前提。"
-    ]
+    "must_not_misrepresent": []
   }
 }

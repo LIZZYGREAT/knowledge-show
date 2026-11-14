@@ -259,7 +259,8 @@
             "enum": [
               "external_source",
               "mathematical_derivation",
-              "user_material"
+              "user_material",
+              "internal_review"
             ]
           },
           "title": {
@@ -304,6 +305,23 @@
               "properties": {
                 "kind": {
                   "const": "mathematical_derivation"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            },
+            "then": {
+              "required": [
+                "details"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "internal_review"
                 }
               },
               "required": [

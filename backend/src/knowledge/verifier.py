@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Any, Literal
 
@@ -16,6 +17,7 @@ from pydantic import (
 )
 
 from .models import Claim, ClaimEvidence, ClaimStatus, Issue
+from .llm_client import generate_validated_json
 from .research import ResearchResult, stable_id
 from .creative import CreativeResult
 
@@ -130,7 +132,9 @@ class VerifierAgent:
                 )
             }
         )
-        output = await self.llm.generate_json(
+        parsed, usage = await generate_validated_json(
+            self.llm,
+            VerifierOutput,
             role="verifier",
             prompt=(
                 "Review each numbered claim that a candidate depends on. Check the conditions, "
@@ -142,7 +146,9 @@ class VerifierAgent:
                 "claims carrying the core causal explanation need actual evidence or a reproducible "
                 "derivation. For every supplied claim return decision pass, revise, or block; category "
                 "none, fact_problem, needs_evidence, or minor_or_optional; risk_level low, medium, or "
-                "high; plus a concrete issue and smallest correction when needed. Use fact_problem for "
+                "high; plus a concrete issue and smallest correction when needed. Include concise_basis "
+                "for every low-risk pass: name the applicable stable definition or basic mechanism and "
+                "the specific internal consistency check, not just 'the model confirms it'. Use fact_problem for "
                 "incorrect or misleading content, needs_evidence for an important unresolved claim, and "
                 "minor_or_optional for a detail that can be removed without changing the core direction. "
                 "Do not report private chain-of-thought. Return JSON with reviews and summary."
@@ -168,7 +174,6 @@ class VerifierAgent:
                 ],
             },
         )
-        parsed = _parse_output(output.value)
         reviews = {review.claim_index: review for review in parsed.reviews}
         if len(reviews) != len(parsed.reviews):
             raise ValueError("Verifier returned duplicate claim review indices")
@@ -182,7 +187,12 @@ class VerifierAgent:
             review = reviews.get(index)
             evidence = research.evidence_by_claim.get(claim.id, [])
             has_support = any(
-                item.claim_id == claim.id and item.relation == "supports"
+                item.claim_id == claim.id
+                and item.relation == "supports"
+                and (
+                    item.evidence_kind != "internal_review"
+                    or not _requires_external_evidence(claim)
+                )
                 for item in research.internal_evidence
             )
             has_conflict = any(
@@ -227,10 +237,31 @@ class VerifierAgent:
                 decision = "revise"
             elif not has_support:
                 risk_level = review.risk_level
-                category = "contract_limitation" if risk_level == "low" else "needs_evidence"
-                issue_text = _category_issue(category)
-                recommendation = _category_recommendation(category)
-                decision = "revise"
+                review_details = review.concise_basis.strip()
+                if (
+                    review.decision == "pass"
+                    and review.category == "none"
+                    and risk_level == "low"
+                    and _internal_review_is_specific(review_details)
+                    and not _requires_external_evidence(claim)
+                ):
+                    public_evidence, internal_evidence = _internal_review_evidence(
+                        project_id, claim, review_details
+                    )
+                    research.evidence_by_claim.setdefault(claim.id, []).append(
+                        public_evidence
+                    )
+                    research.internal_evidence.append(internal_evidence)
+                    claim.status = ClaimStatus.VERIFIED
+                    category = "none"
+                    issue_text = ""
+                    recommendation = ""
+                    decision = "pass"
+                else:
+                    category = "needs_evidence"
+                    issue_text = "重要主张缺少来源或推导，或内部轻量核查说明不足。"
+                    recommendation = _category_recommendation(category)
+                    decision = "revise"
             else:
                 category = "none"
                 risk_level = review.risk_level
@@ -305,6 +336,8 @@ class VerifierAgent:
 
         if self.store is not None:
             self.store.save_claims(claims)
+            for evidence in research.internal_evidence:
+                self.store.save_evidence(evidence)
             for issue in issues:
                 self.store.save_issue(issue)
 
@@ -316,7 +349,7 @@ class VerifierAgent:
             claims=claims,
             issues=issues,
             public_issues=public_issues,
-            usage=output.usage,
+            usage=usage,
             summary=parsed.summary,
         )
 
@@ -373,6 +406,63 @@ def _category_recommendation(category: str) -> str:
             "补充可复核的推导或实际来源；共享契约获批前，不把内部复核伪装成公开证据。"
         ),
     }.get(category, "保留为待核验材料，不将其作为已核实知识交付。")
+
+
+def _requires_external_evidence(claim: Claim) -> bool:
+    text = f"{claim.content} {claim.explanation} {' '.join(claim.conditions)}".casefold()
+    if re.search(r"\b(?:16|17|18|19|20)\d{2}\b", text):
+        return True
+    if re.search(
+        r"\d[\d,.]*\s*(?:%|％|°|℃|°c|km|m/s|kg|吨|秒|分钟|小时|年|万人|亿元)",
+        text,
+    ):
+        return True
+    return any(
+        marker in text
+        for marker in (
+            "experiment", "measured", "measurement", "survey", "study finds",
+            "research shows", "latest", "current", "disputed", "causal", "causes",
+            "because", "therefore", "实验", "测量", "观测", "调查", "研究发现",
+            "最新", "目前", "历史事件", "争议", "统计数据", "因果", "导致", "造成",
+        )
+    )
+
+
+def _internal_review_is_specific(details: str) -> bool:
+    normalized = " ".join(details.casefold().split())
+    has_check_basis = any(
+        marker in normalized
+        for marker in (
+            "definition", "condition", "consistency", "logic", "basic mechanism",
+            "定义", "条件", "一致性", "逻辑", "基本机制", "适用范围", "构成",
+        )
+    )
+    is_generic_confirmation = normalized in {
+        "checked", "verified", "the model confirms it", "已检查", "模型确认正确", "核查通过"
+    }
+    return len(normalized) >= 16 and has_check_basis and not is_generic_confirmation
+
+
+def _internal_review_evidence(
+    project_id: str, claim: Claim, details: str
+) -> tuple[dict[str, Any], ClaimEvidence]:
+    details = details.strip()
+    evidence_id = stable_id("EVD_", project_id, f"{claim.id}:internal-review:{details}")
+    public = {
+        "id": evidence_id,
+        "kind": "internal_review",
+        "title": "内部轻量核查",
+        "details": details,
+    }
+    internal = ClaimEvidence(
+        id=evidence_id,
+        project_id=project_id,
+        claim_id=claim.id,
+        evidence_kind="internal_review",
+        internal_review_details=details,
+        relation="supports",
+    )
+    return public, internal
 
 
 def _parse_output(value: Any) -> VerifierOutput:

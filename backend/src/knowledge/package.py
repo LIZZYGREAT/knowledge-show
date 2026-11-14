@@ -59,6 +59,13 @@ def validate_knowledge_package(package: dict[str, Any]) -> None:
                     f"direction {direction['id']} references non-verified knowledge unit {reference}"
                 )
 
+    required_refs = set(package["constraints"]["required_knowledge_refs"])
+    for direction in directions:
+        if not required_refs.issubset(direction["knowledge_refs"]):
+            raise PackageValidationError(
+                f"required_knowledge_refs must be available in every direction; {direction['id']} is missing a required unit"
+            )
+
     for unit in units:
         for reference in unit["evidence_refs"]:
             if reference not in evidence_by_id:
@@ -119,7 +126,11 @@ def assemble_knowledge_package(
         recommended = eligible[0]
 
     selected_claim_ids: set[str] = set()
-    required_ids = [verification.claims[index].id for index in recommended[2]]
+    core_ids = {
+        verification.claims[index].id
+        for _, _, required_indices in eligible
+        for index in required_indices
+    }
     for _, indices, _ in eligible:
         selected_claim_ids.update(verification.claims[index].id for index in indices)
     _add_dependencies(selected_claim_ids, claims_by_id)
@@ -143,7 +154,7 @@ def assemble_knowledge_package(
                 "type": _knowledge_type(claim),
                 "content": claim.content,
                 "explanation": claim.explanation or claim.content,
-                "importance": _importance(claim, required_ids),
+                "importance": _importance(claim, core_ids),
                 "verification_status": "verified",
                 "depends_on": [
                     dependency for dependency in claim.depends_on
@@ -175,14 +186,6 @@ def assemble_knowledge_package(
             )
         directions.append(direction)
 
-    required_ids = [reference for reference in required_ids if reference in selected_claim_ids]
-    must_not_misrepresent = list(
-        dict.fromkeys(
-            condition
-            for reference in required_ids
-            for condition in claims_by_id[reference].conditions
-        )
-    )
     package = {
         "project_id": project_id,
         "artifact_id": artifact_id or _default_artifact_id(project_id),
@@ -197,8 +200,8 @@ def assemble_knowledge_package(
         "knowledge_units": knowledge_units,
         "evidence": list(package_evidence.values()),
         "constraints": {
-            "required_knowledge_refs": required_ids,
-            "must_not_misrepresent": must_not_misrepresent,
+            "required_knowledge_refs": [],
+            "must_not_misrepresent": [],
         },
     }
     validate_knowledge_package(package)
@@ -233,8 +236,8 @@ def _knowledge_type(claim: Claim) -> str:
     return "fact"
 
 
-def _importance(claim: Claim, required_ids: list[str]) -> str:
-    if claim.id in required_ids:
+def _importance(claim: Claim, core_ids: set[str]) -> str:
+    if claim.id in core_ids:
         return "core"
     return "supporting"
 

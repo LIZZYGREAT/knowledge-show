@@ -23,15 +23,21 @@ _FIXTURE_BY_ALIAS = {
     "两个骰子": "dice.json",
     "点数和": "dice.json",
 }
+_SUPPORTED_TOPICS = tuple(_FIXTURE_BY_ALIAS)
+
+
+def mock_topic_supported(topic: str) -> bool:
+    """Return whether the fixed offline library has an exact topic example."""
+    return topic.strip().casefold() in {alias.casefold() for alias in _SUPPORTED_TOPICS}
+
+
+def supported_mock_topics() -> tuple[str, ...]:
+    return ("生日悖论", "Attention", "两个骰子")
 
 
 def make_mock_package(project_id: str, brief: dict[str, Any]) -> dict[str, Any]:
     topic = brief["user_input"]["topic"].strip()
-    normalized = topic.casefold()
-    filename = next(
-        (name for alias, name in _FIXTURE_BY_ALIAS.items() if alias.casefold() in normalized),
-        None,
-    )
+    filename = _FIXTURE_BY_ALIAS.get(topic.casefold())
     if filename is None:
         supported = "、".join(("生日悖论", "Attention", "两个骰子"))
         raise MockFixtureNotFound(

@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from enum import StrEnum
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class InternalRecord(BaseModel):
@@ -78,12 +78,24 @@ class ClaimEvidence(InternalRecord):
     id: str
     project_id: str
     claim_id: str
-    evidence_kind: str = Field(pattern="^(external_source|mathematical_derivation|user_material)$")
+    evidence_kind: str = Field(
+        pattern="^(external_source|mathematical_derivation|user_material|internal_review)$"
+    )
     source_id: str | None = None
     locator: str | None = None
     excerpt: str = ""
     derivation_steps: str = ""
+    internal_review_details: str = Field(default="", max_length=1000)
     relation: str = Field(default="supports", pattern="^(supports|partially_supports|conflicts)$")
+
+    @model_validator(mode="after")
+    def validate_internal_review(self) -> "ClaimEvidence":
+        if self.evidence_kind == "internal_review":
+            if not self.internal_review_details.strip():
+                raise ValueError("internal_review evidence requires concrete review details")
+            if self.source_id or self.locator or self.excerpt or self.derivation_steps:
+                raise ValueError("internal_review evidence cannot claim a source or derivation")
+        return self
 
 
 class CreativeLead(InternalRecord):

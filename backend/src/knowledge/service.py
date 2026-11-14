@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import inspect
 import json
+import os
 import re
+import tempfile
 import time
 import uuid
 from dataclasses import dataclass, replace
@@ -15,7 +17,7 @@ from typing import Any, Callable
 from .brief import validate_brief
 from .creative import CreativeAgent
 from .config import load_settings
-from .llm_client import DeepSeekClient
+from .llm_client import DeepSeekClient, ModelOutputError
 from .mock_data import make_mock_package
 from .models import ResearchTask, Run, RunEvent
 from .package import assemble_knowledge_package, validate_knowledge_package
@@ -53,12 +55,19 @@ class ModelCallBudget:
         self.client = client
         self.limit = limit
         self.calls = 0
+        self.usage = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
 
     async def generate_json(self, **kwargs: Any) -> Any:
         if self.calls >= self.limit:
             raise RuntimeError(f"Run stopped at its configured model-call limit ({self.limit}).")
         self.calls += 1
-        return await self.client.generate_json(**kwargs)
+        try:
+            result = await self.client.generate_json(**kwargs)
+        except ModelOutputError as exc:
+            self.usage = _sum_usage(self.usage, exc.usage)
+            raise
+        self.usage = _sum_usage(self.usage, result.usage)
+        return result
 
 
 async def _notify(callback: Callable[[dict[str, Any]], Any] | None, event: dict[str, Any]) -> None:
@@ -209,7 +218,6 @@ async def generate_knowledge_package(
                 llm, on_event=emit, run_id=run_id, store=store
             )
             creative = await creative_agent.propose(project_id, brief, research)
-            creative_usage = dict(creative.usage)
             if creative.research_tasks:
                 current_phase = "research"
                 resolved = await research_agent.resolve_creative_tasks(
@@ -227,11 +235,9 @@ async def generate_knowledge_package(
                         existing=creative,
                         resolved_tasks=completed_tasks,
                     )
-                    creative_usage = _sum_usage(creative_usage, creative.usage)
             verifier_agent = VerifierAgent(llm, on_event=emit, run_id=run_id, store=store)
             current_phase = "verifier"
             verification = await verifier_agent.verify(project_id, research, creative)
-            verification_usage = dict(verification.usage)
 
             if not _has_eligible_candidate(creative, verification):
                 evidence_gap = _recommended_evidence_gap(creative, verification)
@@ -259,9 +265,6 @@ async def generate_knowledge_package(
                         verification = await verifier_agent.verify(
                             project_id, research, creative
                         )
-                        verification_usage = _sum_usage(
-                            verification_usage, verification.usage
-                        )
 
             if (
                 not _has_eligible_candidate(creative, verification)
@@ -276,10 +279,8 @@ async def generate_knowledge_package(
                     existing=creative,
                     verification_feedback=feedback,
                 )
-                creative_usage = _sum_usage(creative_usage, creative.usage)
                 current_phase = "verifier"
                 verification = await verifier_agent.verify(project_id, research, creative)
-                verification_usage = _sum_usage(verification_usage, verification.usage)
             for issue in [
                 *[
                     {
@@ -307,12 +308,9 @@ async def generate_knowledge_package(
                 )
             current_phase = "delivery"
             package = assemble_knowledge_package(project_id, brief, research, creative, verification)
-            token_usage = {
-                field: sum(item.get(field, 0) for item in research.usage)
-                + creative_usage.get(field, 0)
-                + verification_usage.get(field, 0)
-                for field in ("input_tokens", "output_tokens", "total_tokens")
-            }
+            # The budget wrapper sees every model response, including malformed outputs
+            # that needed a bounded repair or ultimately failed validation.
+            token_usage = dict(llm.usage)
             run_stats = {
                 "mode": "real",
                 "model_calls": llm.calls,
@@ -329,6 +327,9 @@ async def generate_knowledge_package(
         validate_knowledge_package(package)
         package = store.save_package(package)
         validate_knowledge_package(package)
+        # The file is the handoff boundary. A run cannot publish its ArtifactRef
+        # until the exact immutable version can be read back and validated.
+        export_knowledge_package(package, settings.export_dir)
         run.status = "completed"
         run.completed_at = datetime.now(timezone.utc)
         run.package_artifact_id = package["artifact_id"]
@@ -348,7 +349,12 @@ async def generate_knowledge_package(
                 },
             }
         )
-        export_run_artifacts(store, run, settings.export_dir)
+        try:
+            export_run_artifacts(store, run, settings.export_dir)
+        except OSError:
+            # The KnowledgePackage version is already durable; run diagnostics are
+            # supplementary and must not invalidate an available handoff artifact.
+            pass
         return package
     except Exception as exc:
         run.status = "failed"
@@ -361,7 +367,11 @@ async def generate_knowledge_package(
                     "event_type": "failed",
                     "summary": f"知识层在 {current_phase} 阶段未形成正式知识包。",
                     "elapsed_ms": round((time.monotonic() - started) * 1000),
-                    "stats": {"mode": options.mode, "model_calls": llm.calls if llm else 0},
+                    "stats": {
+                        "mode": options.mode,
+                        "model_calls": llm.calls if llm else 0,
+                        **(llm.usage if llm else {}),
+                    },
                     "error": _safe_error(exc),
                 }
             )
@@ -498,10 +508,7 @@ def export_run_artifacts(
             run.project_id, run.package_artifact_id, revision=run.package_revision
         )
         if package is not None:
-            package_path = folder / f"{run.package_artifact_id}-r{run.package_revision}.json"
-            package_path.write_text(
-                json.dumps(package, ensure_ascii=False, indent=2), encoding="utf-8"
-            )
+            package_path = export_knowledge_package(package, folder)
             written.append(package_path)
     summary = {
         "run": run.model_dump(mode="json"),
@@ -511,6 +518,79 @@ def export_run_artifacts(
         ],
     }
     summary_path = folder / f"{run.id}.json"
-    summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+    _write_json_atomically(summary_path, summary)
     written.append(summary_path)
     return written
+
+
+def export_knowledge_package(
+    package: dict[str, Any], export_dir: str | Path
+) -> Path:
+    """Atomically publish one immutable, validated KnowledgePackage version."""
+    validate_knowledge_package(package)
+    folder = Path(export_dir)
+    folder.mkdir(parents=True, exist_ok=True)
+    target = folder / f"{package['artifact_id']}-r{package['revision']}.json"
+    expected = json.dumps(package, ensure_ascii=False, indent=2).encode("utf-8")
+
+    if target.exists():
+        _assert_existing_package(target, package)
+        return target
+
+    temporary = _write_temporary(folder, target.name, expected)
+    try:
+        try:
+            # A same-directory hard link is atomic and fails rather than replacing
+            # an already-published immutable revision.
+            os.link(temporary, target)
+        except FileExistsError:
+            _assert_existing_package(target, package)
+        _readback_package(target, package)
+        return target
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def _assert_existing_package(path: Path, expected: dict[str, Any]) -> None:
+    try:
+        existing = json.loads(path.read_text(encoding="utf-8"))
+        validate_knowledge_package(existing)
+    except (OSError, json.JSONDecodeError, ValueError) as exc:
+        raise ValueError(f"Published KnowledgePackage version is unreadable: {path.name}") from exc
+    if existing != expected:
+        raise FileExistsError(
+            f"KnowledgePackage version {path.name} already exists with different content"
+        )
+
+
+def _readback_package(path: Path, expected: dict[str, Any]) -> None:
+    try:
+        published = json.loads(path.read_text(encoding="utf-8"))
+        validate_knowledge_package(published)
+    except (OSError, json.JSONDecodeError, ValueError) as exc:
+        raise ValueError(f"KnowledgePackage export failed readback validation: {path.name}") from exc
+    if published != expected:
+        raise ValueError(f"KnowledgePackage export changed during publication: {path.name}")
+
+
+def _write_temporary(folder: Path, filename: str, content: bytes) -> Path:
+    descriptor, name = tempfile.mkstemp(prefix=f".{filename}.", suffix=".tmp", dir=folder)
+    temporary = Path(name)
+    try:
+        with os.fdopen(descriptor, "wb") as handle:
+            handle.write(content)
+            handle.flush()
+            os.fsync(handle.fileno())
+    except Exception:
+        temporary.unlink(missing_ok=True)
+        raise
+    return temporary
+
+
+def _write_json_atomically(path: Path, data: dict[str, Any]) -> None:
+    encoded = json.dumps(data, ensure_ascii=False, indent=2).encode("utf-8")
+    temporary = _write_temporary(path.parent, path.name, encoded)
+    try:
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)

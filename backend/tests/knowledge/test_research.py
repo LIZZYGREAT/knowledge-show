@@ -208,6 +208,84 @@ def test_research_reuses_verified_internal_claims_and_cached_source(tmp_path):
     assert result.fetch_count == 0
 
 
+def test_research_reuses_cached_internal_review_for_same_claim(tmp_path):
+    project_id = "P_INTERNAL_REVIEW_CACHE"
+    settings = KnowledgeSettings(
+        api_key="test",
+        base_url="https://api.deepseek.com",
+        model="deepseek-flash",
+        timeout_seconds=5,
+        data_dir=tmp_path / "data",
+        export_dir=tmp_path / "exports",
+    )
+    store = ResearchStore(settings.data_dir / "knowledge.sqlite3")
+    content = "A standard six-sided die has six faces."
+    conditions = ["The die is the standard six-sided type."]
+    claim = store.save_claim(
+        Claim(
+            id=stable_id("CLM_", project_id, content + "\0" + "\0".join(sorted(conditions))),
+            project_id=project_id,
+            content=content,
+            explanation="This is the stable definition of this die type.",
+            conditions=conditions,
+            status=ClaimStatus.VERIFIED,
+        )
+    )
+    store.save_evidence(
+        ClaimEvidence(
+            id="EVD_INTERNAL_REUSE",
+            project_id=project_id,
+            claim_id=claim.id,
+            evidence_kind="internal_review",
+            internal_review_details=(
+                "The stable definition and stated six-face condition agree."
+            ),
+        )
+    )
+
+    class SameClaimLLM:
+        async def generate_json(self, **kwargs):
+            return SimpleNamespace(
+                value={
+                    "summary": "The stable die definition is enough for this example.",
+                    "claims": [
+                        {
+                            "content": content,
+                            "explanation": "This is the stable definition of this die type.",
+                            "conditions": conditions,
+                            "depends_on": [],
+                            "provenance": "model_generated",
+                        }
+                    ],
+                    "search_tasks": [],
+                    "discoveries": [],
+                },
+                usage={"input_tokens": 1, "output_tokens": 1, "total_tokens": 2},
+            )
+
+    result = asyncio.run(
+        ResearchAgent(SameClaimLLM(), None, settings=settings, store=store).execute(
+            project_id,
+            {
+                "revision": 1,
+                "user_input": {"topic": "standard die"},
+                "effective": {},
+            },
+        )
+    )
+
+    assert result.claims[0].status == ClaimStatus.VERIFIED
+    assert result.internal_evidence[0].id == "EVD_INTERNAL_REUSE"
+    assert result.evidence_by_claim[claim.id] == [
+        {
+            "id": "EVD_INTERNAL_REUSE",
+            "kind": "internal_review",
+            "title": "内部轻量核查",
+            "details": "The stable definition and stated six-face condition agree.",
+        }
+    ]
+
+
 def test_creative_followup_reuses_project_claim_before_calling_model(tmp_path):
     project_id = "P_FOLLOWUP_CACHE"
     settings = KnowledgeSettings(
