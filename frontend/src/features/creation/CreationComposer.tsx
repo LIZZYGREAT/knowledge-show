@@ -164,7 +164,7 @@ export function CreationComposer({
             {field(
               "creative_idea",
               "你的创意",
-              "例如：开头先讲一个我遇到的小意外，再解释背后的原因",
+              "例如：把困意画成越裹越紧的被子，睡越久人越往下沉",
               true,
             )}
             {field("must_include", "想出现的内容", "例如：一个日常生活中的例子")}
