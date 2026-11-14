@@ -9,7 +9,7 @@ export function CreationConfirm({
 }: {
   draft: Draft;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (continueToPreview: boolean) => void;
   error: string;
   busy?: boolean;
 }) {
@@ -24,6 +24,9 @@ export function CreationConfirm({
       </p>
       {draft.focus && <p className="confirm-focus">特别想讲：{draft.focus}</p>}
       {draft.creative_mode === "custom" && <p>{draft.creative_mode_notes}</p>}
+      <p className="quiet">
+        连续制作会运行研究、脚本和动画生成，可能产生模型费用。你可以先看脚本，再决定是否制作动画。
+      </p>
       {error && (
         <p className="error" role="alert">
           {error}
@@ -33,8 +36,11 @@ export function CreationConfirm({
         <button className="secondary" onClick={onClose}>
           返回修改
         </button>
-        <button className="primary" onClick={onConfirm} disabled={busy}>
-          {busy ? "正在启动…" : "确认，开始制作 →"}
+        <button className="secondary" onClick={() => onConfirm(false)} disabled={busy}>
+          {busy ? "正在启动…" : "先看脚本"}
+        </button>
+        <button className="primary" onClick={() => onConfirm(true)} disabled={busy}>
+          {busy ? "正在启动…" : "确认并连续制作到预览 →"}
         </button>
       </div>
     </Modal>

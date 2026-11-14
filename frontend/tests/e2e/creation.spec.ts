@@ -24,7 +24,7 @@ async function openTopic(page: Page, topic: string) {
 
 async function confirmTopic(page: Page) {
   await page.getByRole("button", { name: "开始创作", exact: false }).click();
-  await page.getByRole("button", { name: "确认，开始制作" }).click();
+  await page.getByRole("button", { name: "确认并连续制作到预览" }).click();
 }
 test("composes, preserves preferences and returns from missing API settings", async ({
   page,
@@ -46,7 +46,7 @@ test("composes, preserves preferences and returns from missing API settings", as
   await page.getByLabel("希望避开的内容").fill("复杂术语\n广告");
   await page.getByRole("button", { name: "开始创作", exact: false }).click();
   await expect(page.getByRole("dialog")).toContainText("重点讲直觉");
-  await page.getByRole("button", { name: "确认，开始制作" }).click();
+  await page.getByRole("button", { name: "确认并连续制作到预览" }).click();
   await expect(page.getByRole("dialog")).toContainText("模型连接");
   await page.getByRole("button", { name: "关闭", exact: true }).click();
   await expect(page.getByRole("dialog")).toContainText(
@@ -95,10 +95,11 @@ test("key stays out of persistent browser storage and cannot fake connection", a
   await expect(page.getByLabel("API Key", { exact: true })).toHaveValue("");
 });
 
-test("real task UI resumes a published script and waits for animation", async ({
+test("real task UI continues from script to preview without a second confirmation", async ({
   page,
 }) => {
   const secret = "sk-e2e-only-secret";
+  let animationStarts = 0;
   await page.route("**/api/model/test", (route) =>
     route.fulfill({
       status: 200,
@@ -149,7 +150,30 @@ test("real task UI resumes a published script and waits for animation", async ({
     }),
   );
   await page.route("**/api/projects/P_E2E/animations/status", (route) =>
-    route.fulfill({ json: { preview: { status: "not_ready" }, job: null } }),
+    route.fulfill({
+      json: animationStarts
+        ? {
+            preview: {
+              status: "ready",
+              bundle_url: "/api/projects/P_E2E/animations/AM_E2E/r1/bundle",
+              workbench_url: "/workbench.html?project_id=P_E2E",
+            },
+            job: { status: "completed", message: "动画已完成。" },
+          }
+        : { preview: { status: "not_ready" }, job: null },
+    }),
+  );
+  await page.route("**/api/projects/P_E2E/handoff/animation", (route) =>
+    route.fulfill({ json: { project_revision: 4 } }),
+  );
+  await page.route("**/api/projects/P_E2E/animations", (route) => {
+    if (route.request().method() !== "POST") return route.fallback();
+    animationStarts += 1;
+    expect(route.request().postDataJSON().api_key).toBe(secret);
+    return route.fulfill({ status: 202, json: { job_id: "ANIM_E2E", status: "queued" } });
+  });
+  await page.route("**/api/projects/P_E2E/animations/AM_E2E/r1/bundle", (route) =>
+    route.fulfill({ json: { valid: true } }),
   );
   await page.route("**/api/projects/P_E2E/production-script**", (route) =>
     route.fulfill({
@@ -167,23 +191,22 @@ test("real task UI resumes a published script and waits for animation", async ({
   await page.getByRole("button", { name: "开始创作" }).click();
   await page.getByLabel("你想让大家了解什么？").fill("骰子概率");
   await page.getByRole("button", { name: "开始创作", exact: false }).click();
-  await page.getByRole("button", { name: "确认，开始制作" }).click();
+  await page.getByRole("button", { name: "确认并连续制作到预览" }).click();
   await page.getByLabel("API Key", { exact: true }).fill(secret);
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "测试连接", exact: true }).click();
   await expect(page.getByRole("status")).toContainText("连接成功");
   await page.getByRole("button", { name: "本次使用" }).click();
-  await page.getByRole("button", { name: "确认，开始制作" }).click();
+  await page.getByRole("button", { name: "确认并连续制作到预览" }).click();
 
   await expect(
-    page.getByRole("heading", { name: "讲述主线已经准备好。" }),
+    page.getByRole("heading", { name: "预览已经准备好。" }),
   ).toBeVisible();
-  await expect(page.getByText("等待动画制作", { exact: true })).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "两枚骰子的点数和有不同的组合数。" }),
   ).toBeVisible();
-  await expect(page.getByRole("button", { name: /预览|工作台/ })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "开始制作动画 →" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "进入工作台 →" })).toBeVisible();
+  expect(animationStarts).toBe(1);
   const stored = await page.evaluate(() =>
     sessionStorage.getItem("knowledge-show:active-task"),
   );
@@ -192,8 +215,9 @@ test("real task UI resumes a published script and waits for animation", async ({
 
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "讲述主线已经准备好。" }),
+    page.getByRole("heading", { name: "预览已经准备好。" }),
   ).toBeVisible();
+  expect(animationStarts).toBe(1);
   const restoredSession = await page.evaluate(
     () => sessionStorage.getItem("knowledge-show:active-task") ?? "",
   );

@@ -21,7 +21,12 @@ import { GenerationStatus } from "./features/progress/GenerationStatus";
 import { TaskProgress } from "./features/progress/TaskProgress";
 
 type Page = "landing" | "composing" | "demo" | "working";
-type TaskSession = { projectId: string; jobId: string; topic: string };
+type TaskSession = {
+  projectId: string;
+  jobId: string;
+  topic: string;
+  continueToPreview: boolean;
+};
 const TASK_SESSION_KEY = "knowledge-show:active-task";
 
 function readTaskSession(): TaskSession | null {
@@ -35,6 +40,8 @@ function readTaskSession(): TaskSession | null {
       projectId: value.projectId,
       jobId: typeof value.jobId === "string" ? value.jobId : "",
       topic: value.topic,
+      // Old sessions stop at the script instead of unexpectedly starting paid work.
+      continueToPreview: value.continueToPreview === true,
     };
   } catch {
     return null;
@@ -163,7 +170,7 @@ export default function App() {
     }
   }
 
-  async function submit() {
+  async function submit(continueToPreview = true) {
     if (restoringProject || resumeError) return;
     if (!connection.connected || !connection.key) {
       setConfirm(false);
@@ -189,12 +196,13 @@ export default function App() {
         setProjectId(targetProjectId);
       }
       setJobId("");
-      persistTask({ projectId: targetProjectId, jobId: "", topic: draft.topic });
+      persistTask({ projectId: targetProjectId, jobId: "", topic: draft.topic, continueToPreview });
       const started = await startScriptJob(targetProjectId, connection.key);
       const next = {
         projectId: targetProjectId,
         jobId: started.job_id,
         topic: draft.topic,
+        continueToPreview,
       };
       setProjectId(targetProjectId);
       setJobId(started.job_id);
@@ -220,7 +228,7 @@ export default function App() {
     try {
       const started = await startScriptJob(projectId, connection.key);
       setJobId(started.job_id);
-      persistTask({ projectId, jobId: started.job_id, topic: draft.topic });
+      persistTask({ projectId, jobId: started.job_id, topic: draft.topic, continueToPreview: taskSession?.continueToPreview === true });
     } catch (cause) {
       setError((cause as Error).message || "暂时无法重试任务，请稍后重试。");
     } finally {
@@ -330,6 +338,7 @@ export default function App() {
             topic={draft.topic}
             hasApiKey={connection.connected && Boolean(connection.key)}
             apiKey={connection.key}
+            continueToPreview={taskSession?.continueToPreview === true}
             onBack={() => {
               clearTask();
               navigate("composing");
@@ -353,7 +362,7 @@ export default function App() {
             setConfirm(false);
             setError("");
           }}
-          onConfirm={() => void submit()}
+          onConfirm={(continueToPreview) => void submit(continueToPreview)}
           error={error}
           busy={submitting}
         />

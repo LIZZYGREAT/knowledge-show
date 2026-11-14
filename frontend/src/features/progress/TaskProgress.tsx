@@ -1,4 +1,4 @@
-import { AnimationHandoff } from './AnimationHandoff';
+import { AnimationHandoff, type AnimationPhase } from './AnimationHandoff';
 import { useEffect, useState } from "react";
 import {
   getJob,
@@ -20,6 +20,7 @@ export function TaskProgress({
   topic,
   hasApiKey,
   apiKey,
+  continueToPreview,
   onBack,
   onRetry,
   onOpenSettings,
@@ -28,6 +29,7 @@ export function TaskProgress({
   topic: string;
   hasApiKey: boolean;
   apiKey?: string | null;
+  continueToPreview: boolean;
   onBack: () => void;
   onRetry: () => void;
   onOpenSettings: () => void;
@@ -38,6 +40,8 @@ export function TaskProgress({
   const [script, setScript] = useState<ProductionScriptSummary | null>(null);
   const [loadingScript, setLoadingScript] = useState(false);
   const [scriptReadAttempt, setScriptReadAttempt] = useState(0);
+  const [animationPhase, setAnimationPhase] = useState<AnimationPhase>("checking");
+  const [animationMessage, setAnimationMessage] = useState("正在核对动画资源。");
 
   useEffect(() => {
     let stopped = false;
@@ -48,6 +52,8 @@ export function TaskProgress({
     setScriptError("");
     setLoadingScript(false);
     setScriptReadAttempt(0);
+    setAnimationPhase("checking");
+    setAnimationMessage("正在核对动画资源。");
 
     async function poll() {
       try {
@@ -103,6 +109,9 @@ export function TaskProgress({
   const failed = job?.status === "failed" || job?.status === "interrupted";
   const ready = job?.status === "script_ready";
   const active = job?.status === "running" || job?.status === "queued";
+  const animationReady = animationPhase === "ready";
+  const animationRunning = animationPhase === "running";
+  const animationFailed = animationPhase === "failed";
 
   return (
     <main className="generation page-enter">
@@ -111,13 +120,19 @@ export function TaskProgress({
         {failed
           ? "我们在这里停一下。"
           : ready
-            ? "讲述主线已经准备好。"
+            ? animationReady
+              ? "预览已经准备好。"
+              : animationRunning
+                ? "动画正在制作。"
+                : "讲述主线已经准备好。"
             : "正在把你的问题理清楚。"}
       </h1>
       <p className="generation-topic">{topic || "你的创作项目"}</p>
       <ol className="creation-timeline">
         {stageOrder.map((stage, index) => {
-          const state = job?.stages[stage] ?? "pending";
+          const state = stage === "animation" && ready
+            ? animationReady ? "completed" : animationRunning ? "running" : animationFailed ? "failed" : "pending"
+            : job?.stages[stage] ?? "pending";
           return (
             <li
               key={stage}
@@ -131,7 +146,7 @@ export function TaskProgress({
                 <h2>{stageNames[stage]}</h2>
                 <p>
                   {stage === "animation" && ready
-                    ? "等待动画制作"
+                    ? animationMessage
                     : stageCopy[state] ?? "尚未开始"}
                 </p>
               </div>
@@ -146,15 +161,14 @@ export function TaskProgress({
         <div className="event-bubbles" aria-live="polite">
           <div className="event-bubble bubble-0">
             <span />
-            {job?.message ?? "正在连接本地创作服务"}
+            {ready ? animationMessage : job?.message ?? "正在连接本地创作服务"}
           </div>
         </div>
       </div>
       <p className="current-action" role="status">
-        {jobError ||
-          scriptError ||
-          job?.message ||
-          "正在读取任务状态。"}
+        {ready
+          ? jobError || scriptError || animationMessage
+          : jobError || scriptError || job?.message || "正在读取任务状态。"}
       </p>
       {ready && script && (
         <section className="script-overview" aria-label="脚本概览">
@@ -165,7 +179,19 @@ export function TaskProgress({
           </p>
         </section>
       )}
-      {ready && job && <AnimationHandoff projectId={job.project_id} apiKey={apiKey} />}
+      {ready && job && (
+        <AnimationHandoff
+          projectId={job.project_id}
+          apiKey={apiKey}
+          hasApiKey={hasApiKey}
+          continueToPreview={continueToPreview}
+          onOpenSettings={onOpenSettings}
+          onState={(phase, message) => {
+            setAnimationPhase(phase);
+            setAnimationMessage(message);
+          }}
+        />
+      )}
       <div className="progress-actions">
         <button className="secondary" onClick={onBack}>
           {failed ? "返回修改" : "返回创作页"}
