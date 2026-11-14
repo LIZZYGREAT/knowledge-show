@@ -1,7 +1,9 @@
-import { useId } from "react";
+import { useId, useRef } from "react";
 import { IdeaSeed } from "./LivingFlowScene";
 import { flowMesh } from "./flowGeometry";
 import "./curiosity-stage.css";
+import { useFlowMotion } from "./useFlowMotion";
+import { combinationState, stageState, STAGE_DURATION, STATIC_STAGE_TIME } from "./curiosityMotion";
 
 const ribbon = flowMesh(5.5, true);
 const pips: Record<number, number[][]> = {
@@ -26,9 +28,14 @@ function Die({ value, id, green = false }: { value: number; id: string; green?: 
   </g>;
 }
 
-export function CuriosityStage() {
+export function CuriosityStage({ pose }: { pose?: number }) {
+  const ref = useRef<HTMLElement>(null);
+  const motion = useFlowMotion(ref, pose === undefined, STATIC_STAGE_TIME);
+  const time = pose === undefined ? motion.time : pose * STAGE_DURATION;
+  const { t, unfold, result, roll } = stageState(time);
+  const wobble = Math.sin(t * 15) * roll;
   const id = useId().replace(/:/g, "");
-  return <figure className="curiosity-stage" aria-label="知识动画演示：两个公平六面骰子共有36种等可能的有序组合，其中6种点数和为7，比其他点数和的组合都多。">
+  return <figure ref={ref} className="curiosity-stage" data-time={time.toFixed(3)} data-paused={pose !== undefined || motion.paused} data-pose={(t / STAGE_DURATION).toFixed(3)} aria-label="知识动画演示：两个公平六面骰子共有36种等可能的有序组合，其中6种点数和为7，比其他点数和的组合都多。">
     <div className="curiosity-theatre">
       <svg className="curiosity-artwork" viewBox="0 0 800 640" aria-hidden="true" focusable="false">
         <defs>
@@ -40,7 +47,7 @@ export function CuriosityStage() {
           <filter id={`${id}-shadow`} x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="15" stdDeviation="15" floodColor="#334b36" floodOpacity=".10"/></filter>
         </defs>
         <ellipse cx="415" cy="342" rx="365" ry="280" fill={`url(#${id}-wash)`}/>
-        <g className="stage-ribbon" transform="translate(0 130) scale(1 .72)">
+        <g className="stage-ribbon" transform={`translate(${-115 + Math.sin(t / STAGE_DURATION * Math.PI * 2) * 7} 110) scale(1 .78)`}>
           <path d={ribbon.silhouette} fill={`url(#${id}-silk)`} opacity=".32"/>
           {ribbon.threads.filter((_, i) => i % 6 === 0).map((d, i) => <path key={i} d={d} fill="none" stroke={i % 3 ? "#eef5d7" : "#608e72"} strokeWidth=".8" opacity=".55"/>)}
         </g>
@@ -50,30 +57,34 @@ export function CuriosityStage() {
         </g>
         <path d="M180 190 615 159M210 514 663 476" stroke="#b6bca4" strokeOpacity=".35" fill="none"/>
         <text x="403" y="97" textAnchor="middle" className="stage-question">为什么 7 最常见？</text>
-        <g transform="translate(234 239) rotate(-12) scale(.83)"><Die value={3} id={id}/></g>
-        <g transform="translate(323 252) rotate(12) scale(.83)"><Die value={4} id={id} green/></g>
-        <text x="278" y="329" textAnchor="middle" className="stage-equation">3 + 4 = 7</text>
-        <path d="M341 278Q383 269 405 229" fill="none" stroke="#b7a269" strokeWidth="1"/>
-        <g className="stage-matrix">
-          {[1, 2, 3, 4, 5, 6].map((n, i) => <g key={n} className="stage-axis"><text x={435 + i * 34} y="197" textAnchor="middle">{n}</text><text x="408" y={233 + i * 30} textAnchor="middle">{n}</text></g>)}
+        <g data-die="ivory" transform={`translate(${310 - unfold * 76} ${306 - unfold * 67 - Math.abs(wobble) * 12}) rotate(${-12 + wobble * 22}) scale(${1.25 - unfold * .42})`}><Die value={roll > .4 ? 1 + Math.floor(t * 8) % 6 : 3} id={id}/></g>
+        <g data-die="green" transform={`translate(${443 - unfold * 120} ${320 - unfold * 68 - Math.abs(wobble) * 9}) rotate(${12 - wobble * 26}) scale(${1.25 - unfold * .42})`}><Die value={roll > .4 ? 1 + Math.floor(t * 7 + 2) % 6 : 4} id={id} green/></g>
+        <text x={380 - unfold * 102} y={405 - unfold * 76} opacity={roll > .2 ? 0 : 1} textAnchor="middle" className="stage-equation">3 + 4 = 7</text>
+        <path opacity={unfold} pathLength="1" strokeDasharray="1" strokeDashoffset={1 - unfold} d="M341 278Q383 269 405 229" fill="none" stroke="#b7a269" strokeWidth="1"/>
+        <g className="stage-matrix" opacity={.08 + unfold * .92}>
+          {[1, 2, 3, 4, 5, 6].map((n, i) => <g key={n} className="stage-axis" opacity={.25 + unfold * .75}><text x={435 + i * 34} y="197" textAnchor="middle">{n}</text><text x="408" y={233 + i * 30} textAnchor="middle">{n}</text></g>)}
           {Array.from({ length: 36 }, (_, i) => {
-            const row = Math.floor(i / 6), col = i % 6, win = row + col === 5;
-            return <g key={i} data-combination={`${row + 1}+${col + 1}`} transform={`translate(${435 + col * 34} ${228 + row * 30})`}>
-              <circle r="11" fill={win ? "#ead8a6" : "#dbe3d4"} stroke={win ? "#b18a3e" : "#a5bba4"} strokeWidth={win ? 1.5 : .6}/>
-              <circle r="3" fill={win ? "#987435" : "#729080"}/>
+            const row = Math.floor(i / 6), col = i % 6;
+            const point = combinationState(i, time);
+            return <g key={i} data-combination={`${row + 1}+${col + 1}`}>
+              <circle cx={435 + col * 34} cy={228 + row * 30} r="10" fill={point.win && point.gather > .5 ? "#ead8a6" : "none"} stroke={point.win ? "#b18a3e" : "#a5bba4"} opacity={point.win ? .16 + point.highlight * .65 : .16 + unfold * .18}/>
+              <g data-moving-point="true" transform={`translate(${point.x} ${point.y})`} opacity={point.opacity}>
+                <circle r={point.radius} fill={point.highlight > .5 ? "#ead8a6" : "#dbe3d4"} stroke={point.highlight > .5 ? "#b18a3e" : "#a5bba4"} strokeWidth=".8"/>
+                <circle r="3" fill={point.highlight > .5 ? "#987435" : "#729080"}/>
+                <circle r={point.radius + 3} fill="none" stroke="#b18a3e" strokeWidth="1.2" opacity={point.highlight * (1 - point.gather)} />
+              </g>
             </g>;
           })}
         </g>
-        <g className="stage-result">
+        <g className="stage-result" opacity={result} transform={`translate(0 ${12 * (1 - result)})`}>
           <text x="251" y="435" textAnchor="middle" className="stage-seven">7</text>
           <text x="297" y="413" className="stage-result-label">有 6 种可能</text>
           <text x="297" y="438" className="stage-small">比其他点数和都多</text>
         </g>
-        <g className="stage-distribution">
+        <g className="stage-distribution" opacity={result}>
           {Array.from({ length: 11 }, (_, i) => {
-            const sum = i + 2, count = 6 - Math.abs(7 - sum);
+            const sum = i + 2;
             return <g key={sum}>
-              {Array.from({ length: count }, (_, j) => <circle key={j} cx={427 + i * 20} cy={466 - j * 10} r="3.4" fill={sum === 7 ? "#b58b40" : "#8ea696"}/>)}
               <text x={427 + i * 20} y="485" textAnchor="middle" className={sum === 7 ? "stage-axis stage-gold" : "stage-axis"}>{sum}</text>
             </g>;
           })}
