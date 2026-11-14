@@ -50,14 +50,20 @@ class CandidateDraft(BaseModel):
         min_length=1,
         validation_alias=AliasChoices("claim_indices", "related_claim_indices"),
     )
-    required_claim_indices: list[int] = Field(
-        default_factory=list,
+    required_claim_indices: list[int] | None = Field(
+        default=None,
         validation_alias=AliasChoices("required_claim_indices", "essential_claim_indices"),
     )
     recommendation_reason: str = Field(min_length=1)
     duration_fit: DurationFitDraft
     visual_potential: VisualPotentialDraft | None = None
     recommended: bool = False
+
+    @property
+    def essential_claim_indices(self) -> list[int]:
+        # Missing fields retain the conservative legacy behavior. An explicit []
+        # remains empty instead of silently turning every related claim essential.
+        return self.claim_indices if self.required_claim_indices is None else self.required_claim_indices
 
     @model_validator(mode="before")
     @classmethod
@@ -222,7 +228,9 @@ class CreativeAgent:
         leads: list[CreativeLead] = []
         for candidate in parsed.candidates:
             self._validate_indices(candidate.claim_indices, len(research.claims), "candidate")
-            required = candidate.required_claim_indices or candidate.claim_indices
+            required = candidate.essential_claim_indices
+            if not required:
+                raise ValueError("Each direction must identify at least one essential claim")
             self._validate_indices(required, len(research.claims), "required claim")
             if not set(required).issubset(candidate.claim_indices):
                 raise ValueError("required_claim_indices must be a subset of claim_indices")

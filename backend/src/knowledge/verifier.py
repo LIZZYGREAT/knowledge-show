@@ -127,9 +127,7 @@ class VerifierAgent:
             {
                 index
                 for candidate in creative.candidates
-                for index in (
-                    candidate.required_claim_indices or candidate.claim_indices
-                )
+                for index in candidate.essential_claim_indices
             }
         )
         parsed, usage = await generate_validated_json(
@@ -159,8 +157,7 @@ class VerifierAgent:
                         "core_question": candidate.core_question,
                         "learning_goal": candidate.learning_goal,
                         "claim_indices": candidate.claim_indices,
-                        "required_claim_indices": candidate.required_claim_indices
-                        or candidate.claim_indices,
+                        "required_claim_indices": candidate.essential_claim_indices,
                     }
                     for candidate in creative.candidates
                 ],

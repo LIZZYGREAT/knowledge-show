@@ -403,7 +403,7 @@ def _recommended_direction_needs_revision(creative: Any, verification: Any) -> b
     candidate = next((item for item in creative.candidates if item.recommended), None)
     if candidate is None:
         return False
-    required = candidate.required_claim_indices or candidate.claim_indices
+    required = candidate.essential_claim_indices
     issues = {item["claim_id"]: item for item in verification.public_issues}
     actionable = {"fact_problem", "minor_or_optional"}
     return any(
@@ -418,7 +418,7 @@ def _recommended_evidence_gap(creative: Any, verification: Any) -> Any | None:
     candidate = next((item for item in creative.candidates if item.recommended), None)
     if candidate is None:
         return None
-    required = candidate.required_claim_indices or candidate.claim_indices
+    required = candidate.essential_claim_indices
     issues = {item["claim_id"]: item for item in verification.public_issues}
     for index in required:
         if not 0 <= index < len(verification.claims):
@@ -432,8 +432,8 @@ def _recommended_evidence_gap(creative: Any, verification: Any) -> Any | None:
 
 def _has_eligible_candidate(creative: Any, verification: Any) -> bool:
     for candidate in creative.candidates:
-        required = candidate.required_claim_indices or candidate.claim_indices
-        required_verified = all(
+        required = candidate.essential_claim_indices
+        required_verified = bool(required) and all(
             0 <= index < len(verification.claims)
             and verification.claims[index].status.value == "verified"
             for index in required
@@ -457,7 +457,7 @@ def _verification_feedback(creative: Any, verification: Any) -> dict[str, Any]:
         )
     unverified = []
     if candidate is not None:
-        required = candidate.required_claim_indices or candidate.claim_indices
+        required = candidate.essential_claim_indices
         for index in required:
             if index >= len(verification.claims):
                 unverified.append({"index": index, "status": "missing"})
