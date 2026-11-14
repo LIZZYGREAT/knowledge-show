@@ -1,37 +1,58 @@
 .progress-event-scene {
-  height: clamp(300px, 30vw, 350px);
+  --scene-accent: #238c7d;
+  --scene-accent-rgb: 35, 140, 125;
   position: relative;
-  margin: 22px 0 12px;
+  height: clamp(336px, 31vw, 404px);
+  margin: 26px 0 14px;
   overflow: hidden;
   isolation: isolate;
-  border-radius: 28px;
+  border: 1px solid rgba(46, 107, 78, 0.07);
+  border-radius: 30px;
   background:
-    radial-gradient(ellipse at 50% 48%, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.24) 45%, transparent 72%),
-    linear-gradient(120deg, rgba(231, 239, 228, 0.36), rgba(255, 255, 255, 0.08) 53%, rgba(239, 230, 208, 0.28));
-}
-
-.progress-event-scene::before,
-.progress-event-scene::after {
-  content: "";
-  position: absolute;
-  pointer-events: none;
-  border-radius: 50%;
+    radial-gradient(ellipse at 50% 42%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.5) 46%, rgba(255, 255, 255, 0) 74%),
+    linear-gradient(118deg, rgba(226, 239, 229, 0.52), rgba(255, 255, 255, 0.32) 50%, rgba(243, 232, 207, 0.45));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 22px 48px -42px rgba(31, 72, 52, 0.55);
 }
 
 .progress-event-scene::before {
-  width: 370px;
-  height: 370px;
-  left: calc(50% - 185px);
-  top: calc(50% - 185px);
-  border: 1px solid rgba(46, 107, 78, 0.07);
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  width: min(680px, 72%);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(114, 195, 177, 0.1), rgba(207, 173, 114, 0.05) 46%, transparent 68%);
+  animation: progress-aurora 13s ease-in-out infinite alternate;
+  pointer-events: none;
 }
 
-.progress-event-scene::after {
-  width: 248px;
-  height: 248px;
-  left: calc(50% - 124px);
-  top: calc(50% - 124px);
-  border: 1px dashed rgba(46, 107, 78, 0.11);
+.progress-event-scene.stage-knowledge {
+  --scene-accent: #238c7d;
+  --scene-accent-rgb: 35, 140, 125;
+}
+
+.progress-event-scene.stage-script {
+  --scene-accent: #2e6b4e;
+  --scene-accent-rgb: 46, 107, 78;
+}
+
+.progress-event-scene.stage-animation {
+  --scene-accent: #b18844;
+  --scene-accent-rgb: 177, 136, 68;
+}
+
+.progress-event-scene.status-completed {
+  --scene-accent: #b18844;
+  --scene-accent-rgb: 177, 136, 68;
+}
+
+.progress-event-scene.status-failed {
+  --scene-accent: #98402a;
+  --scene-accent-rgb: 152, 64, 42;
 }
 
 .progress-event-ornament {
@@ -40,150 +61,313 @@
   width: 100%;
   height: 100%;
   overflow: visible;
-  fill: none;
   pointer-events: none;
 }
 
-.progress-focus-glow {
-  opacity: 0.8;
-}
-
-.progress-main-trail {
+.progress-track-base,
+.progress-track-guide,
+.progress-track-aura,
+.progress-track-fill,
+.progress-track-shine,
+.progress-track-shimmer,
+.progress-comet-mask {
   fill: none;
-  stroke-width: 2.15;
-  stroke-linecap: round;
-  stroke-dasharray: 8 13;
-  opacity: 0.82;
-  vector-effect: non-scaling-stroke;
-  animation: progress-trail-flow 22s linear infinite;
-}
-
-.progress-side-trail {
-  fill: none;
-  stroke: rgba(35, 140, 125, 0.23);
-  stroke-width: 1;
-  stroke-dasharray: 2 8;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
 }
 
-.progress-side-trail.trail-b {
-  stroke: rgba(207, 173, 114, 0.42);
-  stroke-dasharray: 1 9;
+.progress-track-base {
+  stroke-width: 1.8;
+  opacity: 0.44;
 }
 
-.stage-connectors path {
-  fill: none;
-  stroke: rgba(35, 140, 125, 0.42);
+.progress-track-guide {
+  stroke: rgba(46, 107, 78, 0.22);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 9;
+  opacity: 0.72;
+  animation: progress-guide-flow 20s linear infinite;
+}
+
+.progress-track-aura {
+  stroke-width: 22;
+  opacity: 0.42;
+  transition: stroke-dashoffset 1.25s cubic-bezier(0.22, 0.75, 0.25, 1);
+}
+
+.progress-track-fill {
+  stroke-width: 5.4;
+  stroke-dasharray: 1000;
+  filter: drop-shadow(0 1px 2px rgba(24, 55, 42, 0.16));
+  transition: stroke-dashoffset 1.25s cubic-bezier(0.22, 0.75, 0.25, 1);
+}
+
+.progress-track-shine {
+  stroke: rgba(255, 255, 255, 0.66);
   stroke-width: 1.4;
-  stroke-linecap: round;
-  stroke-dasharray: 3 5;
-  vector-effect: non-scaling-stroke;
-  animation: progress-connector-flow 8s ease-in-out infinite alternate;
+  stroke-dasharray: 1000;
+  opacity: 0.9;
+  transition: stroke-dashoffset 1.25s cubic-bezier(0.22, 0.75, 0.25, 1);
 }
 
-.stage-connectors path:nth-child(2) { animation-delay: -2.7s; }
-.stage-connectors path:nth-child(3) { animation-delay: -5.1s; }
-.script-connectors path { stroke: rgba(46, 107, 78, 0.48); }
-.animation-connectors path { stroke: rgba(177, 136, 68, 0.47); }
-
-.progress-arrow-head {
-  fill: #39836d;
-  stroke: var(--ks-canvas);
-  stroke-width: 0.55;
-  stroke-linejoin: round;
+.progress-track-shimmer {
+  stroke: rgba(255, 255, 255, 0.82);
+  stroke-width: 2.2;
+  stroke-dasharray: 16 984;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.9));
+  animation: progress-shimmer-run 9s linear infinite;
 }
 
-.trail-b { opacity: 0.86; }
-
-.stage-motif {
-  stroke: rgba(46, 107, 78, 0.29);
-  stroke-width: 1.1;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  fill: var(--ks-canvas);
-  fill-opacity: 0.78;
+.progress-comet-mask {
+  stroke-dasharray: 1000;
+  transition: stroke-dashoffset 1.25s cubic-bezier(0.22, 0.75, 0.25, 1);
 }
 
-.stage-motif circle {
-  fill: var(--ks-canvas);
-  stroke: rgba(35, 140, 125, 0.53);
-  stroke-width: 1.4;
+.progress-comet {
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 0.7;
 }
 
-.script-motif circle:last-child,
-.animation-motif circle {
-  fill: var(--ks-warm);
-  stroke: var(--ks-warm);
+.comet-mint {
+  filter: drop-shadow(0 0 6px rgba(88, 189, 164, 0.7));
 }
 
-.animation-motif rect:first-child {
-  stroke: rgba(46, 107, 78, 0.16);
-  stroke-dasharray: 2 7;
+.comet-teal {
+  filter: drop-shadow(0 0 7px rgba(46, 143, 124, 0.65));
 }
 
-.animation-motif rect:nth-child(2) {
-  stroke: rgba(46, 107, 78, 0.29);
+.comet-gold {
+  filter: drop-shadow(0 0 7px rgba(207, 173, 114, 0.75));
 }
 
-.particle-orb {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: progress-particle-drift 6s ease-in-out infinite alternate;
-}
-
-.particle-orb:nth-of-type(3n + 1) { animation-duration: 7.3s; }
-.particle-orb:nth-of-type(3n + 2) { animation-duration: 5.3s; }
-.particle-orb:nth-of-type(3n) { animation-duration: 8.1s; }
-
-.particle-halo {
-  fill: rgba(67, 156, 133, 0.1);
-  opacity: 0.8;
-}
-
-.ambient-particle {
-  stroke: rgba(37, 107, 83, 0.25);
-  stroke-width: 0.6;
-  filter: drop-shadow(0 1.5px 1.6px rgba(36, 81, 61, 0.2));
-}
-
-.particle-glint {
-  fill: rgba(255, 255, 255, 0.92);
-  opacity: 0.92;
+.progress-glow-dust {
+  position: absolute;
+  inset: 0;
   pointer-events: none;
 }
 
-.progress-event-scene.motion-paused .particle-orb,
-.progress-event-scene.motion-limited .particle-orb,
-.progress-event-scene.is-failed .particle-orb {
-  animation-play-state: paused;
+.progress-stage-aura {
+  position: absolute;
+  width: min(470px, 54%);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(var(--scene-accent-rgb), 0.2) 0,
+    rgba(var(--scene-accent-rgb), 0.08) 38%,
+    transparent 70%
+  );
+  transition: left 1.25s cubic-bezier(0.22, 0.75, 0.25, 1), top 1.25s cubic-bezier(0.22, 0.75, 0.25, 1);
 }
 
-.progress-flight-path {
-  fill: none;
-  stroke: rgba(35, 140, 125, 0.76);
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  opacity: 0;
-  vector-effect: non-scaling-stroke;
-  animation:
-    progress-route-draw 0.92s cubic-bezier(0.2, 0, 0, 1) both,
-    progress-route-fade 0.65s ease-in 4.08s both;
+.progress-mote {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  opacity: 0.42;
+  animation: progress-mote-drift 7.5s ease-in-out infinite alternate;
+  will-change: transform, opacity;
 }
 
-.stage-script .progress-flight-path {
-  stroke: rgba(46, 107, 78, 0.82);
+.progress-mote.mote-mint {
+  background: radial-gradient(circle at 34% 30%, #ffffff, #a8dfd2 42%, rgba(88, 189, 164, 0.24) 100%);
+  box-shadow: 0 0 12px rgba(114, 195, 177, 0.38);
 }
 
-.stage-animation .progress-flight-path {
-  stroke: rgba(177, 136, 68, 0.76);
+.progress-mote.mote-teal {
+  background: radial-gradient(circle at 34% 30%, #ffffff, #7fc6b7 46%, rgba(46, 143, 124, 0.22) 100%);
+  box-shadow: 0 0 13px rgba(46, 143, 124, 0.34);
+}
+
+.progress-mote.mote-gold {
+  background: radial-gradient(circle at 34% 30%, #fffdf7, #e5c994 46%, rgba(207, 173, 114, 0.24) 100%);
+  box-shadow: 0 0 13px rgba(207, 173, 114, 0.42);
+}
+
+.progress-track-decor {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.progress-milestone {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%, -50%);
+  border: 1.4px solid rgba(46, 107, 78, 0.3);
+  border-radius: 50%;
+  background: rgba(251, 251, 246, 0.95);
+  box-shadow: 0 0 0 4px rgba(247, 247, 242, 0.62);
+  transition: background 0.45s ease, border-color 0.45s ease, box-shadow 0.45s ease;
+}
+
+.progress-milestone i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(46, 107, 78, 0.18);
+  transition: background 0.45s ease, transform 0.45s ease;
+}
+
+.progress-milestone.is-passed {
+  border-color: rgba(177, 136, 68, 0.68);
+  background: #fcf8ee;
+  box-shadow: 0 0 0 5px rgba(207, 173, 114, 0.15), 0 4px 10px rgba(177, 136, 68, 0.16);
+  animation: progress-milestone-pop 0.7s cubic-bezier(0.22, 0.75, 0.25, 1);
+}
+
+.progress-milestone.is-passed i {
+  transform: scale(1.35);
+  background: #b18844;
+}
+
+.progress-milestone.is-final.is-passed {
+  border-color: #cfad72;
+  box-shadow: 0 0 0 6px rgba(207, 173, 114, 0.18), 0 0 18px rgba(207, 173, 114, 0.35);
+}
+
+.progress-head {
+  position: absolute;
+  width: 148px;
+  height: 148px;
+  transform: translate(-50%, -50%);
+  transition: left 1.25s cubic-bezier(0.22, 0.75, 0.25, 1), top 1.25s cubic-bezier(0.22, 0.75, 0.25, 1);
+  pointer-events: none;
+}
+
+.progress-head-halo {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--scene-accent-rgb), 0.3) 0, rgba(var(--scene-accent-rgb), 0.12) 38%, transparent 70%);
+  animation: progress-head-breathe 3.4s ease-in-out infinite;
+}
+
+.progress-head-orbit {
+  position: absolute;
+  inset: 22px;
+  border: 1.2px dashed rgba(var(--scene-accent-rgb), 0.44);
+  border-radius: 50%;
+  animation: progress-head-spin 12s linear infinite;
+}
+
+.progress-head-satellite {
+  position: absolute;
+  inset: 18px;
+  border-radius: 50%;
+  animation: progress-head-spin 7.4s linear infinite;
+}
+
+.progress-head-satellite i {
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  border-radius: 50%;
+  background: var(--scene-accent);
+  box-shadow: 0 0 9px rgba(var(--scene-accent-rgb), 0.82);
+}
+
+.progress-head-satellite.satellite-two {
+  inset: 10px;
+  animation: progress-head-spin 11.5s linear infinite reverse;
+}
+
+.progress-head-satellite.satellite-two i {
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  background: #cfad72;
+  box-shadow: 0 0 8px rgba(207, 173, 114, 0.8);
+}
+
+.progress-head-ring {
+  position: absolute;
+  inset: 40px;
+  border: 2.5px solid rgba(var(--scene-accent-rgb), 0.72);
+  border-radius: 50%;
+  background: radial-gradient(circle at 42% 34%, #ffffff 0 32%, #f4f7f0 70%, #e6efe4 100%);
+  box-shadow:
+    0 9px 24px rgba(31, 72, 52, 0.18),
+    0 0 0 8px rgba(var(--scene-accent-rgb), 0.1),
+    0 0 26px rgba(var(--scene-accent-rgb), 0.22),
+    inset 0 1px 0 #ffffff;
+}
+
+.progress-head-core {
+  position: absolute;
+  inset: 61px;
+  border-radius: 50%;
+  background: var(--scene-accent);
+  box-shadow:
+    inset 0 2px 3px rgba(255, 255, 255, 0.55),
+    0 0 18px rgba(var(--scene-accent-rgb), 0.56);
+}
+
+.progress-head-surge {
+  position: absolute;
+  inset: 30px;
+  border: 2px solid rgba(var(--scene-accent-rgb), 0.52);
+  border-radius: 50%;
+  animation: progress-head-surge 1.15s cubic-bezier(0.22, 0.75, 0.25, 1) both;
+}
+
+.progress-complete-flare {
+  position: absolute;
+  inset: 32px;
+  border: 2px solid rgba(207, 173, 114, 0.72);
+  border-radius: 50%;
+  animation: progress-complete-flare 1.8s cubic-bezier(0.16, 0.75, 0.3, 1) both;
+}
+
+.progress-complete-flare.flare-two {
+  inset: 24px;
+  border-color: rgba(177, 136, 68, 0.38);
+  animation-delay: 0.22s;
+}
+
+.status-completed .progress-head-ring {
+  border-color: rgba(177, 136, 68, 0.76);
+  box-shadow:
+    0 8px 24px rgba(177, 136, 68, 0.2),
+    0 0 0 8px rgba(207, 173, 114, 0.13),
+    inset 0 1px 0 #ffffff;
+}
+
+.status-completed .progress-head-core {
+  background: #b18844;
+  box-shadow:
+    inset 0 2px 3px rgba(255, 255, 255, 0.55),
+    0 0 18px rgba(207, 173, 114, 0.62);
+}
+
+.status-failed .progress-head-halo {
+  background: radial-gradient(circle, rgba(152, 64, 42, 0.22) 0, rgba(152, 64, 42, 0.08) 40%, transparent 70%);
+}
+
+.status-failed .progress-head-orbit {
+  border-color: rgba(152, 64, 42, 0.34);
+  animation: none;
+}
+
+.status-failed .progress-head-satellite {
+  display: none;
+}
+
+.status-failed .progress-head-halo {
+  animation: none;
 }
 
 .progress-flight-layer {
   position: absolute;
   inset: 0;
+  z-index: 3;
   pointer-events: none;
 }
 
@@ -191,227 +375,131 @@
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 2;
   display: flex;
   align-items: center;
-  gap: 9px;
-  max-width: min(340px, 35%);
-  min-height: 42px;
-  padding: 9px 16px 9px 13px;
-  border: 1px solid rgba(46, 107, 78, 0.19);
+  gap: 11px;
+  max-width: min(408px, 41%);
+  min-height: 54px;
+  padding: 13px 21px 13px 17px;
+  border: 1px solid rgba(46, 107, 78, 0.18);
   border-radius: 999px;
-  background: rgba(250, 250, 245, 0.95);
+  background: linear-gradient(135deg, rgba(253, 253, 249, 0.99), rgba(249, 249, 242, 0.97));
   color: var(--ks-ink);
-  box-shadow: 0 9px 22px rgba(24, 42, 34, 0.08), 0 2px 5px rgba(24, 42, 34, 0.035);
-  font-size: 13px;
+  box-shadow:
+    0 17px 38px -14px rgba(24, 42, 34, 0.26),
+    0 3px 10px rgba(24, 42, 34, 0.05),
+    inset 0 1px 0 #ffffff;
+  font-size: 15px;
   font-weight: 500;
   line-height: 1.45;
   text-align: left;
   overflow-wrap: anywhere;
+  visibility: hidden;
   will-change: transform, opacity;
+}
+
+.progress-flight-label.stage-script {
+  border-color: rgba(46, 107, 78, 0.26);
+}
+
+.progress-flight-label.stage-animation {
+  border-color: rgba(177, 136, 68, 0.32);
 }
 
 .progress-flight-mark,
 .static-event > i {
   display: block;
-  width: 7px;
-  height: 7px;
-  flex: 0 0 7px;
+  width: 9px;
+  height: 9px;
+  flex: 0 0 9px;
   border-radius: 50%;
   background: var(--ks-flow);
-  box-shadow: 0 0 0 3px rgba(35, 140, 125, 0.1);
+  box-shadow: 0 0 0 4px rgba(35, 140, 125, 0.12);
 }
 
-.stage-animation .progress-flight-mark {
+.stage-script .progress-flight-mark,
+.static-event.stage-script > i {
+  background: var(--ks-accent);
+  box-shadow: 0 0 0 4px rgba(46, 107, 78, 0.12);
+}
+
+.stage-animation .progress-flight-mark,
+.static-event.stage-animation > i {
   background: #b18844;
-  box-shadow: 0 0 0 3px rgba(177, 136, 68, 0.13);
+  box-shadow: 0 0 0 4px rgba(177, 136, 68, 0.14);
+}
+
+.progress-flight-text {
+  display: block;
+}
+
+.progress-anchor-ripple {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 28px;
+  height: 28px;
+  border: 2px solid rgba(var(--scene-accent-rgb), 0.55);
+  border-radius: 50%;
+  background: rgba(var(--scene-accent-rgb), 0.1);
+  visibility: hidden;
+  will-change: transform, opacity;
 }
 
 .progress-flight-spark {
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 1;
-  width: 5px;
-  height: 5px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: #9dccbd;
-  box-shadow: 0 0 0 2px rgba(157, 204, 189, 0.16);
+  background: #8ed0bf;
+  box-shadow: 0 0 9px rgba(114, 195, 177, 0.72);
+  visibility: hidden;
   will-change: transform, opacity;
 }
 
-.progress-flight-spark.spark-two {
-  width: 3px;
-  height: 3px;
-  background: #d8bc84;
-  box-shadow: none;
+.progress-flight-spark.spark-1 {
+  width: 5px;
+  height: 5px;
+  background: #d8b678;
+  box-shadow: 0 0 9px rgba(207, 173, 114, 0.75);
 }
 
-.progress-hub {
-  position: absolute;
-  width: 182px;
-  height: 182px;
-  left: 50%;
-  top: 49.5%;
-  z-index: 1;
-  transform: translate(-50%, -50%);
-  display: grid;
-  place-items: center;
-  pointer-events: none;
-}
-
-.hub-orbit {
-  position: absolute;
-  inset: 12px;
-  border: 1px solid rgba(46, 107, 78, 0.1);
-  border-radius: 50%;
-  animation: progress-orbit-breathe 4.4s ease-in-out infinite;
-}
-
-.hub-orbit.orbit-two {
-  inset: 0;
-  border-color: rgba(35, 140, 125, 0.12);
-  border-style: dashed;
-  animation-delay: -2.2s;
-  animation-duration: 6.2s;
-}
-
-.hub-core {
-  display: grid;
-  place-items: center;
-  width: 102px;
-  height: 102px;
-  border: 1px solid rgba(46, 107, 78, 0.2);
-  border-radius: 50%;
-  background: radial-gradient(circle at 45% 38%, #fff 0, #f6f6ef 58%, #e9efe5 100%);
-  box-shadow: 0 8px 24px rgba(31, 72, 52, 0.08), inset 0 1px 0 #fff;
-}
-
-.hub-caption {
-  position: absolute;
-  top: calc(100% + 9px);
-  color: var(--ks-muted);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  white-space: nowrap;
-}
-
-.hub-knowledge,
-.hub-script,
-.hub-animation {
-  position: relative;
-  display: block;
-  width: 44px;
-  height: 44px;
-}
-
-.hub-knowledge i,
-.hub-knowledge b {
-  position: absolute;
-  width: 9px;
-  height: 9px;
-  border: 1px solid rgba(35, 140, 125, 0.57);
-  border-radius: 50%;
-  background: #d8eae2;
-}
-
-.hub-knowledge i:nth-child(1) { left: 5px; top: 25px; }
-.hub-knowledge i:nth-child(2) { left: 15px; top: 5px; }
-.hub-knowledge i:nth-child(3) { right: 4px; top: 24px; }
-.hub-knowledge b {
-  width: 13px;
-  height: 13px;
-  left: 16px;
-  top: 17px;
-  background: var(--ks-accent);
-  border-color: var(--ks-accent);
-  box-shadow: 0 0 0 5px rgba(46, 107, 78, 0.1);
-}
-
-.hub-script i {
-  position: absolute;
-  left: 2px;
-  width: 40px;
-  height: 2px;
-  border-radius: 2px;
-  background: rgba(46, 107, 78, 0.22);
-}
-
-.hub-script i::after {
-  content: "";
-  position: absolute;
-  top: -3px;
-  left: calc(var(--line-stop, 25%) - 4px);
-  width: 8px;
-  height: 8px;
-  border: 1px solid var(--ks-accent);
-  border-radius: 50%;
-  background: #f8f8f2;
-}
-
-.hub-script i:nth-child(1) { top: 10px; --line-stop: 28%; }
-.hub-script i:nth-child(2) { top: 21px; --line-stop: 60%; }
-.hub-script i:nth-child(3) { top: 32px; --line-stop: 82%; }
-
-.hub-animation i {
-  position: absolute;
-  inset: 3px;
-  border: 1px solid rgba(46, 107, 78, 0.25);
-  border-radius: 8px;
-}
-
-.hub-animation i::before,
-.hub-animation i::after {
-  content: "";
-  position: absolute;
-  left: 6px;
-  right: 6px;
-  height: 1px;
-  background: rgba(46, 107, 78, 0.24);
-}
-
-.hub-animation i::before { top: 10px; }
-.hub-animation i::after { bottom: 10px; }
-.hub-animation b {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  top: 17px;
-  left: 18px;
-  border-radius: 50%;
-  background: var(--ks-warm);
-  box-shadow: 0 0 0 4px rgba(207, 173, 114, 0.16);
+.progress-flight-spark.spark-2 {
+  width: 4px;
+  height: 4px;
+  background: #4aa892;
+  box-shadow: 0 0 7px rgba(74, 168, 146, 0.6);
 }
 
 .progress-static-events {
   display: none;
 }
 
-.progress-event-scene.status-completed .hub-core {
-  border-color: rgba(177, 136, 68, 0.46);
-  box-shadow: 0 8px 25px rgba(177, 136, 68, 0.12), inset 0 1px 0 #fff;
+.static-event {
+  position: absolute;
+  top: 12%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: min(360px, 38%);
+  min-height: 48px;
+  padding: 10px 16px;
+  transform: translateX(-50%);
+  border: 1px solid var(--ks-line);
+  border-radius: 24px;
+  background: rgba(251, 251, 246, 0.96);
+  box-shadow: 0 10px 24px -14px rgba(24, 42, 34, 0.22);
+  color: var(--ks-ink);
+  font-size: 13.5px;
+  line-height: 1.45;
+  text-align: left;
+  overflow-wrap: anywhere;
 }
 
-.progress-event-scene.status-completed .hub-caption {
-  color: #886837;
-}
-
-.progress-event-scene.status-failed .hub-core {
-  border-color: rgba(152, 64, 42, 0.42);
-  box-shadow: 0 8px 25px rgba(152, 64, 42, 0.08), inset 0 1px 0 #fff;
-}
-
-.progress-event-scene.status-failed .hub-caption {
-  color: var(--ks-bad);
-}
-
-.progress-event-scene.status-failed .progress-flight-label {
-  visibility: hidden !important;
-}
-
-.progress-event-scene.motion-limited .hub-orbit,
-.progress-event-scene.motion-limited .particle-orb {
-  animation: none;
+.static-event.lane-1 {
+  top: 30%;
 }
 
 .progress-event-scene.motion-limited .progress-static-events,
@@ -419,124 +507,187 @@
   position: absolute;
   inset: 0;
   display: block;
+  z-index: 4;
   pointer-events: none;
 }
 
-.static-event {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  max-width: min(300px, 40%);
-  min-height: 40px;
-  padding: 8px 13px;
-  border: 1px solid var(--ks-line);
-  border-radius: 22px;
-  background: rgba(250, 250, 245, 0.95);
-  box-shadow: 0 7px 18px rgba(24, 42, 34, 0.06);
-  color: var(--ks-ink);
-  font-size: 12px;
-  line-height: 1.45;
-  text-align: left;
-  overflow-wrap: anywhere;
+.progress-event-scene.motion-limited .progress-flight-layer,
+.progress-event-scene.is-failed .progress-flight-layer {
+  display: none;
 }
 
-.static-event.dock-0 { left: 3%; top: 24%; }
-.static-event.dock-1 { right: 3%; top: 59%; }
-
-.status-failed .progress-flight-path {
-  animation-play-state: paused;
+.progress-event-scene.motion-limited .progress-head,
+.progress-event-scene.motion-limited .progress-stage-aura,
+.progress-event-scene.motion-limited .progress-track-aura,
+.progress-event-scene.motion-limited .progress-track-fill,
+.progress-event-scene.motion-limited .progress-track-shine,
+.progress-event-scene.motion-limited .progress-comet-mask {
+  transition: none;
 }
 
-@keyframes progress-particle-drift {
-  from { transform: translate3d(0, 0, 0) scale(0.84); }
-  to { transform: translate3d(5px, -7px, 0) scale(1.13); }
+.progress-event-scene.motion-limited::before {
+  animation: none;
 }
 
-@keyframes progress-trail-flow {
-  to { stroke-dashoffset: -168; }
+.progress-event-scene.motion-limited .progress-head-halo,
+.progress-event-scene.motion-limited .progress-head-orbit,
+.progress-event-scene.motion-limited .progress-head-satellite,
+.progress-event-scene.motion-limited .progress-head-surge,
+.progress-event-scene.motion-limited .progress-track-guide,
+.progress-event-scene.motion-limited .progress-track-shimmer,
+.progress-event-scene.motion-limited .progress-mote,
+.progress-event-scene.motion-limited .progress-milestone {
+  animation: none;
 }
 
-@keyframes progress-connector-flow {
-  from { stroke-dashoffset: 0; opacity: 0.42; }
-  to { stroke-dashoffset: -32; opacity: 0.82; }
+.progress-event-scene.motion-limited .progress-head-surge,
+.progress-event-scene.motion-limited .progress-track-shimmer {
+  opacity: 0;
 }
 
-@keyframes progress-orbit-breathe {
-  0%, 100% { transform: scale(0.96); opacity: 0.66; }
-  50% { transform: scale(1.035); opacity: 1; }
+.progress-event-scene.motion-limited .progress-mote {
+  opacity: 0.32;
 }
 
-@keyframes progress-route-draw {
-  from { stroke-dashoffset: 1; opacity: 0.18; }
-  to { stroke-dashoffset: 0; opacity: 0.72; }
+.progress-event-scene.is-failed .progress-track-aura {
+  opacity: 0.2;
 }
 
-@keyframes progress-route-fade {
-  to { opacity: 0; }
+.progress-event-scene.is-failed .progress-track-shimmer {
+  animation: none;
+  opacity: 0;
+}
+
+.progress-event-scene.is-failed .progress-track-guide {
+  animation: none;
+}
+
+@keyframes progress-guide-flow {
+  to { stroke-dashoffset: -220; }
+}
+
+@keyframes progress-head-breathe {
+  0%, 100% { transform: scale(0.94); opacity: 0.62; }
+  50% { transform: scale(1.06); opacity: 1; }
+}
+
+@keyframes progress-head-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes progress-head-surge {
+  0% { transform: scale(0.55); opacity: 0.8; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+
+@keyframes progress-shimmer-run {
+  from { stroke-dashoffset: 1000; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes progress-mote-drift {
+  from { transform: translate3d(0, 0, 0) scale(0.82); opacity: 0.24; }
+  to { transform: translate3d(7px, -11px, 0) scale(1.15); opacity: 0.52; }
+}
+
+@keyframes progress-complete-flare {
+  0% { transform: scale(0.62); opacity: 0.85; }
+  70% { opacity: 0.24; }
+  100% { transform: scale(2.05); opacity: 0; }
+}
+
+@keyframes progress-milestone-pop {
+  0% { transform: translate(-50%, -50%) scale(0.72); }
+  48% { transform: translate(-50%, -50%) scale(1.32); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes progress-aurora {
+  from { transform: translate(-50%, -50%) scale(0.94); opacity: 0.78; }
+  to { transform: translate(-46%, -54%) scale(1.07); opacity: 1; }
 }
 
 @media (max-width: 760px) {
   .progress-event-scene {
-    height: 284px;
-    margin: 18px -2px 8px;
-    border-radius: 22px;
+    height: 306px;
+    margin: 20px -2px 10px;
+    border-radius: 24px;
   }
 
-  .progress-event-scene::before {
-    width: 300px;
-    height: 300px;
-    left: calc(50% - 150px);
-    top: calc(50% - 150px);
+  .progress-head {
+    width: 108px;
+    height: 108px;
   }
 
-  .progress-event-scene::after {
-    width: 218px;
-    height: 218px;
-    left: calc(50% - 109px);
-    top: calc(50% - 109px);
-  }
+  .progress-head-orbit { inset: 16px; }
+  .progress-head-ring { inset: 29px; }
+  .progress-head-core { inset: 44px; }
+  .progress-head-surge { inset: 22px; }
+  .progress-complete-flare { inset: 24px; }
+  .progress-complete-flare.flare-two { inset: 18px; }
 
-  .progress-hub {
-    width: 148px;
-    height: 148px;
-    top: 50%;
+  .progress-milestone {
+    width: 15px;
+    height: 15px;
   }
-
-  .hub-core { width: 84px; height: 84px; }
-  .hub-orbit { inset: 6px; }
-  .hub-orbit.orbit-two { inset: 0; }
-  .hub-caption { top: calc(100% + 7px); font-size: 10px; }
 
   .progress-flight-label {
-    max-width: min(210px, 43%);
-    min-height: 38px;
-    padding: 7px 11px;
-    gap: 7px;
-    font-size: 11px;
+    gap: 8px;
+    max-width: min(268px, 70%);
+    min-height: 48px;
+    padding: 10px 15px 10px 13px;
+    font-size: 13px;
+  }
+
+  .progress-flight-mark,
+  .static-event > i {
+    width: 8px;
+    height: 8px;
+    flex-basis: 8px;
   }
 
   .static-event {
-    max-width: min(190px, 43%);
-    min-height: 36px;
-    padding: 7px 10px;
-    gap: 7px;
-    font-size: 10px;
+    left: 50% !important;
+    gap: 8px;
+    max-width: 78%;
+    min-height: 44px;
+    padding: 9px 13px;
+    font-size: 12px;
   }
 
-  .ambient-particles .particle-orb:nth-of-type(n + 11) { display: none; }
+  .static-event.lane-1 {
+    top: 32%;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .progress-event-scene .hub-orbit,
-  .progress-event-scene .particle-orb,
-  .progress-event-scene .progress-main-trail,
-  .progress-event-scene .stage-connectors path {
+  .progress-event-scene .progress-head,
+  .progress-event-scene .progress-stage-aura,
+  .progress-event-scene .progress-track-aura,
+  .progress-event-scene .progress-track-fill,
+  .progress-event-scene .progress-track-shine,
+  .progress-event-scene .progress-comet-mask {
+    transition: none !important;
+  }
+
+  .progress-event-scene::before,
+  .progress-event-scene .progress-head-halo,
+  .progress-event-scene .progress-head-orbit,
+  .progress-event-scene .progress-head-satellite,
+  .progress-event-scene .progress-head-surge,
+  .progress-event-scene .progress-track-guide,
+  .progress-event-scene .progress-track-shimmer,
+  .progress-event-scene .progress-mote,
+  .progress-event-scene .progress-complete-flare,
+  .progress-event-scene .progress-milestone {
     animation: none !important;
   }
 
-  .progress-event-scene .progress-flight-label,
-  .progress-event-scene .progress-flight-spark {
+  .progress-event-scene .progress-track-shimmer {
+    opacity: 0;
+  }
+
+  .progress-event-scene .progress-flight-layer {
     display: none !important;
   }
 
@@ -544,5 +695,6 @@
     position: absolute;
     inset: 0;
     display: block;
+    pointer-events: none;
   }
 }

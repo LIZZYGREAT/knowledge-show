@@ -1,5 +1,5 @@
 import { AnimationHandoff, type AnimationPhase } from './AnimationHandoff';
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ProgressEventScene, type ProgressSceneStatus } from "./ProgressEventScene";
 import {
   getJob,
@@ -7,7 +7,15 @@ import {
   type JobSnapshot,
   type ProductionScriptSummary,
 } from "../../common/api";
-import { stageNames, stageOrder, type Stage } from "../../common/progress";
+import {
+  adaptDisplayEvents,
+  displayEventsAfter,
+  latestDisplayEventSeq,
+  stageNames,
+  stageOrder,
+  type ProgressSceneEvent,
+  type Stage,
+} from "../../common/progress";
 
 const stageCopy: Record<string, string> = {
   pending: "尚未开始",
@@ -51,6 +59,9 @@ export function TaskProgress({
   const [scriptReadAttempt, setScriptReadAttempt] = useState(0);
   const [animationPhase, setAnimationPhase] = useState<AnimationPhase>("checking");
   const [animationMessage, setAnimationMessage] = useState("正在核对动画资源。");
+  const [recentDisplayEvents, setRecentDisplayEvents] = useState<ProgressSceneEvent[]>([]);
+  const [incomingDisplayEvents, setIncomingDisplayEvents] = useState<ProgressSceneEvent[]>([]);
+  const displayEventCursor = useRef<{ jobId: string; seq: number } | null>(null);
 
   useEffect(() => {
     let stopped = false;
@@ -63,6 +74,9 @@ export function TaskProgress({
     setScriptReadAttempt(0);
     setAnimationPhase("checking");
     setAnimationMessage("正在核对动画资源。");
+    setRecentDisplayEvents([]);
+    setIncomingDisplayEvents([]);
+    displayEventCursor.current = null;
 
     async function poll() {
       try {
@@ -70,6 +84,22 @@ export function TaskProgress({
         if (stopped) return;
         setJob(latest);
         setJobError("");
+        const displayEvents = adaptDisplayEvents(jobId, latest.display_events);
+        setRecentDisplayEvents(displayEvents.slice(-2));
+        const cursor = displayEventCursor.current;
+        if (!cursor || cursor.jobId !== jobId) {
+          displayEventCursor.current = { jobId, seq: latestDisplayEventSeq(displayEvents) };
+          setIncomingDisplayEvents([]);
+        } else {
+          const arriving = displayEventsAfter(displayEvents, cursor.seq);
+          if (arriving.length) {
+            cursor.seq = latestDisplayEventSeq(displayEvents);
+            setIncomingDisplayEvents((current) => {
+              const ids = new Set(current.map((event) => event.id));
+              return [...current, ...arriving.filter((event) => !ids.has(event.id))].slice(-12);
+            });
+          }
+        }
         if (["queued", "running"].includes(latest.status)) {
           timer = window.setTimeout(poll, 1500);
         }
@@ -131,9 +161,15 @@ export function TaskProgress({
     : sceneStage === "animation" && ready
       ? animationReady ? "completed" : animationRunning ? "running" : animationFailed ? "failed" : "pending"
       : normalizedStageStatus;
+  const latestDisplayEvent = recentDisplayEvents.at(-1);
+  const latestDisplayText = latestDisplayEvent?.stage === sceneStage ? latestDisplayEvent.text : undefined;
   const currentMessage = ready
     ? jobError || scriptError || animationMessage
-    : jobError || scriptError || job?.message || "正在读取任务状态。";
+    : jobError
+      || scriptError
+      || (failed ? job?.message : latestDisplayText)
+      || job?.message
+      || "正在读取任务状态。";
 
   return (
     <main className="generation page-enter">
@@ -176,7 +212,13 @@ export function TaskProgress({
           );
         })}
       </ol>
-      <ProgressEventScene stage={sceneStage} status={sceneStatus} streamKey={jobId} />
+      <ProgressEventScene
+        stage={sceneStage}
+        status={sceneStatus}
+        streamKey={jobId}
+        recentEvents={recentDisplayEvents}
+        incomingEvents={incomingDisplayEvents}
+      />
       <p className="current-action" role="status">
         {currentMessage}
       </p>

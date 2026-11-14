@@ -105,6 +105,6 @@ export function CuriosityStage({ pose }: { pose?: number }) {
       </svg>
       <IdeaSeed style={{ left: `${seedLeft}%`, top: `${seedTop}%`, opacity: 1 - ink.bloom }}/>
     </div>
-    <figcaption>36 种等可能的组合，6 种相加为 7。</figcaption>
+    <figcaption style={{ opacity: ink.question, transform: `translateY(${6 * (1 - ink.question)}px)` }}>36 种等可能的组合，6 种相加为 7。</figcaption>
   </figure>;
 }

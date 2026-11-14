@@ -15,6 +15,30 @@ from knowledge.config import repository_root
 
 JOB_STATUSES = {"queued", "running", "script_ready", "failed", "interrupted"}
 STAGE_STATUSES = {"pending", "running", "completed", "failed"}
+DISPLAY_EVENT_LIMIT = 10
+
+_DISPLAY_EVENT_CATALOG = {
+    "knowledge.brief": ("knowledge", "已理解你的创作想法"),
+    "knowledge.research.started": ("knowledge", "正在了解这个主题"),
+    "knowledge.research.completed": ("knowledge", "主题探索已结束"),
+    "knowledge.references.started": ("knowledge", "正在补充关键资料"),
+    "knowledge.references.completed": ("knowledge", "关键资料已补充"),
+    "knowledge.creative.started": ("knowledge", "正在寻找有趣的讲述角度"),
+    "knowledge.creative.completed": ("knowledge", "讲述角度已整理"),
+    "knowledge.verification.started": ("knowledge", "正在确认重要知识"),
+    "knowledge.verification.completed": ("knowledge", "重要知识核查已结束"),
+    "knowledge.processing": ("knowledge", "正在探索知识与讲述方向"),
+    "knowledge.ready": ("knowledge", "知识方向已经准备好"),
+    "knowledge.reused": ("knowledge", "已复用准备好的知识方向"),
+    "knowledge.failed": ("knowledge", "知识准备暂时没有完成，请重试。"),
+    "script.planning": ("script", "正在安排讲述顺序与场景节奏"),
+    "script.ready": ("script", "脚本方案已经准备好"),
+    "script.reused": ("script", "已复用当前有效的脚本方案"),
+    "script.failed": ("script", "脚本暂时没有完成，请重试这一步。"),
+}
+_DISPLAY_EVENT_CODES = {
+    (stage, text): code for code, (stage, text) in _DISPLAY_EVENT_CATALOG.items()
+}
 
 
 class JobNotFoundError(LookupError):
@@ -36,6 +60,7 @@ class JobStore:
             "current_stage": "knowledge",
             "stages": {"knowledge": "pending", "script": "pending", "animation": "pending"},
             "message": "已加入创作任务",
+            "display_events": [],
             "project_revision": project_revision,
             "artifacts": {},
             "error_code": None,
@@ -56,11 +81,18 @@ class JobStore:
             raise ValueError("Persisted job snapshot is unreadable") from exc
         if not isinstance(job, dict) or job.get("job_id") != job_id:
             raise ValueError("Persisted job snapshot is inconsistent")
+        if "display_events" in job:
+            job["display_events"] = _safe_display_events(job["display_events"])
         return job
 
     def update(self, job_id: str, **changes: Any) -> dict[str, Any]:
         job = self.load(job_id)
+        display_event = changes.pop("display_event", None)
         updated = {**job, **changes, "updated_at": _now()}
+        if display_event is not None:
+            updated["display_events"] = _append_display_event(
+                updated.get("display_events", []), display_event
+            )
         if updated["status"] not in JOB_STATUSES:
             raise ValueError("Unsupported job status")
         if set(updated["stages"].values()) - STAGE_STATUSES:
@@ -121,6 +153,59 @@ def _valid_job_id(value: str) -> bool:
     return isinstance(value, str) and len(value) == 20 and value.startswith("JOB_") and all(
         char in "0123456789abcdef" for char in value[4:]
     )
+
+
+def _append_display_event(
+    current: Any, event: Any
+) -> list[dict[str, Any]]:
+    if (
+        not isinstance(event, tuple)
+        or len(event) != 2
+        or not isinstance(event[0], str)
+        or not isinstance(event[1], str)
+    ):
+        return _safe_display_events(current)
+    stage, message = event
+    code = _DISPLAY_EVENT_CODES.get((stage, message))
+    if code is None:
+        return _safe_display_events(current)
+
+    events = _safe_display_events(current)
+    if any(item["code"] == code and item["text"] == message for item in events):
+        return events
+    seq = events[-1]["seq"] + 1 if events else 1
+    events.append({"seq": seq, "stage": stage, "code": code, "text": message})
+    return events[-DISPLAY_EVENT_LIMIT:]
+
+
+def _safe_display_events(value: Any) -> list[dict[str, Any]]:
+    if not isinstance(value, list):
+        return []
+    valid: dict[int, dict[str, Any]] = {}
+    for item in value:
+        if not isinstance(item, dict):
+            continue
+        seq = item.get("seq")
+        code = item.get("code")
+        if (
+            isinstance(seq, bool)
+            or not isinstance(seq, int)
+            or seq < 1
+            or not isinstance(code, str)
+            or code not in _DISPLAY_EVENT_CATALOG
+        ):
+            continue
+        stage, text = _DISPLAY_EVENT_CATALOG[code]
+        if item.get("stage") != stage:
+            continue
+        valid[seq] = {"seq": seq, "stage": stage, "code": code, "text": text}
+    ordered: list[dict[str, Any]] = []
+    for seq in sorted(valid):
+        item = valid[seq]
+        if ordered and item["code"] == ordered[-1]["code"] and item["text"] == ordered[-1]["text"]:
+            continue
+        ordered.append(item)
+    return ordered[-DISPLAY_EVENT_LIMIT:]
 
 
 def _now() -> str:

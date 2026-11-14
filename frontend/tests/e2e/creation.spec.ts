@@ -599,6 +599,42 @@ test("demo has explicit events, recoverable failure, no fabricated preview", asy
   await expect(page.getByRole("status")).toContainText("尚无真实动画资源");
   await expect(page.getByRole("button", { name: "进入工作台" })).toHaveCount(0);
 });
+
+test("progress scene advances along one curved track and grows event bubbles", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "开始创作" }).click();
+  await page.getByRole("button", { name: "查看流程演示" }).click();
+  const scene = page.locator(".progress-event-scene");
+  const head = scene.locator(".progress-head");
+  await expect(scene).toHaveAttribute("data-stage", "knowledge");
+  await expect(scene.locator(".progress-track-fill")).toHaveCount(1);
+  await expect(scene.locator(".progress-milestone")).toHaveCount(3);
+  const start = await head.boundingBox();
+
+  await page.getByRole("button", { name: "下一条演示事件" }).click();
+  await expect(scene.locator(".progress-flight-label").first()).toBeVisible({ timeout: 3000 });
+  await expect(scene.locator(".progress-flight-label").first()).toContainText("已理解你的创作想法");
+
+  for (let i = 0; i < 5; i++) await page.getByRole("button", { name: "下一条演示事件" }).click();
+  await expect(scene).toHaveAttribute("data-stage", "script");
+  await page.waitForTimeout(1500);
+  const advanced = await head.boundingBox();
+  expect(advanced!.x).toBeGreaterThan(start!.x + 20);
+  await expect(scene.locator(".progress-milestone.is-passed")).toHaveCount(1);
+});
+
+test("progress scene keeps static progress readable with reduced motion", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await page.getByRole("button", { name: "开始创作" }).click();
+  await page.getByRole("button", { name: "查看流程演示" }).click();
+  for (let i = 0; i < 2; i++) await page.getByRole("button", { name: "下一条演示事件" }).click();
+  const scene = page.locator(".progress-event-scene");
+  await expect(scene.locator(".static-event").first()).toBeVisible();
+  await expect(scene.locator(".progress-flight-layer")).toBeHidden();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
 for (const width of [375, 390, 768, 1280, 1440, 1920])
   test(`responsive layout ${width}`, async ({ page }) => {
     await page.setViewportSize({ width, height: width === 1280 ? 720 : 900 });
@@ -767,6 +803,7 @@ test("opening flow grows from a point before revealing the knowledge scene", asy
     widths.push((await body.boundingBox())!.width);
     await expect(page.locator(".curiosity-stage")).toHaveAttribute("data-ink", "0.000");
     await expect(page.locator(".stage-question")).toHaveAttribute("opacity", "0");
+    await expect(page.locator(".curiosity-stage figcaption")).toHaveCSS("opacity", "0");
   }
   expect(new Set(paths).size).toBe(3);
   expect(widths[0]).toBeLessThan(widths[2] * .3);
@@ -777,19 +814,23 @@ test("ink connects silk to dice without ripple or spiral effects", async ({ page
   await expect(page.locator(".stage-silk")).toHaveAttribute("opacity", "1");
   await expect(page.locator(".curiosity-stage")).toHaveAttribute("data-ink", "0.000");
   await expect(page.locator(".stage-question")).toHaveAttribute("opacity", "0");
+  await expect(page.locator(".curiosity-stage figcaption")).toHaveCSS("opacity", "0");
   await page.goto(`/?stage-pose=${(FLOW_DRAW_DURATION + 1.6) / STAGE_DURATION}`);
   const ink = Number(await page.locator(".curiosity-stage").getAttribute("data-ink"));
   expect(ink).toBeGreaterThan(0);
   expect(ink).toBeLessThan(1);
   await expect(page.locator(".stage-question")).toHaveAttribute("opacity", "0");
+  await expect(page.locator(".curiosity-stage figcaption")).toHaveCSS("opacity", "0");
   await page.goto(`/?stage-pose=${(FLOW_DRAW_DURATION + 3.1) / STAGE_DURATION}`);
   await expect(page.locator(".stage-question")).toHaveAttribute("opacity", "1");
+  await expect(page.locator(".curiosity-stage figcaption")).toHaveCSS("opacity", "1");
   await expect(page.locator(".stage-ink-ripples, .stage-vortex-front, .stage-vortex-back, .stage-die-cube")).toHaveCount(0);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   await expect(page.locator(".stage-silk")).toHaveAttribute("opacity", "0");
   await expect(page.locator(".stage-silk .flow-body")).toHaveCount(0);
   await expect(page.locator(".stage-question")).toHaveAttribute("opacity", "1");
+  await expect(page.locator(".curiosity-stage figcaption")).toHaveCSS("opacity", "1");
   expect(await page.locator(".curiosity-artwork").evaluate(svg => {
     const path = svg.querySelector<SVGPathElement>(".stage-ink-mask")!;
     return [...svg.querySelectorAll<SVGTextElement>(".stage-knowledge text")].every(text => {

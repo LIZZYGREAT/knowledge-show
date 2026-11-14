@@ -164,6 +164,20 @@ async def test_job_snapshot_persists_safe_progress_and_closes_request_clients(lo
     }
     assert snapshot["message"] == "脚本准备完成，等待动画制作。"
     assert snapshot["artifacts"]["production_script"]["revision"] == 1
+    assert snapshot["display_events"] == [
+        {
+            "seq": 1,
+            "stage": "knowledge",
+            "code": "knowledge.ready",
+            "text": "知识方向已经准备好",
+        },
+        {
+            "seq": 2,
+            "stage": "script",
+            "code": "script.ready",
+            "text": "脚本方案已经准备好",
+        },
+    ]
     persisted = jobs._path(job_id).read_text(encoding="utf-8")
     assert secret not in persisted
     assert "diagnostic" not in persisted
@@ -173,6 +187,66 @@ async def test_job_snapshot_persists_safe_progress_and_closes_request_clients(lo
         "artifact_id": f"PS_{project['project_id']}",
         "revision": 1,
     }
+
+
+def test_job_store_keeps_bounded_and_sanitized_display_events(tmp_path):
+    jobs = JobStore(tmp_path / "jobs")
+    job = jobs.create("PROJ_display", 1)
+    known = [
+        ("knowledge", "已理解你的创作想法"),
+        ("knowledge", "正在了解这个主题"),
+        ("knowledge", "主题探索已结束"),
+        ("knowledge", "正在补充关键资料"),
+        ("knowledge", "关键资料已补充"),
+        ("knowledge", "正在寻找有趣的讲述角度"),
+        ("knowledge", "讲述角度已整理"),
+        ("knowledge", "正在确认重要知识"),
+        ("knowledge", "重要知识核查已结束"),
+        ("knowledge", "正在探索知识与讲述方向"),
+        ("knowledge", "知识方向已经准备好"),
+        ("knowledge", "已复用准备好的知识方向"),
+        ("knowledge", "知识准备暂时没有完成，请重试。"),
+        ("script", "正在安排讲述顺序与场景节奏"),
+        ("script", "脚本方案已经准备好"),
+    ]
+    for stage, message in known:
+        jobs.update(job["job_id"], display_event=(stage, message))
+
+    events = jobs.load(job["job_id"])["display_events"]
+    assert len(events) == 10
+    assert events[0]["seq"] == 6
+    assert events[-1]["seq"] == 15
+    assert all(set(event) == {"seq", "stage", "code", "text"} for event in events)
+
+    # Duplicate semantic events and unknown/private messages never grow the snapshot.
+    jobs.update(job["job_id"], display_event=("script", "脚本方案已经准备好"))
+    jobs.update(job["job_id"], display_event=("knowledge", "provider diagnostic secret"))
+    assert jobs.load(job["job_id"])["display_events"] == events
+
+    # A tampered snapshot is sanitized on load instead of being exposed.
+    path = jobs._path(job["job_id"])
+    snapshot = json.loads(path.read_text(encoding="utf-8"))
+    snapshot["display_events"].extend([
+        {
+            "seq": 16,
+            "stage": "knowledge",
+            "code": "knowledge.brief",
+            "text": "已理解你的创作想法",
+            "diagnostic": "private",
+        },
+        {"seq": 17, "stage": "script", "code": "knowledge.ready", "text": "wrong stage"},
+        {"seq": 18, "stage": "knowledge", "code": "unknown.code", "text": "unknown"},
+    ])
+    path.write_text(json.dumps(snapshot), encoding="utf-8")
+
+    sanitized = jobs.load(job["job_id"])["display_events"]
+    assert sanitized[-1] == {
+        "seq": 16,
+        "stage": "knowledge",
+        "code": "knowledge.brief",
+        "text": "已理解你的创作想法",
+    }
+    assert all(set(event) == {"seq", "stage", "code", "text"} for event in sanitized)
 
 
 @pytest.mark.anyio

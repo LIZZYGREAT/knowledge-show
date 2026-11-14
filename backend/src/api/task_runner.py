@@ -58,6 +58,11 @@ async def run_job(
                 stages[stage] = "running"
                 artifacts = dict(current["artifacts"])
                 message = _stage_message(stage, "running")
+            display_message = event.get("message")
+            if kind == "completed" and not event.get("artifact"):
+                display_message = message
+            elif not isinstance(display_message, str):
+                display_message = message
             jobs.update(
                 job_id,
                 status="running",
@@ -65,6 +70,7 @@ async def run_job(
                 stages=stages,
                 artifacts=artifacts,
                 message=message,
+                display_event=(stage, display_message),
             )
 
         options: WorkflowOptions = services.workflow_options(
