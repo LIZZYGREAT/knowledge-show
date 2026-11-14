@@ -763,8 +763,8 @@ test("knowledge theatre plays continuously and pauses on blur", async ({ page })
   await page.goto("/");
   const stage = page.locator(".curiosity-stage");
   await expect
-    .poll(async () => Number(await stage.getAttribute("data-pose")))
-    .toBeGreaterThan(0.1);
+    .poll(async () => Number(await stage.getAttribute("data-time")))
+    .toBeGreaterThan(2);
   await page.evaluate(() => window.dispatchEvent(new Event("blur")));
   await expect(stage).toHaveAttribute("data-paused", "true");
   const paused = await stage.getAttribute("data-pose");

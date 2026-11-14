@@ -36,3 +36,8 @@
   .stage-distribution [data-sum="9"],
   .stage-distribution [data-sum="11"] { display: none; }
 }
+.curiosity-stage figcaption { display: grid; }
+.curiosity-stage figcaption > span { grid-area: 1 / 1; }
+.curiosity-artwork .pn-question { font-size: 25px; letter-spacing: .08em; fill: #315846; }
+.curiosity-artwork .pn-meter-label { font-size: 10px; fill: #738870; }
+.curiosity-artwork .pn-explanation { font-size: 17px; fill: #788571; }
