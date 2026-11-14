@@ -110,10 +110,17 @@ async def run_job(
         raise
     except Exception as exc:
         code, message = public_error(exc)
-        logger.error("Local generation job failed (%s, %s)", job_id, code)
         current = jobs.load(job_id)
         stages = dict(current["stages"])
         stage = current.get("current_stage")
+        logger.error(
+            "Local generation job failed "
+            "(job_id=%s, stage=%s, error_code=%s, exception_type=%s)",
+            job_id,
+            stage or "unknown",
+            code,
+            type(exc).__name__,
+        )
         if stage in stages and stages[stage] != "completed":
             stages[stage] = "failed"
         jobs.update(

@@ -1,6 +1,7 @@
 import asyncio
 import copy
 import json
+import logging
 from pathlib import Path
 
 import pytest
@@ -172,6 +173,70 @@ async def test_job_snapshot_persists_safe_progress_and_closes_request_clients(lo
         "artifact_id": f"PS_{project['project_id']}",
         "revision": 1,
     }
+
+
+@pytest.mark.anyio
+async def test_failed_job_logs_safe_stage_diagnostics_without_private_error_details(
+    tmp_path, monkeypatch, caplog
+):
+    projects = ProjectStateStore(tmp_path / "projects")
+    jobs = JobStore(tmp_path / "jobs")
+    secret = "sk-private-failure-secret"
+    raw_detail = f"provider response leaked {secret}; private traceback follows"
+
+    async def failing_run(_project_id, *, options, state_store, on_event):
+        await on_event({"stage": "script", "kind": "running"})
+        raise RuntimeError(raw_detail)
+
+    monkeypatch.setattr(task_runner_module, "run_until_script", failing_run)
+    app = api_module.create_app(
+        state_store=projects,
+        job_store=jobs,
+        services_factory=FakeServices,
+        connection_test=lambda _: True,
+    )
+    caplog.set_level(logging.ERROR, logger="api.task_runner")
+
+    async with app.router.lifespan_context(app):
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://127.0.0.1"
+        ) as client:
+            created = await client.post(
+                "/api/projects", json={"user_input": {"topic": "生日悖论"}}
+            )
+            project_id = created.json()["project_id"]
+            started = await client.post(
+                f"/api/projects/{project_id}/jobs",
+                json={"target": "script", "api_key": secret},
+            )
+            job_id = started.json()["job_id"]
+            for _ in range(50):
+                response = await client.get(f"/api/jobs/{job_id}")
+                snapshot = response.json()
+                if snapshot["status"] != "running":
+                    break
+                await asyncio.sleep(0.01)
+
+    assert response.status_code == 200
+    assert snapshot["status"] == "failed"
+    assert snapshot["error_code"] == "temporarily_unavailable"
+    assert secret not in response.text
+    assert raw_detail not in response.text
+    assert "traceback" not in response.text.lower()
+    assert secret not in jobs._path(job_id).read_text(encoding="utf-8")
+
+    diagnostic_records = [
+        record for record in caplog.records if "Local generation job failed" in record.message
+    ]
+    assert len(diagnostic_records) == 1
+    diagnostic = diagnostic_records[0]
+    assert job_id in diagnostic.message
+    assert "stage=script" in diagnostic.message
+    assert "error_code=temporarily_unavailable" in diagnostic.message
+    assert "exception_type=RuntimeError" in diagnostic.message
+    assert secret not in diagnostic.message
+    assert raw_detail not in diagnostic.message
+    assert diagnostic.exc_info is None
 
 
 @pytest.mark.anyio
