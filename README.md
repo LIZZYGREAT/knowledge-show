@@ -1,6 +1,6 @@
 # knowledge-show
 
-> 面向普通创作者的 AI 知识短视频制作项目。当前 `main` 仍以基础骨架和接口契约为主；知识层已在 `feat/knowledge-layer-implementation` 完成首版实现与验证，尚未集成脚本、动画和共享工作流。
+> 面向普通创作者的 AI 知识短视频制作项目。当前 `main` 仍以基础骨架和接口契约为主；知识层首版位于 `feat/knowledge-layer-implementation`，成本效率与用户体验修订位于 `feat/knowledge-cost-efficiency-ux`，尚未集成脚本、动画和共享工作流。
 
 ## 项目目标
 
