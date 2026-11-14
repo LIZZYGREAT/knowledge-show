@@ -75,7 +75,7 @@ export function CreationComposer({
               e.target.style.height = "auto";
               e.target.style.height = `${Math.max(100, e.target.scrollHeight)}px`;
             }}
-            placeholder="例如：为什么只要 23 个人，就很可能出现相同的生日？"
+            placeholder="例如：为什么越睡越困？"
             rows={3}
             required
           />
@@ -100,7 +100,7 @@ export function CreationComposer({
           {field(
             "focus",
             "有没有特别想讲的？",
-            "例如：我想重点讲讲，直觉为什么会在这里出错。",
+            "例如：想重点讲清原理，历史背景简单带过。",
           )}
           <fieldset>
             <legend>希望怎么讲？</legend>
@@ -126,7 +126,7 @@ export function CreationComposer({
                   onChange={(e) =>
                     change("creative_mode_notes", e.target.value)
                   }
-                  placeholder="描述你希望怎样讲述"
+                  placeholder="例如：像侦探破案一样，一步步揭开答案"
                   rows={2}
                 />
               </label>
@@ -158,17 +158,17 @@ export function CreationComposer({
               <input
                 value={draft.art_style}
                 onChange={(e) => change("art_style", e.target.value)}
-                placeholder="例如：纸张质感、克制的线条与暖色"
+                placeholder="例如：手绘插画风，颜色温暖一点"
               />
             </label>
             {field(
               "creative_idea",
               "你的创意",
-              "例如：从一个生活中的小误会讲起",
+              "例如：为什么越睡越困？把困意做成流沙，人越睡陷得越深",
               true,
             )}
-            {field("must_include", "想出现的内容", "一个贴近日常的例子")}
-            {field("must_avoid", "希望避开的内容", "过于复杂的公式")}
+            {field("must_include", "想出现的内容", "例如：一个日常生活中的例子")}
+            {field("must_avoid", "希望避开的内容", "例如：太复杂的公式和术语")}
           </div>
           <EditorialOrnament variant="hem" className="preference-ornament" />
         </details>

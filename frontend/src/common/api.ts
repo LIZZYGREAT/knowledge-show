@@ -1,3 +1,5 @@
+import type { DisplayEvent } from "./progress";
+
 export type ArtifactRef = { artifact_id: string; revision: number };
 export type JobSnapshot = {
   job_id: string;
@@ -9,6 +11,7 @@ export type JobSnapshot = {
   project_revision: number;
   artifacts: Record<string, ArtifactRef>;
   error_code: string | null;
+  display_events?: DisplayEvent[];
 };
 export type ProductionScriptSummary = {
   core_message: string;

@@ -29,9 +29,9 @@ PR #16 集成验证记录：后端 `PYTHONPATH=backend/src .venv/bin/python -m p
 
 ## 首页知识剧场验证
 
-`feat/home-curiosity-stage` 首页恢复从一点开始、约 5.5 秒逐渐画出青绿流线的旧开场，金色种子沿生长尖端移动，再通过柔和的不规则墨晕衔接到纸艺骰子及组合演示。20 秒循环覆盖流线生长、流体收拢、墨晕揭示、骰子落定、组合展开、数量分布和收回流体；不包含后续波纹、螺旋及三维骰子版本。减少动画直接展示结论，离屏、失焦或页面隐藏时暂停；旧 `LivingFlowScene` 保留。首页不影响生产动画风格、API 或公共 Schema。
+当前 `feat/progress-stage-events` 分支的首页保留约 5.5 秒从一点画出青绿流线的开场，通过墨晕进入骰子演示。骰子使用刚性三维投影，面与点数共同旋转，对面点数和为 7；36 种有序组合及数量分布保持准确。首次约 43 秒、后续约 37.5 秒回环包含首页风格的 PN 结演示：两枚骰子转正并拢为结本体，组合圆点沿弧线缩小、变色并接入载流子运动；参考现有 PN S01 的陶瓷结、红蓝粒子、极性翻转、仪表响应及双状态对照，以米白、青绿、低饱和红蓝和纸面细线重新绘制。末段 PN 装置先完全收拢到条带内侧卷曲终点的金色点，短暂停留后沿成型条带路径逆向画回外侧起点，恢复完整流纹丝带；完成后保留完整条带并接入下一轮，不再倒放擦除。首页与生产 PN 场景保持独立，没有修改生产层、API 或公共 Schema。减少动画展示骰子结论；离屏、失焦和页面隐藏时暂停。
 
-前端 `npm run build` 通过，`npm test` 18 项通过；`npm run test:e2e -- --workers=2 --output=/tmp/ks-flow-draw-restored-e2e` 37 项通过（Chromium，提供 `LD_LIBRARY_PATH` / `FONTCONFIG_FILE` / `PLAYWRIGHT_BROWSERS_PATH`）。浏览器回归检查开场流线逐渐生长、墨晕后出现标题、墨晕转场、波纹/螺旋元素不存在、遮罩中的完整知识文字、暂停恢复及既有创作与工作台流程。实际截图覆盖 1440×900、1280×720、390px 手机与减少动画，以及起点、生长中、完整流线、墨晕、结论和循环边界，位于 `/tmp/ks-draw-intro-*`。预览录屏为 `/tmp/ks-draw-intro-preview.mp4`。负责人视觉确认与 Safari / 真机验收待完成，任务留在 open。
+当前收尾修改的 `npm run build` 通过，`npm test` 26 项通过；首页定向 Chromium 回归 7 项通过（`npm run test:e2e -- tests/e2e/landing-pn.spec.ts tests/e2e/creation.spec.ts --grep 'PN|dice faces|knowledge theatre|opening flow|ink connects|theatre pauses' --workers=2 --output=/tmp/ks-pn-reverse-e2e`，提供 `LD_LIBRARY_PATH` / `FONTCONFIG_FILE` / `PLAYWRIGHT_BROWSERS_PATH`）。检查覆盖 PN 完全收成点后才逆向绘制丝带、收拢落点与绘制终点对齐、路径逐渐增长、完整条带跨循环保持连续，以及骰子旋转、开场和暂停恢复。此前 PN 风格适配时全量浏览器回归 51 项通过。按本次要求，视觉检查聚焦 1440×900 桌面端，关键帧截图位于 `/tmp/ks-pn-redraw-*.png`；负责人审美确认待完成，首页任务留在 open。
 
 ## 视频画风与化学试片
 

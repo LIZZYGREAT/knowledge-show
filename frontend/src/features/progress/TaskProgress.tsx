@@ -1,12 +1,21 @@
 import { AnimationHandoff, type AnimationPhase } from './AnimationHandoff';
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ProgressEventScene, type ProgressSceneStatus } from "./ProgressEventScene";
 import {
   getJob,
   getProductionScript,
   type JobSnapshot,
   type ProductionScriptSummary,
 } from "../../common/api";
-import { stageNames, stageOrder } from "../../common/progress";
+import {
+  adaptDisplayEvents,
+  displayEventsAfter,
+  latestDisplayEventSeq,
+  stageNames,
+  stageOrder,
+  type ProgressSceneEvent,
+  type Stage,
+} from "../../common/progress";
 
 const stageCopy: Record<string, string> = {
   pending: "尚未开始",
@@ -50,6 +59,9 @@ export function TaskProgress({
   const [scriptReadAttempt, setScriptReadAttempt] = useState(0);
   const [animationPhase, setAnimationPhase] = useState<AnimationPhase>("checking");
   const [animationMessage, setAnimationMessage] = useState("正在核对动画资源。");
+  const [recentDisplayEvents, setRecentDisplayEvents] = useState<ProgressSceneEvent[]>([]);
+  const [incomingDisplayEvents, setIncomingDisplayEvents] = useState<ProgressSceneEvent[]>([]);
+  const displayEventCursor = useRef<{ jobId: string; seq: number } | null>(null);
 
   useEffect(() => {
     let stopped = false;
@@ -62,6 +74,9 @@ export function TaskProgress({
     setScriptReadAttempt(0);
     setAnimationPhase("checking");
     setAnimationMessage("正在核对动画资源。");
+    setRecentDisplayEvents([]);
+    setIncomingDisplayEvents([]);
+    displayEventCursor.current = null;
 
     async function poll() {
       try {
@@ -69,6 +84,22 @@ export function TaskProgress({
         if (stopped) return;
         setJob(latest);
         setJobError("");
+        const displayEvents = adaptDisplayEvents(jobId, latest.display_events);
+        setRecentDisplayEvents(displayEvents.slice(-2));
+        const cursor = displayEventCursor.current;
+        if (!cursor || cursor.jobId !== jobId) {
+          displayEventCursor.current = { jobId, seq: latestDisplayEventSeq(displayEvents) };
+          setIncomingDisplayEvents([]);
+        } else {
+          const arriving = displayEventsAfter(displayEvents, cursor.seq);
+          if (arriving.length) {
+            cursor.seq = latestDisplayEventSeq(displayEvents);
+            setIncomingDisplayEvents((current) => {
+              const ids = new Set(current.map((event) => event.id));
+              return [...current, ...arriving.filter((event) => !ids.has(event.id))].slice(-12);
+            });
+          }
+        }
         if (["queued", "running"].includes(latest.status)) {
           timer = window.setTimeout(poll, 1500);
         }
@@ -120,6 +151,25 @@ export function TaskProgress({
   const animationReady = animationPhase === "ready";
   const animationRunning = animationPhase === "running";
   const animationFailed = animationPhase === "failed";
+  const sceneStage: Stage = ready ? "animation" : job?.current_stage ?? "knowledge";
+  const stageStatus = job?.stages[sceneStage];
+  const normalizedStageStatus: ProgressSceneStatus = ["pending", "running", "completed", "failed"].includes(stageStatus ?? "")
+    ? stageStatus as ProgressSceneStatus
+    : "pending";
+  const sceneStatus: ProgressSceneStatus = failed
+    ? "failed"
+    : sceneStage === "animation" && ready
+      ? animationReady ? "completed" : animationRunning ? "running" : animationFailed ? "failed" : "pending"
+      : normalizedStageStatus;
+  const latestDisplayEvent = recentDisplayEvents.at(-1);
+  const latestDisplayText = latestDisplayEvent?.stage === sceneStage ? latestDisplayEvent.text : undefined;
+  const currentMessage = ready
+    ? jobError || scriptError || animationMessage
+    : jobError
+      || scriptError
+      || (failed ? job?.message : latestDisplayText)
+      || job?.message
+      || "正在读取任务状态。";
 
   return (
     <main className="generation page-enter">
@@ -162,21 +212,15 @@ export function TaskProgress({
           );
         })}
       </ol>
-      <div className={`progress-scene real-progress-scene ${failed || ready ? "paused" : ""}`}>
-        <svg viewBox="0 0 1000 260" preserveAspectRatio="none" aria-hidden="true">
-          <path d="M0 180 C160 180 160 50 330 100 S550 240 680 120 S880 80 1000 70" />
-        </svg>
-        <div className="event-bubbles" aria-live="polite">
-          <div className="event-bubble bubble-0">
-            <span />
-            {ready ? animationMessage : job?.message ?? "正在连接本地创作服务"}
-          </div>
-        </div>
-      </div>
+      <ProgressEventScene
+        stage={sceneStage}
+        status={sceneStatus}
+        streamKey={jobId}
+        recentEvents={recentDisplayEvents}
+        incomingEvents={incomingDisplayEvents}
+      />
       <p className="current-action" role="status">
-        {ready
-          ? jobError || scriptError || animationMessage
-          : jobError || scriptError || job?.message || "正在读取任务状态。"}
+        {currentMessage}
       </p>
       {ready && script && (
         <section className="script-overview" aria-label="脚本概览">

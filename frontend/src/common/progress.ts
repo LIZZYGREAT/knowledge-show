@@ -1,20 +1,66 @@
 export type Stage = "knowledge" | "script" | "animation";
+export type DisplayEvent = {
+  seq: number;
+  stage: Stage;
+  code: string;
+  text: string;
+};
+export type ProgressSceneEvent = DisplayEvent & { id: string };
 export const stageNames: Record<Stage, string> = {
   knowledge: "知识探索",
   script: "脚本编排",
   animation: "动画制作",
 };
 export const stageOrder: Stage[] = ["knowledge", "script", "animation"];
+const displayEventLimit = 10;
 export type Progress = {
   stages: Record<Stage, "pending" | "running" | "completed" | "failed">;
-  messages: { id: number; text: string }[];
+  messages: { id: number; stage: Stage; text: string }[];
+  nextMessageId: number;
   error: boolean;
 };
 export const emptyProgress = (): Progress => ({
   stages: { knowledge: "pending", script: "pending", animation: "pending" },
   messages: [],
+  nextMessageId: 1,
   error: false,
 });
+
+export function adaptDisplayEvents(jobId: string, raw: unknown): ProgressSceneEvent[] {
+  if (!jobId || !Array.isArray(raw)) return [];
+  const events = new Map<number, ProgressSceneEvent>();
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const candidate = item as Record<string, unknown>;
+    const seq = candidate.seq;
+    const stage = candidate.stage;
+    const code = candidate.code;
+    const text = candidate.text;
+    if (
+      typeof seq !== "number" || !Number.isSafeInteger(seq) || seq < 1 ||
+      typeof stage !== "string" || !stageOrder.includes(stage as Stage) ||
+      typeof code !== "string" || !code.startsWith(`${stage}.`) ||
+      !/^[a-z]+(?:\.[a-z][a-z0-9_]*)+$/.test(code) ||
+      typeof text !== "string"
+    ) continue;
+    const safeText = text.replace(/[\u0000-\u001f\u007f]/g, "").trim();
+    if (!safeText || safeText.length > 120 || events.has(seq)) continue;
+    events.set(seq, { id: `${jobId}:${seq}`, seq, stage: stage as Stage, code, text: safeText });
+  }
+  return [...events.values()].sort((left, right) => left.seq - right.seq).slice(-displayEventLimit);
+}
+
+export function displayEventsAfter(
+  events: ProgressSceneEvent[],
+  lastSeq: number,
+): ProgressSceneEvent[] {
+  return events.filter((event) => event.seq > lastSeq).slice(-12);
+}
+
+export function latestDisplayEventSeq(events: ProgressSceneEvent[]): number {
+  return events.at(-1)?.seq ?? 0;
+}
+
 // Local UI adapter, not a new shared transport contract. Only delivery.completed
 // is a published knowledge package; research.completed never completes the stage.
 export function knowledgeEvent(raw: unknown): {
@@ -102,9 +148,7 @@ export function applyEvent(state: Progress, e: UiEvent): Progress {
             ? "failed"
             : "running",
     },
-    messages: [
-      ...state.messages,
-      { id: (state.messages.at(-1)?.id ?? 0) + 1, text: e.text },
-    ].slice(-4),
+    messages: [...state.messages, { id: state.nextMessageId, stage: e.stage, text: e.text }].slice(-4),
+    nextMessageId: state.nextMessageId + 1,
   };
 }

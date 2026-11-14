@@ -24,6 +24,18 @@ describe("continuous flow surface", () => {
     expect(flowMesh(6).silhouette).not.toBe(flowMesh(7).silhouette);
   });
 
+  it("draws backward from the inner endpoint with a tapered moving edge", () => {
+    for (const from of [1, .8, .4, .01]) {
+      const center = centerAt(from, 5.5);
+      for (const v of [-1.3, -.5, .5, 1.3]) {
+        const point = surfaceAt(from, v, 5.5, from);
+        expect(Math.hypot(point[0] - center[0], point[1] - center[1])).toBeLessThan(.001);
+      }
+      expect(flowMesh(5.5, false, from).silhouette).not.toMatch(/NaN|Infinity/);
+    }
+    expect(flowMesh(5.5, false, 0)).toEqual(flowMesh(5.5));
+  });
+
   it("uses a smaller mesh on phones while preserving the same boundary", () => {
     const full = flowMesh(5.5);
     const compact = flowMesh(5.5, true);

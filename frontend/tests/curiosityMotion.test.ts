@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { combinationState, stageState, inkState, FLOW_DRAW_DURATION, STAGE_DURATION, STATIC_STAGE_TIME } from "../src/features/landing/curiosityMotion";
+import { combinationState, stageState, inkState, FLOW_DRAW_DURATION, STAGE_DURATION, STATIC_STAGE_TIME, SILK_REDRAW_START, pnState } from "../src/features/landing/curiosityMotion";
 
 describe("dice demonstration", () => {
   it("draws the original flow from a point before the ink transition", () => {
@@ -12,15 +12,28 @@ describe("dice demonstration", () => {
     expect(drawn.fold).toBe(0);
     expect(stageState(FLOW_DRAW_DURATION).t).toBe(0);
   });
-  it("reveals the full knowledge scene in ink and restores the silk at the loop seam", () => {
+  it("reveals knowledge in ink and holds the completed ribbon across the loop seam", () => {
     const full = inkState(STATIC_STAGE_TIME);
     expect(full.bloom).toBe(1);
     expect(full.silkOpacity).toBe(0);
-    const initial = inkState(0);
+    const initial = inkState(FLOW_DRAW_DURATION);
     const end = inkState(STAGE_DURATION - .001);
     for (const key of ["bloom", "fold", "silkOpacity", "scale", "flowTime", "question"] as const) {
       expect(end[key]).toBeCloseTo(initial[key], 3);
     }
+  });
+  it("collapses PN completely before drawing backward from the ribbon endpoint", () => {
+    expect(pnState(36).exit).toBe(1);
+    expect(pnState(36).opacity).toBe(0);
+    expect(inkState(36).silkOpacity).toBe(0);
+    expect(inkState(36).seedOpacity).toBe(1);
+    const frames = [0, 1, 2.5, 4, FLOW_DRAW_DURATION].map(offset => inkState(SILK_REDRAW_START + offset));
+    expect(frames.every(frame => frame.flowTime === FLOW_DRAW_DURATION)).toBe(true);
+    expect(frames[0].revealFrom).toBe(1);
+    expect(frames.at(-1)!.revealFrom).toBe(0);
+    expect(frames.every((frame, index) => index === 0 || frame.revealFrom < frames[index - 1].revealFrom)).toBe(true);
+    expect(frames.every(frame => frame.scale === 1)).toBe(true);
+    expect(inkState(STAGE_DURATION).flowTime).toBe(FLOW_DRAW_DURATION);
   });
   it("preserves all 36 ordered outcomes and their triangular sum distribution", () => {
     const groups = new Map<number, Set<number>>();
