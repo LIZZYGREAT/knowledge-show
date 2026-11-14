@@ -292,6 +292,17 @@ async def test_animation_handoff_returns_current_exact_script_without_claiming_v
                 "duration_ms": scene["duration_ms"],
                 "resource_ref": resource_ref,
                 "script_event_refs": [event["id"] for event in scene["events"]],
+                "internal_events": [
+                    {
+                        "id": f"ANIM_{event['id']}",
+                        "offset_ms": event["offset_ms"],
+                        "duration_ms": 1000,
+                        "description": "映射脚本锚点",
+                        "script_event_refs": [event["id"]],
+                    }
+                    for event in scene["events"]
+                    if event.get("anchor") is True
+                ],
             }
         )
     manifest = {
@@ -344,6 +355,51 @@ async def test_animation_handoff_returns_current_exact_script_without_claiming_v
                 f"/api/projects/{project['project_id']}/animation-manifest",
                 json=unsafe_manifest,
             )
+            wrong_text_id = copy.deepcopy(manifest)
+            wrong_text_id["artifact_id"] = f"AM_TEXT_ID_{project['project_id']}"
+            wrong_text_id["selectable_elements"] = [
+                {
+                    "id": "EL_WRONG_TEXT_ID",
+                    "source_ref": {
+                        "kind": "timed_text",
+                        "id": script["scenes"][0]["timed_text"][0]["id"],
+                    },
+                }
+            ]
+            wrong_text = await client.post(
+                f"/api/projects/{project['project_id']}/animation-manifest",
+                json=wrong_text_id,
+            )
+            missing_anchor = copy.deepcopy(manifest)
+            missing_anchor["artifact_id"] = f"AM_NO_ANCHOR_{project['project_id']}"
+            missing_anchor["clips"][-1]["internal_events"][0]["script_event_refs"] = []
+            no_anchor = await client.post(
+                f"/api/projects/{project['project_id']}/animation-manifest",
+                json=missing_anchor,
+            )
+            out_of_order = copy.deepcopy(manifest)
+            out_of_order["artifact_id"] = f"AM_ORDER_{project['project_id']}"
+            out_of_order["clips"] = list(reversed(out_of_order["clips"]))
+            unordered = await client.post(
+                f"/api/projects/{project['project_id']}/animation-manifest",
+                json=out_of_order,
+            )
+            duplicate_clip = copy.deepcopy(manifest)
+            duplicate_clip["artifact_id"] = f"AM_DUP_CLIP_{project['project_id']}"
+            duplicate_clip["clips"][1]["clip_id"] = duplicate_clip["clips"][0]["clip_id"]
+            duplicate_clip_response = await client.post(
+                f"/api/projects/{project['project_id']}/animation-manifest",
+                json=duplicate_clip,
+            )
+            duplicate_internal = copy.deepcopy(manifest)
+            duplicate_internal["artifact_id"] = f"AM_DUP_EVENT_{project['project_id']}"
+            duplicate_internal["clips"][-1]["internal_events"].append(
+                copy.deepcopy(duplicate_internal["clips"][-1]["internal_events"][0])
+            )
+            duplicate_event_response = await client.post(
+                f"/api/projects/{project['project_id']}/animation-manifest",
+                json=duplicate_internal,
+            )
             preview = await client.get(
                 f"/api/projects/{project['project_id']}/preview"
             )
@@ -353,6 +409,19 @@ async def test_animation_handoff_returns_current_exact_script_without_claiming_v
                     "direction_id": package["directions"][1]["id"],
                     "expected_project_revision": project["revision"],
                 },
+            )
+            preview_without_script = await client.get(
+                f"/api/projects/{project['project_id']}/preview"
+            )
+            changed_project = projects.load(project["project_id"])
+            with_new_script = projects.publish_artifact_ref(
+                changed_project["project_id"],
+                changed_project["revision"],
+                "production_script",
+                {"artifact_id": f"PS_NEW_{project['project_id']}", "revision": 1},
+            )
+            preview_with_new_script = await client.get(
+                f"/api/projects/{project['project_id']}/preview"
             )
             stale_direction = await client.post(
                 f"/api/projects/{project['project_id']}/direction",
@@ -376,8 +445,14 @@ async def test_animation_handoff_returns_current_exact_script_without_claiming_v
     assert "未发布到项目当前成果" in candidate.json()["message"]
     assert stale.status_code == 409
     assert unsafe.status_code == 422
+    assert wrong_text.status_code == 422
+    assert no_anchor.status_code == 422
+    assert unordered.status_code == 422
+    assert duplicate_clip_response.status_code == 422
+    assert duplicate_event_response.status_code == 422
     assert preview.json()["status"] == "not_ready"
     assert "播放器尚未接入" in preview.json()["message"]
+    assert "production_script" in project["artifacts"]
     assert "animation_manifest" not in projects.load(project["project_id"])["artifacts"]
     assert changed_direction.status_code == 200
     assert changed_direction.json()["decisions"] == {
@@ -385,6 +460,17 @@ async def test_animation_handoff_returns_current_exact_script_without_claiming_v
         "direction_status": "user_confirmed",
     }
     assert "production_script" not in changed_direction.json()["artifacts"]
+    assert preview_without_script.json()["status"] == "not_ready"
+    assert "等待中" in preview_without_script.json()["message"]
+    candidate_path = (
+        manifest_store.root_dir
+        / project["project_id"]
+        / f"{manifest['artifact_id']}-r{manifest['revision']}.json"
+    )
+    assert candidate_path.exists()
+    assert preview_with_new_script.json()["status"] == "not_ready"
+    assert "尚无匹配" in preview_with_new_script.json()["message"]
+    assert not manifest_store.has_current_candidate(with_new_script)
     assert stale_direction.status_code == 409
 
 
@@ -434,4 +520,4 @@ async def test_revision_request_is_validated_persisted_and_never_claims_executio
     assert projects.load(project["project_id"]) == project
     assert preview.status_code == 200
     assert preview.json()["status"] == "not_ready"
-    assert "尚无" in preview.json()["message"]
+    assert "等待中" in preview.json()["message"]

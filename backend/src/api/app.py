@@ -338,14 +338,19 @@ def create_app(
         except ProjectStateError:
             return _error(422, "invalid_input", "项目编号无效。")
         if project["artifacts"].get("animation_manifest") is None:
-            if manifests.has_candidate(project_id):
+            if project["artifacts"].get("production_script") is None:
+                return {
+                    "status": "not_ready",
+                    "message": "当前项目尚未发布脚本，动画交接仍在等待中。",
+                }
+            if manifests.has_current_candidate(project):
                 return {
                     "status": "not_ready",
                     "message": "动画产物已通过交接校验，但通用播放器尚未接入，当前不能预览。",
                 }
             return {
                 "status": "not_ready",
-                "message": "当前项目尚无已校验且可加载的真实动画资源。",
+                "message": "当前脚本版本尚无匹配的动画候选，或没有可加载的真实动画资源。",
             }
         return {
             "status": "not_ready",
