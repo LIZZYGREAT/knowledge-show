@@ -13,7 +13,8 @@
 - **真实 API 验收**：三项主题均生成通过校验的知识包：基础六面骰定义（3 个候选方向，5 次模型调用）、进阶自注意力机制（1 个候选方向，3 次调用）、带明确 `focus` 与 `must_include` 的骰子概率（1 个候选方向，5 次调用）。合计 13 次模型调用、36,468 tokens、约 83.69 秒；均未触发 Search / Fetch。费用金额未作估算。
 - **前端创作界面**：React / TypeScript / Vite 应用已由 PR #7 进入 `main`，PR #9 完成首轮视觉重构，提供创作表单、内存密钥设置抽屉和明确标注的手动流程演示；`feat/frontend-organic-flow` 又将首页改为连续回卷的青绿流带，并为创作页增加枝叶、波纹和花边。真实连接、任务事件流、预览及工作台交接仍依赖后端与动画模块，界面不会模拟连接成功或开放虚假成片。新分支验证了五种屏宽、关键姿态、表单保留、共享节点、失焦暂停及装饰避让；Windows 字体和真实移动设备仍待人工验收。
 - **编辑器原型**：PR #8 合入独立 HTML 时间轴原型；数据来自硬编码 `CHAPTERS` / `ANIM_TRACKS`，不消费真实 `AnimationManifest`。`serve.py` 可本地展示原型；独立动画渲染目录不在此仓库，实际播放寻址、当前帧 bbox、高亮覆盖和正式 `RevisionRequest` 尚未实现。
-- **未实现的跨层能力**：脚本生成执行器、工作流协调器、共享 API、动画运行时、动态预览和视频导出仍未实现。`script_writer.md` 是可复用提示词，不代表脚本 Agent 已运行。知识层可准备版本文件；将引用发布到 `ProjectState.artifacts.knowledge_package` 仍是后续协调器的工作。
+- **动画 P0 试作**：`feat/animation-runtime-workbench` 提供独立 `/animation-preview.html`，播放固定 PN v2 脚本 S01（15s），支持 Seek、元件边界查询与销毁。视频舞台独立隔离；工作台、多场景、Manifest 发布与视频导出尚未接入。
+- **未实现的跨层能力**：脚本生成执行器、工作流协调器、共享 API、正式多场景装配、完整动态预览和视频导出仍未实现。`script_writer.md` 是可复用提示词，不代表脚本 Agent 已运行。知识层可准备版本文件；将引用发布到 `ProjectState.artifacts.knowledge_package` 仍是后续协调器的工作。
 - **检查入口**：
 
   ```bash
@@ -39,9 +40,11 @@
 
 ## 活动任务
 
+- 动画任务：`docs/tasks/open/frontend/动画层与工作台接入执行方案.md`，当前仅落实 P0；独立预览、构建、Seek/身份与隔离测试已验证，等待首幕效果验收后进入 P1。
+
 - 前端任务：`docs/tasks/open/frontend/前端视觉重新确立方向设计方案.md`，分支 `feat/frontend-organic-flow`，基于 `main@03de6c9` 创建。已重做流场形态、丝状纹理、连续运动与多处装饰，并同步设计说明。构建、10 项逻辑测试和 15 项 Chromium E2E 通过，五种屏宽及关键姿态截图、实际录屏已检查；视觉效果待用户确认，任务保留在 `open/`。
 - 跨层任务：`docs/tasks/open/backend/跨层契约修订与分支整合执行方案.md` 的实现已通过 PR #6 进入 `main`；任务仍留在 `open/`，等待负责人确认后关闭。
-- 当前任务：`docs/tasks/open/backend/编辑器元件定位契约修订方案.md`，分支 `fix/editor-element-selection-contract` 从 `main@03de6c9` 创建，PR #10 已向 `main` 提交审核。共享契约语义已获确认；本轮落实稳定元件 ID 索引与精确版本锚点。当前无动画运行时，因此真实 bbox 联调仍待实现。
+- 当前任务：`docs/tasks/open/backend/编辑器元件定位契约修订方案.md`，分支 `fix/editor-element-selection-contract` 从 `main@03de6c9` 创建，PR #10 已向 `main` 提交审核。共享契约语义已获确认；本轮落实稳定元件 ID 索引与精确版本锚点。当前尚未连接工作台与动画运行时，真实 bbox 联调仍待实现。
 - 前序知识层任务已按 PR #5 集成进 `main`；脚本提示词源分支仅定向引入了所需文件，没有合并其余历史提交。
 
 更新规则：只有形成稳定能力、任务发生交接、出现重要阻塞或完成集成时更新此文档。尚未验证的功能不得写成“已完成”。

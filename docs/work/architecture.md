@@ -79,10 +79,10 @@ flowchart TD
 | `backend/src/common/` | 确需共享的后端基础逻辑 | 占位目录 |
 | `frontend/src/features/creation/` | 需求表达与提交确认 | 独立前端已实现表单、偏好和确认，待接任务 API |
 | `frontend/src/features/landing/`、`progress/`、`settings/` | 品牌入口、阶段展示、会话连接设置 | 视觉骨架和显式流程演示已实现，真实连接与事件流待接入 |
-| `frontend/src/features/preview/` | 动态预览与产物查看 | 占位目录，真实媒体与工作台待实现 |
+| `frontend/src/features/preview/` | 动态预览与产物查看 | P0 独立研发入口 `/animation-preview.html`；完整产物与工作台待实现 |
 | `frontend/src/features/revision/` | 用户反馈入口及修订结果呈现 | 含独立 HTML 时间轴原型；不是 React 产品路由，仍用演示数据 |
-| `frontend/src/animation/runtime/` | 动画播放、场景装配和渲染运行时 | 占位目录；当前无真实预览与元件包围盒查询 |
-| `frontend/src/animation/scenes/` | 场景实现与必要复用 | 占位目录 |
+| `frontend/src/animation/runtime/` | 动画播放、场景装配和渲染运行时 | P0 单场景播放器：Seek、播放暂停、元件边界、资源清理；Manifest 与工作台适配待 P1 |
+| `frontend/src/animation/scenes/` | 场景实现与必要复用 | 固定 PN v2 S01（15s）可执行场景，独立视频美术 |
 | `contracts/` | 独立于业务代码的机器契约和 Mock | 已建立 |
 
 业务目录是否已出现实际功能由 `STATUS.md`、代码和运行结果确认；本文不将设计描述视为已实施。
@@ -107,6 +107,6 @@ PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests/knowledge -q
 .venv/bin/python contracts/validate_contracts.py
 ```
 
-当前整合分支的 83 项知识层测试通过；契约脚本覆盖五类公开对象、可选元件索引、`render_element` 版本与 ID 校验、历史 Manifest 兼容和负例。四份历史脚本通过 ProductionScript Schema。另以本机已发布知识包和固定 ProjectState / ProductionScript Mock 完成 16:9 版本引用 Smoke，未调用在线 API；它不代表真实脚本生成已接通。实际动画运行时尚未实现，因此帧包围盒、高亮与锚点播放仍待运行时测试；契约校验也**不能代替事实核验、创意质量、脚本可看性或最终观感检查**。
+当前整合分支的 83 项知识层测试通过；契约脚本覆盖五类公开对象、可选元件索引、`render_element` 版本与 ID 校验、历史 Manifest 兼容和负例。四份历史脚本通过 ProductionScript Schema。另以本机已发布知识包和固定 ProjectState / ProductionScript Mock 完成 16:9 版本引用 Smoke，未调用在线 API；它不代表真实脚本生成已接通。P0 单幕已验证 Seek、帧包围盒与预览工具高亮；多场景、工作台及锚点播放联调仍待后续实现；契约校验也**不能代替事实核验、创意质量、脚本可看性或最终观感检查**。
 
 分工与协作规则见 `docs/work/目录结构与分工.md` 和 `docs/work/workflow.md`。

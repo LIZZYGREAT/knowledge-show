@@ -44,3 +44,7 @@ npm run test:e2e
 当前 WSL 环境缺少浏览器系统库，验证时将 libnspr4、libnss3、libasound2 与中文字体解包到 `/tmp` 并通过 `LD_LIBRARY_PATH` / `FONTCONFIG_FILE` 使用；这些属于本机测试环境，不进入项目依赖或产物。其他环境按 Playwright 的运行库要求准备。
 
 目前浏览器自动检查覆盖 Chromium；Windows 本机中文字体、Safari 及真实移动设备仍需人工验收。
+
+## 动画 P0 独立预览
+
+启动 Vite 后访问 `/animation-preview.html`，可播放 PN v2 固定脚本的 S01（0–15s）、拖动时间并检查对象边界。视频美术在 Shadow DOM 中独立渲染；此入口仅为研发试作。实现范围、稳定 ID、Seek 取消和 P1 接口见 [运行时与首幕预览](../docs/work/frontend/animation/运行时与首幕预览.md)。工作台接入与成片导出尚未实现。
