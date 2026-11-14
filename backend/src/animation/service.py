@@ -151,7 +151,7 @@ class AnimationService:
             old=resources[scene['scene_id']]
             if re.search(r'慢|减速|slower|slow',text,re.I) and old['kind']=='pn-scene': old['parameters']['speed']=max(.1,old['parameters']['speed']*.5)
             elif re.search(r'快|加速|faster|fast',text,re.I) and old['kind']=='pn-scene': old['parameters']['speed']=min(3,old['parameters']['speed']*1.5)
-            elif client is not None and old['kind']=='pn-scene' and scene['scene_id']!='S01':
+            elif client is not None and old['kind']=='pn-scene':
                 response=await client.generate_json(instructions='Adjust only the selected PN scene visual parameters according to user feedback. Return JSON with speed (0.1..3), particleScale (0.5..2) and particleOpacity (0.3..1). Do not change facts, event schedules, object IDs, text, geometry, field polarity or barrier mechanism. Reject requests needing those changes by returning {"upstream_required":true}.',data={'scene':scene,'style_profile':old['style'],'parameters':old['parameters'],'feedback':text},max_output_tokens=800)
                 values=response.value
                 if values.get('upstream_required'): return {'status':'upstream_required','message':'这条意见涉及上游约束，已保留请求；当前动画未改变。'}

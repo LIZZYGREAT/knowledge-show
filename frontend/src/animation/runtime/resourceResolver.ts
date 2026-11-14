@@ -14,7 +14,7 @@ export function createSequence(bundle: AnimationBundle): SceneDefinition {
     const make = (resource: SceneResource, sceneId: string) => {
       const scene = bundle.script.scenes.find(s => s.scene_id === sceneId)!;
       if (resource.kind === 'vector-scene') return createVectorScene(scene, resource);
-      return sceneId === 'S01' ? createPnS01(resource.style) : createPnScene(scene, resource.style, resource.parameters.speed, resource.parameters.particleScale, resource.parameters.particleOpacity);
+      return sceneId === 'S01' ? createPnS01(resource.style, resource.parameters.speed, resource.parameters.particleScale, resource.parameters.particleOpacity) : createPnScene(scene, resource.style, resource.parameters.speed, resource.parameters.particleScale, resource.parameters.particleOpacity);
     };
     // Obtain metadata from the manifest; labels are populated by mounted handles.
     for (const e of bundle.manifest.selectable_elements) registered.set(e.id, { id: e.id, label: e.id, ...(e.source_ref ? { sourceRef: e.source_ref } : {}) });

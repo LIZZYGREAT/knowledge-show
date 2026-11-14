@@ -81,3 +81,25 @@ test('generated vector programs share deterministic playback and exact script te
   expect(frames.results.every(f=>JSON.stringify(f)===JSON.stringify(frames.results[0]))).toBe(true);
   expect(frames.results[0].text).not.toBeNull(); expect(frames.hidden).toBeNull();
 });
+test('S01 local speed revision changes real particles while preserving the polarity schedule', async({page})=>{
+  await ready(page);
+  const original=await page.evaluate(async()=>{
+    await (window as any).workbench.seek(5000);
+    const iframe=document.getElementById('player') as HTMLIFrameElement;
+    const root=iframe.contentDocument!.querySelector('#stage div')!.shadowRoot!;
+    return {cx:root.querySelector('[data-particle]')!.getAttribute('cx'),bundle:structuredClone((window as any).workbench.getBundle())};
+  });
+  const resource=original.bundle.resources[original.bundle.manifest.clips[0].resource_ref]; resource.parameters.speed=.5;
+  const url='/api/projects/P_SPEED/animations/AM_SPEED/r1/bundle';
+  await page.route(url,route=>route.fulfill({json:original.bundle}));
+  await page.goto('/animation-render.html?bundle='+encodeURIComponent(url));await page.waitForFunction(()=>window.animationBridge);
+  const result=await page.evaluate(async()=>{
+    const p=window.animationBridge!;await p.seekAndWaitForFrame(5000);
+    const root=document.querySelector('#stage div')!.shadowRoot!;
+    const cx=root.querySelector('[data-particle]')!.getAttribute('cx');
+    await p.seekAndWaitForFrame(8000);
+    return {cx,rotation:root.querySelector('[data-assembly]')!.getAttribute('transform')};
+  });
+  expect(result.cx).not.toBe(original.cx);
+  expect(result.rotation).toBe('rotate(180 760 465)');
+});

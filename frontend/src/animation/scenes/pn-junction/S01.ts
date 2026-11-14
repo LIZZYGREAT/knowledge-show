@@ -47,7 +47,7 @@ function device(name: string, style: StyleProfile) {
   </g>`;
 }
 
-export function createPnS01(style: StyleProfile = precisionScience): SceneDefinition { return {
+export function createPnS01(style: StyleProfile = precisionScience, speed = 1, particleScale = 1, particleOpacity = 1): SceneDefinition { return {
   sceneId: s01Script.scene_id,
   durationMs: s01Script.duration_ms,
   mount(host) {
@@ -132,19 +132,20 @@ export function createPnS01(style: StyleProfile = precisionScience): SceneDefini
       view.assembly.setAttribute('transform', `rotate(${reverse} 760 465)`);
       view.needle.setAttribute('transform', `rotate(${current * 140} 1360 465)`);
       view.particles.forEach((particle, i) => {
-        const initial = (i * 37 + reverseStart * 150) % 1150;
+        const initial = (i * 37 + reverseStart * 150 * speed) % 1150;
         const age = Math.max(0, time - reverseStart);
-        let x = 165 + (i * 37 + time * 150) % 1150;
+        let x = 165 + (i * 37 + time * 150 * speed) % 1150;
         if (time >= reverseStart && initial < 595) {
-          const travel = initial + age * 150;
+          const travel = initial + age * 150 * speed;
           x = 165 + (travel < 595 ? travel : (travel % 1190 <= 595 ? travel % 1190 : 1190 - travel % 1190));
         }
         // A tiny minority still traverses the junction in the reverse state.
-        if (time >= reverseStart && i % 15 === 0) x = 165 + (i * 37 + reverseStart * 150 + age * 70) % 1150;
+        if (time >= reverseStart && i % 15 === 0) x = 165 + (i * 37 + reverseStart * 150 * speed + age * 70 * speed) % 1150;
         const body = clamp((x - 520) / 90) * clamp((1000 - x) / 90);
-        const y = 465 + body * ((i % 5 - 2) * 25 + Math.sin(i * 2.1 + time * 2) * 4);
+        const y = 465 + body * ((i % 5 - 2) * 25 + Math.sin(i * 2.1 + time * speed * 2) * 4);
+        particle.setAttribute('r', String((i % 2 ? 5 : 6) * particleScale));
         particle.setAttribute('cx', x.toFixed(2)); particle.setAttribute('cy', y.toFixed(2));
-        particle.setAttribute('opacity', String(time >= reverseStart && initial >= 595 && i % 15 !== 0 ? clamp(1 - age / 1.3) : .95));
+        particle.setAttribute('opacity', String((time >= reverseStart && initial >= 595 && i % 15 !== 0 ? clamp(1 - age / 1.3) : .95) * particleOpacity));
       });
     }
     let destroyed = false;

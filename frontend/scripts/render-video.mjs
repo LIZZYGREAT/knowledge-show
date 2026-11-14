@@ -42,7 +42,7 @@ try {
     const result = await page.evaluate(async time => {
       const p = window.animationBridge;
       await p.seekAndWaitForFrame(time);
-      return { renderedTimeMs: p.getCurrentTimeMs(), anyVisible: p.getSelectableElements().some(e => !!p.getElementBounds(e.id)) };
+      return { renderedTimeMs: p.getCurrentTimeMs(), anyVisible: p.getSelectableElements().some(e => e.sourceRef?.kind !== 'timed_text' && !!p.getElementBounds(e.id)) };
     }, time);
     if (result.renderedTimeMs !== time || !result.anyVisible) throw new Error(`Unrenderable frame at ${time}`);
   }
