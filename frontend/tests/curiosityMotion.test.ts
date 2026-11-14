@@ -1,7 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { combinationState, stageState, inkState, STAGE_DURATION, STATIC_STAGE_TIME } from "../src/features/landing/curiosityMotion";
+import { combinationState, stageState, inkState, FLOW_DRAW_DURATION, STAGE_DURATION, STATIC_STAGE_TIME } from "../src/features/landing/curiosityMotion";
 
 describe("dice demonstration", () => {
+  it("draws the original flow from a point before the ink transition", () => {
+    expect(inkState(0).flowTime).toBe(0);
+    expect(inkState(2.5).flowTime).toBe(2.5);
+    const drawn = inkState(FLOW_DRAW_DURATION);
+    expect(drawn.flowTime).toBe(FLOW_DRAW_DURATION);
+    expect(drawn.bloom).toBe(0);
+    expect(drawn.question).toBe(0);
+    expect(drawn.fold).toBe(0);
+    expect(stageState(FLOW_DRAW_DURATION).t).toBe(0);
+  });
   it("reveals the full knowledge scene in ink and restores the silk at the loop seam", () => {
     const full = inkState(STATIC_STAGE_TIME);
     expect(full.bloom).toBe(1);

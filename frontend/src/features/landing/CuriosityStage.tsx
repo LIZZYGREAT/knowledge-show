@@ -1,6 +1,6 @@
 import { useId, useRef } from "react";
 import { FlowArtwork, IdeaSeed } from "./LivingFlowScene";
-import { surfaceAt } from "./flowGeometry";
+import { flowState, surfaceAt } from "./flowGeometry";
 import "./curiosity-stage.css";
 import { useFlowMotion } from "./useFlowMotion";
 import { combinationState, stageState, inkState, inkContour, STAGE_DURATION, STATIC_STAGE_TIME } from "./curiosityMotion";
@@ -35,7 +35,8 @@ export function CuriosityStage({ pose }: { pose?: number }) {
   const wobble = Math.sin(t * 15) * roll;
   const ink = inkState(time);
   const contour = inkContour(ink.bloom);
-  const [tipX, tipY] = surfaceAt(.88, -.84, ink.flowTime);
+  const seedU = Math.min(.88, flowState(ink.flowTime).extent);
+  const [tipX, tipY] = surfaceAt(seedU, -.84, ink.flowTime);
   const seedX = 400 - ink.fold * 40 + (tipX - 400) * ink.scale;
   const seedY = 320 - ink.fold * 15 + (tipY - 320) * ink.scale;
   const seedLeft = motion.compact ? (seedX - 140) / 5.6 : seedX / 8;

@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { FLOW_DRAW_DURATION, STAGE_DURATION, STATIC_STAGE_TIME } from "../../src/features/landing/curiosityMotion";
 
 async function prepareConnectedPage(page: Page) {
   await page.route("**/api/model/test", (route) =>
@@ -708,7 +709,7 @@ test("no view transitions fallback and reduced motion keep the same form usable"
   await page.goto("/");
   await expect(page.locator(".curiosity-stage")).toHaveAttribute(
     "data-time",
-    "9.900",
+    STATIC_STAGE_TIME.toFixed(3),
   );
   await page.getByRole("button", { name: "开始创作" }).click();
   await expect(page.locator("#main-content")).toHaveAttribute(
@@ -742,7 +743,7 @@ test("knowledge theatre plays continuously and pauses on blur", async ({ page })
 
 test("knowledge theatre has stable objects through its narrative and loop", async ({ page }) => {
   const positions: string[] = [];
-  for (const pose of [0, .23, .53, 9.9 / 14.5, 1]) {
+  for (const pose of [0, (FLOW_DRAW_DURATION + 1.5) / STAGE_DURATION, (FLOW_DRAW_DURATION + 6) / STAGE_DURATION, STATIC_STAGE_TIME / STAGE_DURATION, 1]) {
     await page.goto(`/?stage-pose=${pose}`);
     await expect(page.locator(".curiosity-stage")).toHaveAttribute("data-paused", "true");
     await expect(page.locator(".stage-die")).toHaveCount(2);
@@ -750,10 +751,25 @@ test("knowledge theatre has stable objects through its narrative and loop", asyn
     const point = await page.locator('[data-combination="1+6"] [data-moving-point]').getAttribute("transform");
     expect(point).not.toMatch(/NaN|Infinity/);
     positions.push(point!);
-    if (pose === 9.9 / 14.5) await expect(page.locator(".stage-result")).toHaveAttribute("opacity", "1");
+    if (pose === STATIC_STAGE_TIME / STAGE_DURATION) await expect(page.locator(".stage-result")).toHaveAttribute("opacity", "1");
   }
   expect(new Set(positions).size).toBe(3);
   expect(positions[0]).toBe(positions[4]);
+});
+
+test("opening flow grows from a point before revealing the knowledge scene", async ({ page }) => {
+  const paths: string[] = [];
+  const widths: number[] = [];
+  for (const seconds of [0, 2.5, FLOW_DRAW_DURATION]) {
+    await page.goto(`/?stage-pose=${seconds / STAGE_DURATION}`);
+    const body = page.locator(".flow-body");
+    paths.push((await body.getAttribute("d"))!);
+    widths.push((await body.boundingBox())!.width);
+    await expect(page.locator(".curiosity-stage")).toHaveAttribute("data-ink", "0.000");
+    await expect(page.locator(".stage-question")).toHaveAttribute("opacity", "0");
+  }
+  expect(new Set(paths).size).toBe(3);
+  expect(widths[0]).toBeLessThan(widths[2] * .3);
 });
 
 test("ink connects silk to dice without ripple or spiral effects", async ({ page }) => {
@@ -761,12 +777,12 @@ test("ink connects silk to dice without ripple or spiral effects", async ({ page
   await expect(page.locator(".stage-silk")).toHaveAttribute("opacity", "1");
   await expect(page.locator(".curiosity-stage")).toHaveAttribute("data-ink", "0.000");
   await expect(page.locator(".stage-question")).toHaveAttribute("opacity", "0");
-  await page.goto(`/?stage-pose=${1.6 / 14.5}`);
+  await page.goto(`/?stage-pose=${(FLOW_DRAW_DURATION + 1.6) / STAGE_DURATION}`);
   const ink = Number(await page.locator(".curiosity-stage").getAttribute("data-ink"));
   expect(ink).toBeGreaterThan(0);
   expect(ink).toBeLessThan(1);
   await expect(page.locator(".stage-question")).toHaveAttribute("opacity", "0");
-  await page.goto(`/?stage-pose=${3.1 / 14.5}`);
+  await page.goto(`/?stage-pose=${(FLOW_DRAW_DURATION + 3.1) / STAGE_DURATION}`);
   await expect(page.locator(".stage-question")).toHaveAttribute("opacity", "1");
   await expect(page.locator(".stage-ink-ripples, .stage-vortex-front, .stage-vortex-back, .stage-die-cube")).toHaveCount(0);
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -797,11 +813,11 @@ test("theatre pauses offscreen and responds to motion preference changes", async
   await expect(stage).toHaveAttribute("data-paused", "false");
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(stage).toHaveAttribute("data-paused", "true");
-  await expect(stage).toHaveAttribute("data-time", "9.900");
+  await expect(stage).toHaveAttribute("data-time", STATIC_STAGE_TIME.toFixed(3));
   await expect(page.locator(".stage-result")).toHaveAttribute("opacity", "1");
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await expect(stage).toHaveAttribute("data-paused", "false");
-  await expect.poll(async () => Number(await stage.getAttribute("data-time"))).toBeGreaterThan(9.9);
+  await expect.poll(async () => Number(await stage.getAttribute("data-time"))).toBeGreaterThan(STATIC_STAGE_TIME);
 });
 
 test("ornaments stay decorative while focus, textarea resize and preferences change", async ({ page }) => {

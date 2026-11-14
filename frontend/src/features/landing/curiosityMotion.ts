@@ -1,5 +1,6 @@
-export const STAGE_DURATION = 14.5;
-export const INK_INTRO = 1.8;
+export const FLOW_DRAW_DURATION = 5.5;
+export const STAGE_DURATION = FLOW_DRAW_DURATION + 14.5;
+export const INK_INTRO = FLOW_DRAW_DURATION + 1.8;
 export const STATIC_STAGE_TIME = INK_INTRO + 8.1;
 export function easeBetween(t: number, a: number, b: number) {
   const u = Math.max(0, Math.min(1, (t - a) / (b - a)));
@@ -37,14 +38,18 @@ export function combinationState(index: number, time: number) {
 // The original silk folds into the same point that opens the ink reveal.
 // All values settle before the cycle ends, leaving no reset at the seam.
 export function inkState(time: number) {
-  const phase = ((time % STAGE_DURATION) + STAGE_DURATION) % STAGE_DURATION;
+  const cycle = ((time % STAGE_DURATION) + STAGE_DURATION) % STAGE_DURATION;
+  const phase = Math.max(0, cycle - FLOW_DRAW_DURATION);
   const bloom = easeBetween(phase, .65, 2.65) * (1 - easeBetween(phase, 12, 14));
   const fold = easeBetween(phase, .55, 2.15) * (1 - easeBetween(phase, 12.4, 14.2));
   const silkOpacity = 1 - easeBetween(phase, 1.3, 2.3) * (1 - easeBetween(phase, 12.6, 14));
   const question = easeBetween(phase, 2.4, 3.1) * (1 - easeBetween(phase, 12, 12.6));
-  return { bloom, fold, silkOpacity, question, scale: 1 - fold * .94,
-    flowTime: 5.5 + Math.sin(phase / STAGE_DURATION * Math.PI * 2) * 1.1,
-  };
+  // Replay the original point-to-silk introduction before handing off to ink.
+  // The return retraces the geometry to the same point, rather than resetting it.
+  const flowTime = cycle <= FLOW_DRAW_DURATION ? cycle
+    : (FLOW_DRAW_DURATION + Math.sin(phase / 14.5 * Math.PI * 2) * 1.1)
+      * (1 - easeBetween(phase, 11.8, 14.5));
+  return { bloom, fold, silkOpacity, question, scale: 1 - fold * .94, flowTime };
 }
 
 export function inkContour(progress: number) {
