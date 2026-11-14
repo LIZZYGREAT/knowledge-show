@@ -193,6 +193,16 @@ def main():
         pass
     else:
         raise AssertionError('internal_review without details must fail')
-    print('PASS: five schemas, five linked examples, cross-stage checks, ten negative cases, alternate direction')
+    blank_internal_review=copy.deepcopy(originals)
+    blank_internal_review['knowledge-package']['evidence'].append({
+        'id':'E_INTERNAL_BLANK','kind':'internal_review','title':'空白检查','details':'  \n  '
+    })
+    try:
+        check_schemas(blank_internal_review);check_links(blank_internal_review)
+    except Exception:
+        pass
+    else:
+        raise AssertionError('internal_review with blank details must fail')
+    print('PASS: five schemas, five linked examples, cross-stage checks, eleven negative cases, alternate direction')
 
 if __name__=='__main__':main()

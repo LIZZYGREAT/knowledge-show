@@ -314,7 +314,12 @@
             "then": {
               "required": [
                 "details"
-              ]
+              ],
+              "properties": {
+                "details": {
+                  "pattern": "\\S"
+                }
+              }
             }
           },
           {
@@ -331,7 +336,12 @@
             "then": {
               "required": [
                 "details"
-              ]
+              ],
+              "properties": {
+                "details": {
+                  "pattern": "\\S"
+                }
+              }
             }
           }
         ]

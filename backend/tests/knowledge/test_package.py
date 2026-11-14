@@ -187,3 +187,16 @@ def test_cross_stage_example_uses_internal_review_with_concrete_details():
     internal = next(item for item in example["evidence"] if item["kind"] == "internal_review")
     assert internal["details"].strip()
     assert example["constraints"]["required_knowledge_refs"] == []
+
+
+def test_internal_review_rejects_whitespace_only_details():
+    example = json.loads(
+        (Path(__file__).resolve().parents[3] / "contracts" / "examples" / "knowledge-package.example.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    internal = next(item for item in example["evidence"] if item["kind"] == "internal_review")
+    internal["details"] = "  \n  "
+
+    with pytest.raises(PackageValidationError, match="does not match"):
+        validate_knowledge_package(example)
