@@ -32,8 +32,10 @@ API Key 由显式操作提交。模型连接测试会实际请求 DeepSeek；生
 | 读取当前精确脚本 | `{artifact_id, revision}` → `ProductionScript` | `GET /api/projects/{project_id}/production-script` | 已实现；重验上下游引用 |
 | 确定创作方向 | `{direction_id, expected_project_revision}` → ProjectState | `POST /api/projects/{project_id}/direction` | 已实现；方向变化会使脚本/动画引用失效 |
 | 动画输入交接 | 项目配置、精确脚本 ArtifactRef 与完整脚本 | `GET /api/projects/{project_id}/handoff/animation` | 已实现；无脚本为 `awaiting_script`，有脚本但无动画为 `awaiting_animation` |
-| 发布动画 Manifest / 进入真实预览 | 已校验 Manifest 与可加载资源 → 当前 AnimationManifest | 待定 | 未实现；固定 PN P0 预览不是本项目的正式视频 |
-| 接收修订请求 | 精确目标 ArtifactRef → `RevisionRequest` 回执 | 待定 | 未实现；没有自动修订执行器 |
+| 查询预览就绪状态 | 当前 Manifest 与真实可加载资源状态 | `GET /api/projects/{project_id}/preview` | 已实现未就绪回执；当前没有通用 Manifest 播放适配器 |
+| 接收动画 Manifest 候选 | Schema、脚本引用、场景/事件覆盖与本地资源文件 → 候选回执 | `POST /api/projects/{project_id}/animation-manifest` | 已实现候选校验与保存；通用播放器未接入，不发布 ProjectState 当前引用 |
+| 发布当前动画 Manifest / 进入真实预览 | 已校验 Manifest 且被播放器解析、实际资源可加载 → 当前 AnimationManifest | 待定 | 未实现；固定 PN P0 预览不是本项目的正式视频 |
+| 接收修订请求 | Schema-valid `RevisionRequest` + 精确目标版本 → `received` 回执 | `POST /api/projects/{project_id}/revision-requests` | 已实现接收、持久化与版本校验；不执行自动修改，原成果不变 |
 | 确认与导出 | 已确认动画产物 → 视频文件 | 待定 | 未实现 |
 
 脚本任务的 `script_ready` 只表示合法 ProductionScript 已发布，动画阶段保持 `pending`，不表示视频已生成。任务响应只含过滤后的用户语义，不回传模型调用明细或 traceback。

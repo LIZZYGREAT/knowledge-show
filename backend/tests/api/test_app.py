@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import json
 from pathlib import Path
 
@@ -6,10 +7,13 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 import api.app as api_module
+import api.task_runner as task_runner_module
 from knowledge.package import validate_knowledge_package
 from knowledge.service import export_knowledge_package
 from script.validate import validate_production_script
 from workflow.jobs import JobStore
+from workflow.animation import AnimationManifestCandidateStore
+from workflow.revisions import RevisionRequestStore
 from workflow.state import ProjectStateStore
 
 
@@ -94,7 +98,7 @@ async def local_api(tmp_path, monkeypatch):
         )
         return {"project": project}
 
-    monkeypatch.setattr(api_module, "run_until_script", fake_run)
+    monkeypatch.setattr(task_runner_module, "run_until_script", fake_run)
     app = api_module.create_app(
         state_store=projects,
         job_store=jobs,
@@ -273,11 +277,42 @@ async def test_animation_handoff_returns_current_exact_script_without_claiming_v
         "production_script",
         {"artifact_id": script["artifact_id"], "revision": 1},
     )
+    media_root = tmp_path / "media"
+    media_root.mkdir()
+    (media_root / "preview.mock").write_text("mock preview resource", encoding="utf-8")
+    clips = []
+    for index, scene in enumerate(script["scenes"], start=1):
+        resource_ref = f"scene-{index}.mock"
+        (media_root / resource_ref).write_text("mock scene resource", encoding="utf-8")
+        clips.append(
+            {
+                "clip_id": f"CLIP{index:02d}",
+                "scene_id": scene["scene_id"],
+                "start_ms": scene["start_ms"],
+                "duration_ms": scene["duration_ms"],
+                "resource_ref": resource_ref,
+                "script_event_refs": [event["id"] for event in scene["events"]],
+            }
+        )
+    manifest = {
+        "project_id": project["project_id"],
+        "artifact_id": f"AM_{project['project_id']}",
+        "revision": 1,
+        "brief_revision": project["brief"]["revision"],
+        "production_script_ref": {"artifact_id": script["artifact_id"], "revision": 1},
+        "total_duration_ms": script["total_duration_ms"],
+        "preview_ref": "preview.mock",
+        "clips": clips,
+    }
+    manifest_store = AnimationManifestCandidateStore(
+        tmp_path / "manifest-candidates", resource_root=media_root
+    )
     app = api_module.create_app(
         state_store=projects,
         job_store=JobStore(tmp_path / "jobs"),
         knowledge_export_dir=knowledge_exports,
         script_export_dir=script_exports,
+        animation_manifest_store=manifest_store,
     )
 
     async with app.router.lifespan_context(app):
@@ -291,6 +326,41 @@ async def test_animation_handoff_returns_current_exact_script_without_claiming_v
                 f"/api/projects/{project['project_id']}/production-script",
                 params={"artifact_id": script["artifact_id"], "revision": 1},
             )
+            candidate = await client.post(
+                f"/api/projects/{project['project_id']}/animation-manifest",
+                json=manifest,
+            )
+            stale_manifest = copy.deepcopy(manifest)
+            stale_manifest["artifact_id"] = f"AM_STALE_{project['project_id']}"
+            stale_manifest["production_script_ref"]["revision"] = 2
+            stale = await client.post(
+                f"/api/projects/{project['project_id']}/animation-manifest",
+                json=stale_manifest,
+            )
+            unsafe_manifest = copy.deepcopy(manifest)
+            unsafe_manifest["artifact_id"] = f"AM_UNSAFE_{project['project_id']}"
+            unsafe_manifest["preview_ref"] = "../outside.mock"
+            unsafe = await client.post(
+                f"/api/projects/{project['project_id']}/animation-manifest",
+                json=unsafe_manifest,
+            )
+            preview = await client.get(
+                f"/api/projects/{project['project_id']}/preview"
+            )
+            changed_direction = await client.post(
+                f"/api/projects/{project['project_id']}/direction",
+                json={
+                    "direction_id": package["directions"][1]["id"],
+                    "expected_project_revision": project["revision"],
+                },
+            )
+            stale_direction = await client.post(
+                f"/api/projects/{project['project_id']}/direction",
+                json={
+                    "direction_id": direction_id,
+                    "expected_project_revision": project["revision"],
+                },
+            )
 
     assert handoff.status_code == 200
     assert handoff.json()["status"] == "awaiting_animation"
@@ -301,3 +371,67 @@ async def test_animation_handoff_returns_current_exact_script_without_claiming_v
     assert handoff.json()["production_script"] == script
     assert exact_script.status_code == 200
     assert exact_script.json() == script
+    assert candidate.status_code == 202
+    assert candidate.json()["status"] == "validated_pending_runtime"
+    assert "未发布到项目当前成果" in candidate.json()["message"]
+    assert stale.status_code == 409
+    assert unsafe.status_code == 422
+    assert preview.json()["status"] == "not_ready"
+    assert "播放器尚未接入" in preview.json()["message"]
+    assert "animation_manifest" not in projects.load(project["project_id"])["artifacts"]
+    assert changed_direction.status_code == 200
+    assert changed_direction.json()["decisions"] == {
+        "direction_id": package["directions"][1]["id"],
+        "direction_status": "user_confirmed",
+    }
+    assert "production_script" not in changed_direction.json()["artifacts"]
+    assert stale_direction.status_code == 409
+
+
+@pytest.mark.anyio
+async def test_revision_request_is_validated_persisted_and_never_claims_execution(
+    tmp_path,
+):
+    projects = ProjectStateStore(tmp_path / "projects")
+    revisions = RevisionRequestStore(tmp_path / "revision-requests")
+    project = projects.create({"topic": "生日悖论"})
+    request = {
+        "project_id": project["project_id"],
+        "request_id": "RR_E2E_001",
+        "base_project_revision": project["revision"],
+        "source": "user",
+        "target_layer": "unresolved",
+        "target_artifact": {
+            "kind": "project_state",
+            "artifact_id": project["project_id"],
+            "revision": project["revision"],
+        },
+        "anchors": [],
+        "scope": "unknown",
+        "problem": "开场没有说明为什么 23 人是关键数字。",
+        "original_user_feedback": "请补充直觉上的反差。",
+    }
+    app = api_module.create_app(
+        state_store=projects,
+        job_store=JobStore(tmp_path / "jobs"),
+        revision_store=revisions,
+    )
+
+    async with app.router.lifespan_context(app):
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://127.0.0.1"
+        ) as client:
+            accepted = await client.post(
+                f"/api/projects/{project['project_id']}/revision-requests",
+                json=request,
+            )
+            preview = await client.get(f"/api/projects/{project['project_id']}/preview")
+
+    assert accepted.status_code == 202
+    assert accepted.json()["status"] == "received"
+    assert "暂不支持自动修改" in accepted.json()["message"]
+    assert revisions.root_dir.joinpath(project["project_id"], "RR_E2E_001.json").exists()
+    assert projects.load(project["project_id"]) == project
+    assert preview.status_code == 200
+    assert preview.json()["status"] == "not_ready"
+    assert "尚无" in preview.json()["message"]

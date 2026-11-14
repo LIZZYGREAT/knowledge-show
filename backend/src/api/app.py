@@ -12,7 +12,8 @@ from typing import Any, Callable
 from fastapi import FastAPI, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+
+from .errors import error_response as _error, public_error as _public_error
 from .models import (
     CreateProjectBody,
     DirectionBody,
@@ -21,14 +22,23 @@ from .models import (
     StartJobBody,
     test_model_connection,
 )
+from .task_runner import run_job as _run_job
 from workflow.jobs import JobNotFoundError, JobStore
+from workflow.animation import (
+    AnimationManifestCandidateStore,
+    AnimationManifestConflict,
+    AnimationManifestError,
+)
+from workflow.revisions import (
+    RevisionRequestConflict,
+    RevisionRequestError,
+    RevisionRequestStore,
+)
 from workflow.service import (
     WorkflowArtifactNotFound,
     WorkflowError,
-    WorkflowOptions,
     read_knowledge_package,
     read_production_script,
-    run_until_script,
 )
 from workflow.state import (
     ProjectNotFoundError,
@@ -39,10 +49,14 @@ from workflow.state import (
 
 
 logger = logging.getLogger(__name__)
+
+
 def create_app(
     *,
     state_store: ProjectStateStore | None = None,
     job_store: JobStore | None = None,
+    revision_store: RevisionRequestStore | None = None,
+    animation_manifest_store: AnimationManifestCandidateStore | None = None,
     knowledge_export_dir: str | Path | None = None,
     script_export_dir: str | Path | None = None,
     services_factory: Callable[[str], Any] = RuntimeServices,
@@ -50,6 +64,8 @@ def create_app(
 ) -> FastAPI:
     projects = state_store or ProjectStateStore()
     jobs = job_store or JobStore()
+    revisions = revision_store or RevisionRequestStore()
+    manifests = animation_manifest_store or AnimationManifestCandidateStore()
     active_tasks: set[asyncio.Task[Any]] = set()
     active_by_project: dict[str, str] = {}
 
@@ -66,6 +82,8 @@ def create_app(
     app = FastAPI(title="knowledge-show local API", lifespan=lifespan)
     app.state.project_store = projects
     app.state.job_store = jobs
+    app.state.revision_store = revisions
+    app.state.animation_manifest_store = manifests
     app.state.active_tasks = active_tasks
     app.add_middleware(
         CORSMiddleware,
@@ -311,164 +329,98 @@ def create_app(
         except (ProjectStateError, WorkflowError, ValueError):
             return _error(409, "conflict", "当前项目尚未准备好脚本交接。")
 
+    @app.get("/api/projects/{project_id}/preview")
+    async def preview_status(project_id: str):
+        try:
+            project = projects.load(project_id)
+        except ProjectNotFoundError:
+            return _error(404, "invalid_input", "没有找到这个创作项目。")
+        except ProjectStateError:
+            return _error(422, "invalid_input", "项目编号无效。")
+        if project["artifacts"].get("animation_manifest") is None:
+            if manifests.has_candidate(project_id):
+                return {
+                    "status": "not_ready",
+                    "message": "动画产物已通过交接校验，但通用播放器尚未接入，当前不能预览。",
+                }
+            return {
+                "status": "not_ready",
+                "message": "当前项目尚无已校验且可加载的真实动画资源。",
+            }
+        return {
+            "status": "not_ready",
+            "message": "当前预览运行时尚不能加载这个 AnimationManifest。",
+        }
+
+    @app.post("/api/projects/{project_id}/revision-requests", status_code=202)
+    async def receive_revision_request(project_id: str, request_body: dict[str, Any]):
+        try:
+            project = projects.load(project_id)
+            if request_body.get("project_id") != project_id:
+                return _error(422, "invalid_input", "修改请求没有指向当前项目。")
+            revisions.accept(project, request_body)
+        except ProjectNotFoundError:
+            return _error(404, "invalid_input", "没有找到这个创作项目。")
+        except ProjectStateError:
+            return _error(422, "invalid_input", "项目编号无效。")
+        except RevisionRequestConflict:
+            return _error(409, "conflict", "项目或目标版本已更新，请刷新后重新提交。")
+        except RevisionRequestError:
+            return _error(422, "invalid_input", "修改请求格式不正确或目标版本无效。")
+        return {
+            "request_id": request_body["request_id"],
+            "status": "received",
+            "message": "已收到修改请求；当前版本暂不支持自动修改，原成果未发生变化。",
+        }
+
+    @app.post("/api/projects/{project_id}/animation-manifest", status_code=202)
+    async def receive_animation_manifest(
+        project_id: str, manifest: dict[str, Any]
+    ):
+        try:
+            project = projects.load(project_id)
+            script_ref = project["artifacts"].get("production_script")
+            package_ref = project["artifacts"].get("knowledge_package")
+            if script_ref is None or package_ref is None:
+                return _error(409, "conflict", "请先完成知识探索和脚本编排，再提交动画产物。")
+            package = read_knowledge_package(
+                project_id, package_ref, export_dir=knowledge_export_dir
+            )
+            script = read_production_script(
+                project_id,
+                script_ref,
+                project=project,
+                package=package,
+                export_dir=script_export_dir,
+            )
+            manifests.accept(project, script, manifest)
+            latest = projects.load(project_id)
+            if (
+                latest["revision"] != project["revision"]
+                or latest["artifacts"].get("production_script") != script_ref
+            ):
+                return _error(409, "conflict", "脚本在动画提交期间已更新，请基于新版本重新提交。")
+        except ProjectNotFoundError:
+            return _error(404, "invalid_input", "没有找到这个创作项目。")
+        except WorkflowArtifactNotFound:
+            return _error(409, "conflict", "当前脚本或知识包版本不存在，请刷新项目状态。")
+        except AnimationManifestConflict:
+            return _error(409, "conflict", "动画产物引用的脚本版本已过期，或该版本 ID 已使用。")
+        except AnimationManifestError:
+            return _error(422, "invalid_input", "动画产物与当前脚本不匹配，或本地资源尚未就绪。")
+        except (ProjectStateError, WorkflowError, ValueError):
+            return _error(409, "conflict", "当前项目尚未准备好接收动画产物。")
+        return {
+            "status": "validated_pending_runtime",
+            "artifact_ref": {
+                "artifact_id": manifest["artifact_id"],
+                "revision": manifest["revision"],
+            },
+            "message": "动画产物结构与本地资源引用已核对；通用播放器尚未接入，因此未发布到项目当前成果，也不能进入预览。",
+        }
+
     app.state.connection_test = connection_test
     return app
-
-
-async def _run_job(
-    project_id: str,
-    job_id: str,
-    api_key: str,
-    regenerate: bool,
-    projects: ProjectStateStore,
-    jobs: JobStore,
-    services_factory: Callable[[str], Any],
-    active_by_project: dict[str, str],
-    knowledge_export_dir: str | Path | None,
-    script_export_dir: str | Path | None,
-) -> None:
-    services = None
-    try:
-        services = services_factory(api_key)
-
-        async def on_event(event: dict[str, Any]) -> None:
-            stage = event.get("stage")
-            kind = event.get("kind")
-            if stage not in {"knowledge", "script", "animation"}:
-                return
-            current = jobs.load(job_id)
-            stages = dict(current["stages"])
-            if kind == "completed" and event.get("artifact"):
-                stages[stage] = "completed"
-                artifact_name = {
-                    "knowledge": "knowledge_package",
-                    "script": "production_script",
-                }.get(stage)
-                artifacts = dict(current["artifacts"])
-                if artifact_name:
-                    artifacts[artifact_name] = event["artifact"]
-                message = _stage_message(stage, "completed")
-            elif kind == "failed":
-                stages[stage] = "failed"
-                artifacts = dict(current["artifacts"])
-                message = _stage_message(stage, "failed")
-            else:
-                stages[stage] = "running"
-                artifacts = dict(current["artifacts"])
-                message = _stage_message(stage, "running")
-            jobs.update(
-                job_id,
-                status="running",
-                current_stage=stage,
-                stages=stages,
-                artifacts=artifacts,
-                message=message,
-            )
-
-        options = services.workflow_options(
-            regenerate=regenerate,
-            knowledge_export_dir=knowledge_export_dir,
-            script_export_dir=script_export_dir,
-        )
-        result = await run_until_script(
-            project_id,
-            options=options,
-            state_store=projects,
-            on_event=on_event,
-        )
-        project = result["project"]
-        artifacts = {
-            "knowledge_package": project["artifacts"]["knowledge_package"],
-            "production_script": project["artifacts"]["production_script"],
-        }
-        stages = {"knowledge": "completed", "script": "completed", "animation": "pending"}
-        jobs.update(
-            job_id,
-            status="script_ready",
-            current_stage="animation",
-            stages=stages,
-            artifacts=artifacts,
-            project_revision=project["revision"],
-            error_code=None,
-            message="脚本准备完成，等待动画制作。",
-        )
-    except asyncio.CancelledError:
-        current = jobs.load(job_id)
-        stages = dict(current["stages"])
-        stage = current.get("current_stage")
-        if stage in stages and stages[stage] == "running":
-            stages[stage] = "failed"
-        jobs.update(
-            job_id,
-            status="interrupted",
-            stages=stages,
-            message="服务刚刚停止，这次任务未完成；已发布的成果仍可继续使用。",
-            error_code="temporarily_unavailable",
-        )
-        raise
-    except Exception as exc:
-        code, message = _public_error(exc)
-        logger.error("Local generation job failed (%s, %s)", job_id, code)
-        current = jobs.load(job_id)
-        stages = dict(current["stages"])
-        stage = current.get("current_stage")
-        if stage in stages and stages[stage] != "completed":
-            stages[stage] = "failed"
-        jobs.update(
-            job_id,
-            status="failed",
-            stages=stages,
-            error_code=code,
-            message=message,
-        )
-    finally:
-        if services is not None:
-            try:
-                await services.close()
-            except Exception:
-                logger.warning("Could not close per-job model clients")
-        if active_by_project.get(project_id) == job_id:
-            active_by_project.pop(project_id, None)
-
-
-def _stage_message(stage: str, state: str) -> str:
-    messages = {
-        ("knowledge", "running"): "正在探索知识与讲述方向",
-        ("knowledge", "completed"): "知识方向已经准备好",
-        ("knowledge", "failed"): "知识准备暂时没有完成，请重试。",
-        ("script", "running"): "正在安排讲述顺序与场景节奏",
-        ("script", "completed"): "脚本方案已经准备好",
-        ("script", "failed"): "脚本暂时没有完成，请重试这一步。",
-        ("animation", "running"): "正在准备动画制作",
-        ("animation", "completed"): "动画资源已准备好",
-        ("animation", "failed"): "动画制作暂时没有完成，请重试。",
-    }
-    return messages[(stage, state)]
-
-
-def _public_error(exc: Exception) -> tuple[str, str]:
-    diagnostic = str(exc).lower()
-    name = type(exc).__name__.lower()
-    if "missing" in diagnostic and "key" in diagnostic:
-        return "missing_key", "请先配置可用的 API Key。"
-    if "rejected the api key" in diagnostic or "401" in diagnostic or "403" in diagnostic:
-        return "invalid_key", "API Key 无法使用，请检查后重试。"
-    if "rate limited" in diagnostic or "429" in diagnostic:
-        return "rate_limited", "服务暂时繁忙，请稍后重试。"
-    if "timeout" in diagnostic or "connection" in name:
-        return "temporarily_unavailable", "暂时无法连接生成服务，请检查网络后重试。"
-    if isinstance(exc, ProjectStateConflict):
-        return "conflict", "项目状态已更新，请刷新后重试。"
-    if isinstance(exc, (ProjectStateError, WorkflowError, ValueError)):
-        return "failed", "这一步暂时没有完成，请稍后重试。"
-    return "temporarily_unavailable", "生成服务暂时不可用，请稍后重试。"
-
-
-def _error(status_code: int, code: str, message: str) -> JSONResponse:
-    return JSONResponse(
-        status_code=status_code,
-        content={"error": {"code": code, "message": message}},
-    )
 
 
 app = create_app()
