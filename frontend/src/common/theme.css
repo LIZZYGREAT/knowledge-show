@@ -11,6 +11,8 @@
   --ks-accent-strong: #1b4a34;
   --ks-accent-soft: #e2ebdc;
   --ks-warm: #cfad72;
+  --ks-flow: #238c7d;
+  --ks-flow-light: #72c3b1;
   --ks-warn: #8a5a25;
   --ks-bad: #98402a;
   font-family: Aptos, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -1011,6 +1013,15 @@ summary span {
 .field-wide {
   grid-column: 1 / -1;
 }
+.composer form {
+  position: relative;
+}
+.composer .topic-stage,
+.composer .choices button,
+.composer .form-bottom button {
+  position: relative;
+  z-index: 1;
+}
 .preferences .field {
   font-size: 14px;
 }
@@ -1126,7 +1137,7 @@ summary span {
     font-size: 15px;
     margin: 18px 0 22px;
   }
-  .living-paper-stage {
+  .living-flow-scene {
     width: 100%;
     max-width: 430px;
     margin: 0 auto 20px;

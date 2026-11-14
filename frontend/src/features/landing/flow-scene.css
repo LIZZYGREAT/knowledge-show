@@ -1,0 +1,89 @@
+.living-flow-scene {
+  margin: -20px -28px -12px -30px;
+  min-width: 0;
+  align-self: center;
+  position: relative;
+  view-transition-name: flow-scene;
+  pointer-events: none;
+}
+.flow-theatre {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 800 / 640;
+  isolation: isolate;
+}
+.flow-artwork {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.idea-seed {
+  display: block;
+  width: 4.2%;
+  aspect-ratio: 1;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  view-transition-name: idea-seed;
+  z-index: 2;
+  border-radius: 50%;
+  pointer-events: none;
+  border: 1px solid #d2b57b80;
+  background: #f3e7bd18;
+}
+.idea-seed::after {
+  content: "";
+  position: absolute;
+  inset: -23%;
+  border: 1px solid #cfad7228;
+  border-radius: inherit;
+}
+.seed-core {
+  display: block;
+  position: absolute;
+  width: 24%;
+  height: 24%;
+  left: 38%;
+  top: 38%;
+  border-radius: 50%;
+  background: #d5b36e;
+  box-shadow: 0 0 9px 3px #efd3a04d;
+}
+.living-flow-scene figcaption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  font-size: 11px;
+  letter-spacing: .14em;
+  color: var(--ks-muted);
+  margin-top: -3px;
+}
+.living-flow-scene figcaption span {
+  width: 25px;
+  height: 1px;
+  background: #cfad7280;
+}
+::view-transition-old(flow-scene) {
+  animation: flow-gather .42s cubic-bezier(.4, 0, .8, .3) both;
+  transform-origin: 54% 54%;
+}
+::view-transition-new(flow-scene) {
+  animation: flow-return .45s ease both;
+}
+@keyframes flow-gather {
+  to { transform: scale(.08) rotate(-18deg); opacity: 0; filter: blur(3px); }
+}
+@keyframes flow-return {
+  from { opacity: 0; }
+}
+@media (max-width: 900px) {
+  .living-flow-scene { margin: -8px -16px 0; }
+  .living-flow-scene figcaption { gap: 8px; font-size: 10px; letter-spacing: .03em; }
+  .living-flow-scene figcaption span { width: 12px; }
+}
+@media (max-width: 600px) {
+  .living-flow-scene { margin: -12px 0 2px; }
+  .flow-theatre { aspect-ratio: 800 / 640; }
+  .living-flow-scene figcaption { margin-top: -12px; font-size: 10px; }
+}

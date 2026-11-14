@@ -1,4 +1,5 @@
-import { IdeaSeed } from "../landing/LivingPaperStage";
+import { EditorialOrnament } from "../../components/EditorialOrnament";
+import { IdeaSeed } from "../landing/LivingFlowScene";
 import { type FormEvent, useRef } from "react";
 import { depths, modes, type Draft } from "../../common/creation";
 const examples = [
@@ -6,6 +7,7 @@ const examples = [
   ["注意力机制", "AI 的注意力机制，是怎样理解一句话的？"],
   ["时间的方向", "时间为什么不能倒流？"],
 ] as const;
+
 export function CreationComposer({
   draft,
   onChange,
@@ -46,10 +48,13 @@ export function CreationComposer({
   return (
     <main className="composer">
       <div className="composer-heading">
+        <EditorialOrnament variant="sprig" className="heading-sprig heading-sprig-left" />
+        <EditorialOrnament variant="sprig" className="heading-sprig heading-sprig-right" />
         <p className="eyebrow">A LITTLE CURIOSITY GOES A LONG WAY</p>
         <h1>从一个问题开始。</h1>
         <p>你负责好奇，我们让它成为故事。</p>
       </div>
+      <EditorialOrnament />
       <form onSubmit={submit}>
         <label className="topic-label" htmlFor="topic">
           <span className="topic-prompt">
@@ -88,6 +93,7 @@ export function CreationComposer({
             ))}
           </div>
         </div>
+        <EditorialOrnament variant="hem" className="topic-tail" />
         <div className="form-columns">
           {field(
             "focus",
@@ -108,6 +114,7 @@ export function CreationComposer({
                 </button>
               ))}
             </div>
+            <EditorialOrnament variant="hem" className="mode-ornament" />
             {draft.creative_mode === "custom" && (
               <label className="field custom-field">
                 你的讲述方式
@@ -161,6 +168,7 @@ export function CreationComposer({
             {field("must_include", "想出现的内容", "一个贴近日常的例子")}
             {field("must_avoid", "希望避开的内容", "过于复杂的公式")}
           </div>
+          <EditorialOrnament variant="hem" className="preference-ornament" />
         </details>
         <div className="form-bottom">
           <span className="quiet">16:9 横版 · 约 3 分钟</span>
