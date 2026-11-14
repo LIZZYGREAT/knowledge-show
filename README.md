@@ -1,6 +1,6 @@
 # knowledge-show
 
-> 面向普通创作者的 AI 知识短视频制作项目。`main` 已包含知识层首版（PR #5）、跨层脚本契约（PR #6）、React 创作入口（PR #7）、独立时间轴编辑器原型（PR #8）和前端视觉重构（PR #9）。脚本生成执行器、共享工作流、动画运行时和视频导出仍未实现。
+> 面向普通创作者的 AI 知识短视频制作项目。`main` 已包含知识层首版（PR #5）、跨层脚本契约（PR #6）、React 创作入口（PR #7）、独立时间轴编辑器原型（PR #8）和前端视觉重构（PR #9）。当前 `feat/non-animation-mainline` 已集成脚本生成、ProjectState 到脚本的工作流，以及固定 PN 结 S01 的动画 P0 预览。HTTP API、前端真实任务接入、多场景 Manifest、工作台联动和视频导出仍待实现。
 
 ## 项目目标
 
@@ -19,7 +19,7 @@
 
 ## 当前可运行范围
 
-仓库已包含五类 **跨阶段数据契约**、连贯 Mock 示例及校验脚本。知识层可运行完整研究、创意、核验与 KnowledgePackage JSON 交付，并提供本地检验页。前端创作入口已在 `main`；独立时间轴编辑器仍是硬编码演示数据的原型，未读取真实 Manifest，也未接入动画元件定位。脚本层已有可复用的 v0.3 写作提示词和 ProductionScript 契约，但尚无生成执行器；真实生成接口、动画预览、跨层工作流和视频导出仍未集成。启动说明见 [前端说明](frontend/README.md)，状态以 [STATUS.md](STATUS.md) 为准。
+仓库已包含五类 **跨阶段数据契约**、连贯 Mock 示例及校验脚本。知识层可运行完整研究、创意、核验与 KnowledgePackage JSON 交付，并提供本地检验页。脚本层可调用 DeepSeek Responses API，也支持注入 Fake LLM；生成结果经 Schema、跨层引用和时间线校验，最多进行一次受限修复，再以不可覆盖版本文件发布。工作流可持久化 ProjectState、读取精确知识包版本并运行至脚本完成。动画 P0 预览播放固定 PN 结 S01（15 秒），支持 Seek 和元件边界检查；它尚未连接工作台，也未发布完整 AnimationManifest。HTTP API 和前端真实任务接入仍待实现；脚本尚未进行真实模型验收。独立时间轴编辑器仍使用演示数据。启动说明见 [前端说明](frontend/README.md)，状态以 [STATUS.md](STATUS.md) 为准。
 
 在仓库根目录激活 `.venv` 后，可运行知识层测试和契约校验：
 
@@ -28,13 +28,21 @@ PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests/knowledge -q
 .venv/bin/python contracts/validate_contracts.py
 ```
 
+当前开发分支的脚本与工作流离线检查：
+
+```bash
+PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests/script backend/tests/integration -q
+```
+
 知识层本地检验页在仓库根目录 `.env` 配有密钥时默认使用 Real API，并要求确认本次在线生成可能产生调用费用；没有密钥时只提供明确标注的固定主题离线示例。页面打开不会自动调用模型。开发者诊断可手动切换 Mock 与 Real API。密钥由 `python-dotenv` 自动加载，不提交到版本控制：
 
 ```bash
 PYTHONPATH=backend/src STREAMLIT_SERVER_ADDRESS=127.0.0.1 STREAMLIT_SERVER_PORT=8501 .venv/bin/python -m streamlit run backend/src/knowledge/devtools/review_app.py
 ```
 
-当前主线记录了 83 项知识层测试通过；契约校验覆盖五类 Schema、连贯样例、负例、旧版本兼容和非推荐方向切换。四份历史 ProductionScript 也通过新版 Schema 校验。真实 API 验收覆盖基础定义、进阶自注意力机制和带 `focus` / `must_include` 的骰子概率主题。本次跨层消费 Smoke 使用已发布知识包和固定 ProjectState / ProductionScript Mock，不调用 API；它检查版本引用、方向、时间轴及锚点事件映射，不代表真实脚本生成或动画播放已打通。PR #9 的首轮视觉重构通过了生产构建、7 项逻辑测试和 11 项 Chromium 浏览器测试。当前青绿流场与创作页装饰分支通过生产构建、10 项逻辑测试和 15 项 Chromium 浏览器测试，并已检查五种屏宽、关键姿态及实际开场录屏。
+`main` 上的知识层已有 83 项测试通过；契约校验覆盖五类 Schema、连贯样例、负例、旧版本兼容和非推荐方向切换。四份历史 ProductionScript 也通过新版 Schema 校验。既有真实 API 验收覆盖基础定义、进阶自注意力机制和带 `focus` / `must_include` 的骰子概率主题。本次跨层消费 Smoke 使用已发布知识包和固定 ProjectState / ProductionScript Mock，不调用 API；它检查版本引用、方向、时间轴及锚点事件映射。PR #9 的首轮视觉重构通过了生产构建、7 项逻辑测试和 11 项 Chromium 浏览器测试。青绿流场与创作页装饰分支通过生产构建、10 项逻辑测试和 15 项 Chromium 浏览器测试，并检查了五种屏宽、关键姿态及实际开场录屏。
+
+合并后的脚本测试 10 项、工作流集成测试 3 项、知识层 83 项、契约校验、包含 P0 预览页的前端生产构建和 10 项前端单测均通过。Playwright 的 19 项 E2E 也通过；本机需通过 `LD_LIBRARY_PATH` 提供 Chromium 系统库，未配置时浏览器无法启动。
 
 ## 目录与文档入口
 
@@ -42,15 +50,16 @@ PYTHONPATH=backend/src STREAMLIT_SERVER_ADDRESS=127.0.0.1 STREAMLIT_SERVER_PORT=
 | --- | --- |
 | `AGENTS.md` | Agent 接手、授权、修改与交付约定 |
 | `STATUS.md` | 当前状态、负责人、阻塞及下次集成 |
-| `backend/src/knowledge/`、`backend/src/script/` | 知识和脚本的独立开发工作区 |
-| `backend/src/workflow/`、`backend/src/api/` | 待实现的共享编排与对接入口 |
-| `frontend/src/features/`、`frontend/src/animation/` | 用户流程与动画实现工作区 |
+| `backend/src/knowledge/`、`backend/src/script/` | 知识层和脚本层；当前分支已有脚本生成与正式版本发布 |
+| `backend/src/workflow/` | ProjectState 版本存储与知识包到脚本的最小编排 |
+| `backend/src/api/` | HTTP 服务尚未实现 |
+| `frontend/src/features/`、`frontend/src/animation/` | 用户流程与动画实现；含固定 PN S01 的独立动画研发预览 |
 | `frontend/src/features/revision/editor-layout.html` | 独立时间轴 UI 原型，演示数据与真实动画运行时未连接 |
 | `contracts/schemas/` | **唯一机器可读契约**（五类 JSON Schema） |
 | `contracts/examples/` | Mock 联调样例 |
 | `contracts/validate_contracts.py` | Schema 与跨对象一致性校验 |
 | `contracts/接口契约与协作规范.md` | 跨阶段接口、权限、修订语义的权威说明 |
-| `docs/work/contracts/API.md` | 对接入口与传输 API 的登记处（当前未锁定 HTTP 端点） |
+| `docs/work/contracts/API.md` | 对接入口与传输 API 的登记处（HTTP 端点尚未实现） |
 | `docs/work/architecture.md` | 当前系统边界和数据流 |
 | `docs/work/design-principles.md` | 稳定的产品与设计原则 |
 | `docs/work/design/产品理念与工作流共识.md` | 较完整的产品体验与流程共识 |
