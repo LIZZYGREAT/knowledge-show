@@ -1,7 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { combinationState, stageState, STAGE_DURATION, STATIC_STAGE_TIME } from "../src/features/landing/curiosityMotion";
+import { combinationState, stageState, inkState, STAGE_DURATION, STATIC_STAGE_TIME } from "../src/features/landing/curiosityMotion";
 
 describe("dice demonstration", () => {
+  it("hands focus from silk to ink and restores the same appearance at the loop seam", () => {
+    const drop = inkState(1.5);
+    expect(drop.travel).toBeGreaterThan(0);
+    expect(drop.form).toBe(0);
+    const shaping = inkState(2.35);
+    expect(shaping.form).toBeGreaterThan(0);
+    expect(shaping.form).toBeLessThan(1);
+    expect(shaping.turn).toBeGreaterThan(drop.turn);
+    expect(stageState(2.35).roll).toBe(0);
+    const full = inkState(STATIC_STAGE_TIME);
+    expect(full.bloom).toBe(1);
+    expect(full.silkOpacity).toBe(0);
+    const initial = inkState(0);
+    const end = inkState(STAGE_DURATION - .001);
+    for (const key of ["bloom", "fold", "silkOpacity", "scale", "flowTime", "form", "travel", "presence", "lift", "vortexOpacity", "turn"] as const) {
+      expect(end[key]).toBeCloseTo(initial[key], 3);
+    }
+  });
   it("preserves all 36 ordered outcomes and their triangular sum distribution", () => {
     const groups = new Map<number, Set<number>>();
     let highlighted = 0;

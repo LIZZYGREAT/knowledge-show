@@ -708,7 +708,7 @@ test("no view transitions fallback and reduced motion keep the same form usable"
   await page.goto("/");
   await expect(page.locator(".curiosity-stage")).toHaveAttribute(
     "data-time",
-    "8.100",
+    "11.300",
   );
   await page.getByRole("button", { name: "开始创作" }).click();
   await expect(page.locator("#main-content")).toHaveAttribute(
@@ -742,7 +742,7 @@ test("knowledge theatre plays continuously and pauses on blur", async ({ page })
 
 test("knowledge theatre has stable objects through its narrative and loop", async ({ page }) => {
   const positions: string[] = [];
-  for (const pose of [0, .23, .6, .78, 1]) {
+  for (const pose of [0, .23, .57, 11.3 / 16, 1]) {
     await page.goto(`/?stage-pose=${pose}`);
     await expect(page.locator(".curiosity-stage")).toHaveAttribute("data-paused", "true");
     await expect(page.locator(".stage-die")).toHaveCount(2);
@@ -750,10 +750,43 @@ test("knowledge theatre has stable objects through its narrative and loop", asyn
     const point = await page.locator('[data-combination="1+6"] [data-moving-point]').getAttribute("transform");
     expect(point).not.toMatch(/NaN|Infinity/);
     positions.push(point!);
-    if (pose === .78) await expect(page.locator(".stage-result")).toHaveAttribute("opacity", "1");
+    if (pose === 11.3 / 16) await expect(page.locator(".stage-result")).toHaveAttribute("opacity", "1");
   }
   expect(new Set(positions).size).toBe(3);
   expect(positions[0]).toBe(positions[4]);
+});
+
+test("silk becomes an ink reveal and leaves the complete knowledge scene readable", async ({ page }) => {
+  await page.goto("/?stage-pose=0");
+  await expect(page.locator(".stage-silk")).toHaveAttribute("opacity", "1");
+  await expect(page.locator(".curiosity-stage")).toHaveAttribute("data-ink", "0.000");
+  await page.goto(`/?stage-pose=${1.5 / 16}`);
+  await expect(page.locator(".stage-die").first()).toHaveAttribute("data-formed", "0.000");
+  const ripple = await page.locator(".stage-ink-ripples path").first().getAttribute("d");
+  await page.goto(`/?stage-pose=${2.3 / 16}`);
+  const form = Number(await page.locator(".stage-die").first().getAttribute("data-formed"));
+  expect(form).toBeGreaterThan(0);
+  expect(form).toBeLessThan(1);
+  expect(await page.locator(".stage-ink-ripples path").first().getAttribute("d")).not.toBe(ripple);
+  expect(Number(await page.locator(".stage-ink-ripples").getAttribute("data-lift"))).toBeGreaterThan(0);
+  const ink = Number(await page.locator(".curiosity-stage").getAttribute("data-ink"));
+  expect(ink).toBeGreaterThan(0);
+  expect(ink).toBeLessThan(1);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await expect(page.locator(".stage-silk")).toHaveAttribute("opacity", "0");
+  await expect(page.locator(".stage-silk .flow-body")).toHaveCount(0);
+  await expect(page.locator('[data-die="ivory"] [data-face="0"] path')).toHaveCount(3);
+  await expect(page.locator('[data-die="green"] [data-face="0"] path')).toHaveCount(4);
+  // Check the actual SVG mask, including the easy-to-crop final sums 11 and 12.
+  expect(await page.locator(".curiosity-artwork").evaluate(svg => {
+    const path = svg.querySelector<SVGPathElement>(".stage-ink-mask")!;
+    return [...svg.querySelectorAll<SVGTextElement>(".stage-knowledge text")].every(text => {
+      const box = text.getBBox();
+      return [[box.x, box.y], [box.x + box.width, box.y + box.height]].every(([x, y]) =>
+        path.isPointInFill(new DOMPoint(x, y)));
+    });
+  })).toBe(true);
 });
 
 test("theatre pauses offscreen and responds to motion preference changes", async ({ page }) => {
@@ -769,11 +802,11 @@ test("theatre pauses offscreen and responds to motion preference changes", async
   await expect(stage).toHaveAttribute("data-paused", "false");
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(stage).toHaveAttribute("data-paused", "true");
-  await expect(stage).toHaveAttribute("data-time", "8.100");
+  await expect(stage).toHaveAttribute("data-time", "11.300");
   await expect(page.locator(".stage-result")).toHaveAttribute("opacity", "1");
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await expect(stage).toHaveAttribute("data-paused", "false");
-  await expect.poll(async () => Number(await stage.getAttribute("data-time"))).toBeGreaterThan(8.1);
+  await expect.poll(async () => Number(await stage.getAttribute("data-time"))).toBeGreaterThan(11.3);
 });
 
 test("ornaments stay decorative while focus, textarea resize and preferences change", async ({ page }) => {

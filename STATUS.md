@@ -29,9 +29,9 @@ PR #16 集成验证记录：后端 `PYTHONPATH=backend/src .venv/bin/python -m p
 
 ## 首页知识剧场验证
 
-`feat/home-curiosity-stage` 首页改为纸艺骰子概率演示，复用外围丝带与可见性调度，10.5 秒连续循环覆盖骰子落定、36 个有序组合展开、六组和为 7 的高亮、数量分布和收拢。减少动画直接展示完整结论；旧 `LivingFlowScene` 保留。首页演示不影响生产动画风格、API 或公共 Schema。
+`feat/home-curiosity-stage` 首页保留流体开场，落墨后同一组平面波纹连续抬升为骰子外围的锥形螺旋，按前后深度包裹骰子并共用旋转进度。墨滴逐渐撑出三维骰面，点数随实际透视投影翻转，落定后展开组合与数量分布，最后收回墨滴和流体。16 秒循环共用可见性调度；减少动画直接展示完整结论。矩形纸卡已移除，旧 `LivingFlowScene` 保留；首页演示不影响生产动画风格、API 或公共 Schema。
 
-前端 `npm run build` 通过，`npm test` 16 项通过；`npm run test:e2e -- --workers=2 --output=/tmp/ks-stage-e2e-final` 35 项通过；回环高亮淡出收尾后另跑舞台定向回归 3 项通过（Chromium，提供 `LD_LIBRARY_PATH` / `FONTCONFIG_FILE` / `PLAYWRIGHT_BROWSERS_PATH`）。实际截图覆盖 1440×900、1280×720、390px 手机与减少动画，以及初始、滚动、组合、结论和循环边界；已录制两轮真实播放。本机 5 秒抽样约 29.8 次状态更新/秒，页面无 JS 错误；不代表真实移动设备性能。临时截图与录屏位于 `/tmp/ks-stage-*`，不入库。负责人视觉确认与 Safari / 真机验收待完成，任务留在 open。
+前端 `npm run build` 通过，`npm test` 17 项通过；`npm run test:e2e -- --workers=2 --output=/tmp/ks-vortex-final-e2e` 36 项通过（Chromium，提供 `LD_LIBRARY_PATH` / `FONTCONFIG_FILE` / `PLAYWRIGHT_BROWSERS_PATH`）。覆盖墨滴成形、波纹抬升、骰子正面落定为 3 与 4、SVG 遮罩完整文字、暂停恢复及既有创作和工作台流程。实际截图覆盖 1440×900、1280×720、390px 手机与减少动画，以及流体、墨滴、成形、组合、结论和回环姿态；截图位于 `/tmp/ks-vortex-final-*` 与 `/tmp/ks-ink-*`。已录制两轮最终播放（`/tmp/ks-vortex-preview.mp4`），本机 5 秒抽样约 29.6 次状态更新/秒，页面无 JS 错误；该数据不代表真机性能。负责人视觉确认与 Safari / 真机验收待完成，任务留在 open。
 
 ## 责任与活动任务
 
