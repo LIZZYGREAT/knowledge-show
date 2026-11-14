@@ -63,9 +63,8 @@ def install_animation_routes(app: FastAPI, *, projects, candidates, revisions, s
             style_id=body.get('style_id','auto'); custom=body.get('custom_profile')
             preference=body.get('art_preference',project['brief']['user_input'].get('art_style',''))
             if preference and not isinstance(preference,str): raise ValueError('美术偏好格式不正确。')
-            user_art_preference=''
+            user_art_preference=preference
             if style_id=='auto' and preference:
-                user_art_preference=preference
                 style_id=preferred_profile_id(preference,script)
             result=await service.generate(project,script,style_id=style_id,custom=custom,client=client,knowledge_package=package,art_preference=user_art_preference)
             write_job(path,{**result,'job_id':job_id,'status':'completed','message':'动画已通过实际播放检查并发布。'})

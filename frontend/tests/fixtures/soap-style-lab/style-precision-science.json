@@ -1,0 +1,3907 @@
+{
+  "script": {
+    "project_id": "P_SOAP_LAB",
+    "artifact_id": "PS_SOAP_LAB",
+    "revision": 1,
+    "brief_revision": 1,
+    "knowledge_package_ref": {
+      "artifact_id": "KP_SOAP_LAB",
+      "revision": 1
+    },
+    "direction_id": "D_SOAP",
+    "total_duration_ms": 27000,
+    "core_message": "表面活性剂在油水界面定向排列，在搅动与冲洗中帮助油污分散并被水带走。",
+    "scenes": [
+      {
+        "scene_id": "S01",
+        "start_ms": 0,
+        "duration_ms": 9000,
+        "objective": "水流经过，油污仍附着",
+        "role": "hook",
+        "knowledge_refs": [
+          "K_SOAP_INTERFACE"
+        ],
+        "semantic_constraints": [
+          "水与油接触；水流不直接令油消失。"
+        ],
+        "visual_notes": [
+          "油污及分子保持可追踪身份；无音轨的抽象示意。"
+        ],
+        "events": [
+          {
+            "id": "EV_S01",
+            "offset_ms": 4500,
+            "anchor": true,
+            "description": "水流经过，油污仍附着",
+            "knowledge_refs": [
+              "K_SOAP_INTERFACE"
+            ]
+          }
+        ],
+        "timed_text": [
+          {
+            "id": "T_S01",
+            "offset_ms": 0,
+            "duration_ms": 9000,
+            "text": "只用水，为什么油污还在？",
+            "kind": "subtitle"
+          }
+        ]
+      },
+      {
+        "scene_id": "S02",
+        "start_ms": 9000,
+        "duration_ms": 9000,
+        "objective": "看清分子两端在油水界面的方向",
+        "role": "explain",
+        "knowledge_refs": [
+          "K_SOAP_INTERFACE"
+        ],
+        "semantic_constraints": [
+          "头部朝水，尾部伸向油；界面排列是示意，不是瞬间规则球壳。"
+        ],
+        "visual_notes": [
+          "油污及分子保持可追踪身份；无音轨的抽象示意。"
+        ],
+        "events": [
+          {
+            "id": "EV_S02",
+            "offset_ms": 4500,
+            "anchor": true,
+            "description": "看清分子两端在油水界面的方向",
+            "knowledge_refs": [
+              "K_SOAP_INTERFACE"
+            ]
+          }
+        ],
+        "timed_text": [
+          {
+            "id": "T_S02",
+            "offset_ms": 0,
+            "duration_ms": 9000,
+            "text": "亲水端朝水，亲油端伸向油",
+            "kind": "subtitle"
+          }
+        ]
+      },
+      {
+        "scene_id": "S03",
+        "start_ms": 18000,
+        "duration_ms": 9000,
+        "objective": "搅动使油污分散，再随冲洗水流离开",
+        "role": "payoff",
+        "knowledge_refs": [
+          "K_SOAP_INTERFACE"
+        ],
+        "semantic_constraints": [
+          "油没有化学消失；小油滴需经历分散与冲洗，保留运动连续性。"
+        ],
+        "visual_notes": [
+          "油污及分子保持可追踪身份；无音轨的抽象示意。"
+        ],
+        "events": [
+          {
+            "id": "EV_S03",
+            "offset_ms": 4500,
+            "anchor": true,
+            "description": "搅动使油污分散，再随冲洗水流离开",
+            "knowledge_refs": [
+              "K_SOAP_INTERFACE"
+            ]
+          }
+        ],
+        "timed_text": [
+          {
+            "id": "T_S03",
+            "offset_ms": 0,
+            "duration_ms": 9000,
+            "text": "搅动、分散，再随水流带走",
+            "kind": "subtitle"
+          }
+        ]
+      }
+    ]
+  },
+  "manifest": {
+    "project_id": "P_SOAP_LAB",
+    "artifact_id": "AM_SOAP_LAB",
+    "revision": 1,
+    "brief_revision": 1,
+    "production_script_ref": {
+      "artifact_id": "PS_SOAP_LAB",
+      "revision": 1
+    },
+    "total_duration_ms": 27000,
+    "preview_ref": "soap-lab/precision-science/preview.json",
+    "clips": [
+      {
+        "clip_id": "CL_S01",
+        "scene_id": "S01",
+        "start_ms": 0,
+        "duration_ms": 9000,
+        "resource_ref": "soap-lab/precision-science/S01.json",
+        "script_event_refs": [
+          "EV_S01"
+        ],
+        "internal_events": [
+          {
+            "id": "IE_S01",
+            "offset_ms": 4500,
+            "description": "水流经过，油污仍附着",
+            "script_event_refs": [
+              "EV_S01"
+            ]
+          }
+        ]
+      },
+      {
+        "clip_id": "CL_S02",
+        "scene_id": "S02",
+        "start_ms": 9000,
+        "duration_ms": 9000,
+        "resource_ref": "soap-lab/precision-science/S02.json",
+        "script_event_refs": [
+          "EV_S02"
+        ],
+        "internal_events": [
+          {
+            "id": "IE_S02",
+            "offset_ms": 4500,
+            "description": "看清分子两端在油水界面的方向",
+            "script_event_refs": [
+              "EV_S02"
+            ]
+          }
+        ]
+      },
+      {
+        "clip_id": "CL_S03",
+        "scene_id": "S03",
+        "start_ms": 18000,
+        "duration_ms": 9000,
+        "resource_ref": "soap-lab/precision-science/S03.json",
+        "script_event_refs": [
+          "EV_S03"
+        ],
+        "internal_events": [
+          {
+            "id": "IE_S03",
+            "offset_ms": 4500,
+            "description": "搅动使油污分散，再随冲洗水流离开",
+            "script_event_refs": [
+              "EV_S03"
+            ]
+          }
+        ]
+      }
+    ],
+    "selectable_elements": [
+      {
+        "id": "EL_WATER"
+      },
+      {
+        "id": "EL_SURFACE"
+      },
+      {
+        "id": "EL_OIL"
+      },
+      {
+        "id": "EL_FLOW_0"
+      },
+      {
+        "id": "EL_FLOW_1"
+      },
+      {
+        "id": "EL_FLOW_2"
+      },
+      {
+        "id": "EL_FLOW_3"
+      },
+      {
+        "id": "EL_TITLE"
+      },
+      {
+        "id": "EL_STAGE_NOTE"
+      },
+      {
+        "id": "EL_OIL_LABEL"
+      },
+      {
+        "id": "EL_FOOTNOTE"
+      },
+      {
+        "id": "T_S01",
+        "source_ref": {
+          "kind": "timed_text",
+          "id": "T_S01"
+        }
+      },
+      {
+        "id": "EL_TAIL_0"
+      },
+      {
+        "id": "EL_HEAD_0"
+      },
+      {
+        "id": "EL_TAIL_1"
+      },
+      {
+        "id": "EL_HEAD_1"
+      },
+      {
+        "id": "EL_TAIL_2"
+      },
+      {
+        "id": "EL_HEAD_2"
+      },
+      {
+        "id": "EL_TAIL_3"
+      },
+      {
+        "id": "EL_HEAD_3"
+      },
+      {
+        "id": "EL_TAIL_4"
+      },
+      {
+        "id": "EL_HEAD_4"
+      },
+      {
+        "id": "EL_TAIL_5"
+      },
+      {
+        "id": "EL_HEAD_5"
+      },
+      {
+        "id": "EL_HEAD_LABEL"
+      },
+      {
+        "id": "EL_TAIL_LABEL"
+      },
+      {
+        "id": "T_S02",
+        "source_ref": {
+          "kind": "timed_text",
+          "id": "T_S02"
+        }
+      },
+      {
+        "id": "EL_DROP_0"
+      },
+      {
+        "id": "EL_DROP_1"
+      },
+      {
+        "id": "EL_DROP_2"
+      },
+      {
+        "id": "EL_DROP_3"
+      },
+      {
+        "id": "EL_DROP_4"
+      },
+      {
+        "id": "EL_DROP_5"
+      },
+      {
+        "id": "T_S03",
+        "source_ref": {
+          "kind": "timed_text",
+          "id": "T_S03"
+        }
+      }
+    ]
+  },
+  "resources": {
+    "soap-lab/precision-science/S01.json": {
+      "kind": "vector-scene",
+      "sceneId": "S01",
+      "style": {
+        "typography": {
+          "display": "Georgia, serif",
+          "body": "Arial, \"Microsoft YaHei\", sans-serif"
+        },
+        "consistencyRules": [
+          "同一逻辑对象身份与含义一致",
+          "视觉效果不得误导脚本中的知识关系",
+          "编辑器高亮不进入画面"
+        ],
+        "avoid": [
+          "静态文字轮播代替知识变化",
+          "无意义粒子",
+          "继承网页品牌配色"
+        ],
+        "id": "precision-science",
+        "name": "精密科学风",
+        "intent": "可辨识的结构截面、半透明实体与精确轮廓；材料明暗服务于结构解释",
+        "palette": {
+          "background": "#111e30",
+          "ink": "#edf1ef",
+          "muted": "#93a6b9",
+          "red": "#ee7b76",
+          "blue": "#78b9dd",
+          "material": "#e9eeeb",
+          "shade": "#617d96",
+          "gold": "#e2c48f"
+        },
+        "materials": [
+          "磨砂陶瓷",
+          "拉丝金属",
+          "半透明实体"
+        ],
+        "spatialLanguage": "正交尺度与局部特写，重要界面留出标签空间",
+        "lighting": "柔和侧光",
+        "motionCharacter": "结构逐步揭示，平稳推进与可观察的定向运动",
+        "decorativeGuidance": [
+          "细密结构线与半透明层次，避免装饰光点遮挡机制",
+          "标题与标签形成字体层级，保留可读留白"
+        ]
+      },
+      "parameters": {
+        "speed": 1
+      },
+      "objects": [
+        {
+          "id": "EL_WATER",
+          "label": "水相截面",
+          "shape": "rect",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 130,
+              "y": 225,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 130,
+              "y": 225,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 130,
+              "y": 225,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "width": 1340,
+          "height": 440,
+          "cornerRadius": 30,
+          "fillOpacity": 0.13,
+          "stroke": "#78b9dd",
+          "strokeWidth": 2
+        },
+        {
+          "id": "EL_SURFACE",
+          "label": "附着表面",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#617d96",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 820,
+              "y": 637,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 820,
+              "y": 637,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 820,
+              "y": 637,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "path": "M-240 0 Q0 12 240 0 L240 24 L-240 24Z",
+          "materialKey": "frosted",
+          "zIndex": 1
+        },
+        {
+          "id": "EL_OIL",
+          "label": "油污",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#e2c48f",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 820,
+              "y": 490,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 820,
+              "y": 490,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 820,
+              "y": 490,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "materialKey": "frosted",
+          "stroke": "#e2c48f",
+          "strokeWidth": 2,
+          "path": "M-180 0 A180 145 0 1 0 180 0 A180 145 0 1 0-180 0Z",
+          "zIndex": 2
+        },
+        {
+          "id": "EL_FLOW_0",
+          "label": "冲洗水流",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 180,
+              "y": 285,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.4,
+              "easing": "smoothstep",
+              "drawProgress": 0.2
+            },
+            {
+              "time_ms": 4500,
+              "x": 480,
+              "y": 277,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.65,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            },
+            {
+              "time_ms": 9000,
+              "x": 1140,
+              "y": 285,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.3,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            }
+          ],
+          "path": "M0 0 Q70-18 135 0 T270 0",
+          "stroke": "#78b9dd",
+          "strokeWidth": 3,
+          "fillOpacity": 0,
+          "lineCap": "round",
+          "zIndex": 1
+        },
+        {
+          "id": "EL_FLOW_1",
+          "label": "冲洗水流",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 230,
+              "y": 310,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.4,
+              "easing": "smoothstep",
+              "drawProgress": 0.2
+            },
+            {
+              "time_ms": 4500,
+              "x": 530,
+              "y": 302,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.65,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            },
+            {
+              "time_ms": 9000,
+              "x": 1190,
+              "y": 310,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.3,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            }
+          ],
+          "path": "M0 0 Q70-18 135 0 T270 0",
+          "stroke": "#78b9dd",
+          "strokeWidth": 3,
+          "fillOpacity": 0,
+          "lineCap": "round",
+          "zIndex": 1
+        },
+        {
+          "id": "EL_FLOW_2",
+          "label": "冲洗水流",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 280,
+              "y": 335,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.4,
+              "easing": "smoothstep",
+              "drawProgress": 0.2
+            },
+            {
+              "time_ms": 4500,
+              "x": 580,
+              "y": 327,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.65,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            },
+            {
+              "time_ms": 9000,
+              "x": 1240,
+              "y": 335,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.3,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            }
+          ],
+          "path": "M0 0 Q70-18 135 0 T270 0",
+          "stroke": "#78b9dd",
+          "strokeWidth": 3,
+          "fillOpacity": 0,
+          "lineCap": "round",
+          "zIndex": 1
+        },
+        {
+          "id": "EL_FLOW_3",
+          "label": "冲洗水流",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 330,
+              "y": 650,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.4,
+              "easing": "smoothstep",
+              "drawProgress": 0.2
+            },
+            {
+              "time_ms": 4500,
+              "x": 630,
+              "y": 642,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.65,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            },
+            {
+              "time_ms": 9000,
+              "x": 1290,
+              "y": 650,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.3,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            }
+          ],
+          "path": "M0 0 Q70-18 135 0 T270 0",
+          "stroke": "#78b9dd",
+          "strokeWidth": 3,
+          "fillOpacity": 0,
+          "lineCap": "round",
+          "zIndex": 1
+        },
+        {
+          "id": "EL_TITLE",
+          "label": "肥皂为什么能带走油污？",
+          "shape": "text",
+          "x": 0,
+          "y": 0,
+          "fill": "#edf1ef",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 110,
+              "y": 125,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 110,
+              "y": 125,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 110,
+              "y": 125,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "text": "肥皂为什么能带走油污？",
+          "fontSize": 52,
+          "fontWeight": 700,
+          "zIndex": 6
+        },
+        {
+          "id": "EL_STAGE_NOTE",
+          "label": "水经过，油仍附着",
+          "shape": "text",
+          "x": 0,
+          "y": 0,
+          "fill": "#edf1ef",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 110,
+              "y": 190,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 110,
+              "y": 190,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 110,
+              "y": 190,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "text": "水经过，油仍附着",
+          "fontSize": 28,
+          "zIndex": 6
+        },
+        {
+          "id": "EL_OIL_LABEL",
+          "label": "油",
+          "shape": "text",
+          "x": 0,
+          "y": 0,
+          "fill": "#edf1ef",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 805,
+              "y": 525,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 805,
+              "y": 525,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 805,
+              "y": 525,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "text": "油",
+          "fontSize": 38,
+          "fontWeight": 700,
+          "zIndex": 6
+        },
+        {
+          "id": "EL_FOOTNOTE",
+          "label": "过程示意 · 油被分散并带走，未发生化学消失",
+          "shape": "text",
+          "x": 0,
+          "y": 0,
+          "fill": "#edf1ef",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 110,
+              "y": 835,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 110,
+              "y": 835,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 110,
+              "y": 835,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "text": "过程示意 · 油被分散并带走，未发生化学消失",
+          "fontSize": 22,
+          "zIndex": 6
+        },
+        {
+          "id": "T_S01",
+          "label": "只用水，为什么油污还在？",
+          "shape": "text",
+          "x": 0,
+          "y": 0,
+          "fill": "#edf1ef",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 800,
+              "y": 760,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 800,
+              "y": 760,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 800,
+              "y": 760,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "text": "只用水，为什么油污还在？",
+          "fontSize": 38,
+          "textAnchor": "middle",
+          "fontWeight": 600,
+          "zIndex": 6
+        }
+      ]
+    },
+    "soap-lab/precision-science/S02.json": {
+      "kind": "vector-scene",
+      "sceneId": "S02",
+      "style": {
+        "typography": {
+          "display": "Georgia, serif",
+          "body": "Arial, \"Microsoft YaHei\", sans-serif"
+        },
+        "consistencyRules": [
+          "同一逻辑对象身份与含义一致",
+          "视觉效果不得误导脚本中的知识关系",
+          "编辑器高亮不进入画面"
+        ],
+        "avoid": [
+          "静态文字轮播代替知识变化",
+          "无意义粒子",
+          "继承网页品牌配色"
+        ],
+        "id": "precision-science",
+        "name": "精密科学风",
+        "intent": "可辨识的结构截面、半透明实体与精确轮廓；材料明暗服务于结构解释",
+        "palette": {
+          "background": "#111e30",
+          "ink": "#edf1ef",
+          "muted": "#93a6b9",
+          "red": "#ee7b76",
+          "blue": "#78b9dd",
+          "material": "#e9eeeb",
+          "shade": "#617d96",
+          "gold": "#e2c48f"
+        },
+        "materials": [
+          "磨砂陶瓷",
+          "拉丝金属",
+          "半透明实体"
+        ],
+        "spatialLanguage": "正交尺度与局部特写，重要界面留出标签空间",
+        "lighting": "柔和侧光",
+        "motionCharacter": "结构逐步揭示，平稳推进与可观察的定向运动",
+        "decorativeGuidance": [
+          "细密结构线与半透明层次，避免装饰光点遮挡机制",
+          "标题与标签形成字体层级，保留可读留白"
+        ]
+      },
+      "parameters": {
+        "speed": 1
+      },
+      "objects": [
+        {
+          "id": "EL_WATER",
+          "label": "水相截面",
+          "shape": "rect",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 130,
+              "y": 225,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 130,
+              "y": 225,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 130,
+              "y": 225,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "width": 1340,
+          "height": 440,
+          "cornerRadius": 30,
+          "fillOpacity": 0.13,
+          "stroke": "#78b9dd",
+          "strokeWidth": 2
+        },
+        {
+          "id": "EL_SURFACE",
+          "label": "附着表面",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#617d96",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 820,
+              "y": 637,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 820,
+              "y": 637,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 820,
+              "y": 637,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "path": "M-240 0 Q0 12 240 0 L240 24 L-240 24Z",
+          "materialKey": "frosted",
+          "zIndex": 1
+        },
+        {
+          "id": "EL_OIL",
+          "label": "油污",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#e2c48f",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 820,
+              "y": 490,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 820,
+              "y": 490,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 820,
+              "y": 490,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "materialKey": "frosted",
+          "stroke": "#e2c48f",
+          "strokeWidth": 2,
+          "path": "M-180 0 A180 145 0 1 0 180 0 A180 145 0 1 0-180 0Z",
+          "zIndex": 2
+        },
+        {
+          "id": "EL_FLOW_0",
+          "label": "冲洗水流",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 180,
+              "y": 285,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.4,
+              "easing": "smoothstep",
+              "drawProgress": 0.2
+            },
+            {
+              "time_ms": 4500,
+              "x": 480,
+              "y": 277,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.65,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            },
+            {
+              "time_ms": 9000,
+              "x": 1140,
+              "y": 285,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.3,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            }
+          ],
+          "path": "M0 0 Q70-18 135 0 T270 0",
+          "stroke": "#78b9dd",
+          "strokeWidth": 3,
+          "fillOpacity": 0,
+          "lineCap": "round",
+          "zIndex": 1
+        },
+        {
+          "id": "EL_FLOW_1",
+          "label": "冲洗水流",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 230,
+              "y": 310,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.4,
+              "easing": "smoothstep",
+              "drawProgress": 0.2
+            },
+            {
+              "time_ms": 4500,
+              "x": 530,
+              "y": 302,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.65,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            },
+            {
+              "time_ms": 9000,
+              "x": 1190,
+              "y": 310,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.3,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            }
+          ],
+          "path": "M0 0 Q70-18 135 0 T270 0",
+          "stroke": "#78b9dd",
+          "strokeWidth": 3,
+          "fillOpacity": 0,
+          "lineCap": "round",
+          "zIndex": 1
+        },
+        {
+          "id": "EL_FLOW_2",
+          "label": "冲洗水流",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 280,
+              "y": 335,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.4,
+              "easing": "smoothstep",
+              "drawProgress": 0.2
+            },
+            {
+              "time_ms": 4500,
+              "x": 580,
+              "y": 327,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.65,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            },
+            {
+              "time_ms": 9000,
+              "x": 1240,
+              "y": 335,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.3,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            }
+          ],
+          "path": "M0 0 Q70-18 135 0 T270 0",
+          "stroke": "#78b9dd",
+          "strokeWidth": 3,
+          "fillOpacity": 0,
+          "lineCap": "round",
+          "zIndex": 1
+        },
+        {
+          "id": "EL_FLOW_3",
+          "label": "冲洗水流",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 330,
+              "y": 650,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.4,
+              "easing": "smoothstep",
+              "drawProgress": 0.2
+            },
+            {
+              "time_ms": 4500,
+              "x": 630,
+              "y": 642,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.65,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            },
+            {
+              "time_ms": 9000,
+              "x": 1290,
+              "y": 650,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.3,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            }
+          ],
+          "path": "M0 0 Q70-18 135 0 T270 0",
+          "stroke": "#78b9dd",
+          "strokeWidth": 3,
+          "fillOpacity": 0,
+          "lineCap": "round",
+          "zIndex": 1
+        },
+        {
+          "id": "EL_TAIL_0",
+          "label": "亲油端（伸向油）",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#ee7b76",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 471.549,
+              "y": 230.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1000,
+              "x": 471.549,
+              "y": 230.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 611.549,
+              "y": 403.363,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 611.549,
+              "y": 403.363,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "path": "M0 0 L20.94 14.89 L41.87 13.13 L63.44 27.47",
+          "stroke": "#ee7b76",
+          "strokeWidth": 8,
+          "lineCap": "round",
+          "fillOpacity": 0,
+          "zIndex": 3
+        },
+        {
+          "id": "EL_HEAD_0",
+          "label": "亲水端（朝水）",
+          "shape": "circle",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 471.549,
+              "y": 230.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1000,
+              "x": 471.549,
+              "y": 230.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 611.549,
+              "y": 403.363,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 611.549,
+              "y": 403.363,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "radius": 17,
+          "materialKey": "frosted",
+          "stroke": "#e9eeeb",
+          "strokeWidth": 2,
+          "zIndex": 4
+        },
+        {
+          "id": "EL_TAIL_1",
+          "label": "亲油端（伸向油）",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#ee7b76",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 788.398,
+              "y": 180.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1330,
+              "x": 788.398,
+              "y": 180.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 678.398,
+              "y": 328.458,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 678.398,
+              "y": 328.458,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "path": "M0 0 L14.22 23.44 L28.44 28.81 L43.10 51.22",
+          "stroke": "#ee7b76",
+          "strokeWidth": 8,
+          "lineCap": "round",
+          "fillOpacity": 0,
+          "zIndex": 3
+        },
+        {
+          "id": "EL_HEAD_1",
+          "label": "亲水端（朝水）",
+          "shape": "circle",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 788.398,
+              "y": 180.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1330,
+              "x": 788.398,
+              "y": 180.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 678.398,
+              "y": 328.458,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 678.398,
+              "y": 328.458,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "radius": 17,
+          "materialKey": "frosted",
+          "stroke": "#e9eeeb",
+          "strokeWidth": 2,
+          "zIndex": 4
+        },
+        {
+          "id": "EL_TAIL_2",
+          "label": "亲油端（伸向油）",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#ee7b76",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 636.114,
+              "y": 230.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1660,
+              "x": 636.114,
+              "y": 230.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 776.114,
+              "y": 288.766,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 776.114,
+              "y": 288.766,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "path": "M0 0 L4.41 27.97 L8.82 37.11 L13.36 63.81",
+          "stroke": "#ee7b76",
+          "strokeWidth": 8,
+          "lineCap": "round",
+          "fillOpacity": 0,
+          "zIndex": 3
+        },
+        {
+          "id": "EL_HEAD_2",
+          "label": "亲水端（朝水）",
+          "shape": "circle",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 636.114,
+              "y": 230.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1660,
+              "x": 636.114,
+              "y": 230.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 776.114,
+              "y": 288.766,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 776.114,
+              "y": 288.766,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "radius": 17,
+          "materialKey": "frosted",
+          "stroke": "#e9eeeb",
+          "strokeWidth": 2,
+          "zIndex": 4
+        },
+        {
+          "id": "EL_TAIL_3",
+          "label": "亲油端（伸向油）",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#ee7b76",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 993.397,
+              "y": 180.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1990,
+              "x": 993.397,
+              "y": 180.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 883.397,
+              "y": 292.941,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 883.397,
+              "y": 292.941,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "path": "M0 0 L-6.37 27.49 L-12.73 36.24 L-19.29 62.48",
+          "stroke": "#ee7b76",
+          "strokeWidth": 8,
+          "lineCap": "round",
+          "fillOpacity": 0,
+          "zIndex": 3
+        },
+        {
+          "id": "EL_HEAD_3",
+          "label": "亲水端（朝水）",
+          "shape": "circle",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 993.397,
+              "y": 180.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1990,
+              "x": 993.397,
+              "y": 180.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 883.397,
+              "y": 292.941,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 883.397,
+              "y": 292.941,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "radius": 17,
+          "materialKey": "frosted",
+          "stroke": "#e9eeeb",
+          "strokeWidth": 2,
+          "zIndex": 4
+        },
+        {
+          "id": "EL_TAIL_4",
+          "label": "亲油端（伸向油）",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#ee7b76",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 836.86,
+              "y": 230.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 2320,
+              "x": 836.86,
+              "y": 230.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 976.86,
+              "y": 340.072,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 976.86,
+              "y": 340.072,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "path": "M0 0 L-15.75 22.11 L-31.51 26.38 L-47.74 47.54",
+          "stroke": "#ee7b76",
+          "strokeWidth": 8,
+          "lineCap": "round",
+          "fillOpacity": 0,
+          "zIndex": 3
+        },
+        {
+          "id": "EL_HEAD_4",
+          "label": "亲水端（朝水）",
+          "shape": "circle",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 836.86,
+              "y": 230.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 2320,
+              "x": 836.86,
+              "y": 230.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 976.86,
+              "y": 340.072,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 976.86,
+              "y": 340.072,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "radius": 17,
+          "materialKey": "frosted",
+          "stroke": "#e9eeeb",
+          "strokeWidth": 2,
+          "zIndex": 4
+        },
+        {
+          "id": "EL_TAIL_5",
+          "label": "亲油端（伸向油）",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#ee7b76",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 1146.129,
+              "y": 180.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 2650,
+              "x": 1146.129,
+              "y": 180.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 1036.129,
+              "y": 419.886,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 1036.129,
+              "y": 419.886,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "path": "M0 0 L-21.71 13.00 L-43.41 9.67 L-65.78 22.23",
+          "stroke": "#ee7b76",
+          "strokeWidth": 8,
+          "lineCap": "round",
+          "fillOpacity": 0,
+          "zIndex": 3
+        },
+        {
+          "id": "EL_HEAD_5",
+          "label": "亲水端（朝水）",
+          "shape": "circle",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 1146.129,
+              "y": 180.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 2650,
+              "x": 1146.129,
+              "y": 180.0,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 1036.129,
+              "y": 419.886,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 1036.129,
+              "y": 419.886,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "radius": 17,
+          "materialKey": "frosted",
+          "stroke": "#e9eeeb",
+          "strokeWidth": 2,
+          "zIndex": 4
+        },
+        {
+          "id": "EL_HEAD_LABEL",
+          "label": "亲水端 · 朝水",
+          "shape": "text",
+          "x": 0,
+          "y": 0,
+          "fill": "#edf1ef",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 145,
+              "y": 490,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 145,
+              "y": 490,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 145,
+              "y": 490,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "text": "亲水端 · 朝水",
+          "fontSize": 28,
+          "zIndex": 6
+        },
+        {
+          "id": "EL_TAIL_LABEL",
+          "label": "亲油端 · 入油",
+          "shape": "text",
+          "x": 0,
+          "y": 0,
+          "fill": "#edf1ef",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 145,
+              "y": 535,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 145,
+              "y": 535,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 145,
+              "y": 535,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "text": "亲油端 · 入油",
+          "fontSize": 28,
+          "zIndex": 6
+        },
+        {
+          "id": "EL_TITLE",
+          "label": "肥皂为什么能带走油污？",
+          "shape": "text",
+          "x": 0,
+          "y": 0,
+          "fill": "#edf1ef",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 110,
+              "y": 125,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 110,
+              "y": 125,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 110,
+              "y": 125,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "text": "肥皂为什么能带走油污？",
+          "fontSize": 52,
+          "fontWeight": 700,
+          "zIndex": 6
+        },
+        {
+          "id": "EL_STAGE_NOTE",
+          "label": "油—水界面 · 分子方向示意",
+          "shape": "text",
+          "x": 0,
+          "y": 0,
+          "fill": "#edf1ef",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 110,
+              "y": 190,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 110,
+              "y": 190,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 110,
+              "y": 190,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "text": "油—水界面 · 分子方向示意",
+          "fontSize": 28,
+          "zIndex": 6
+        },
+        {
+          "id": "EL_OIL_LABEL",
+          "label": "油",
+          "shape": "text",
+          "x": 0,
+          "y": 0,
+          "fill": "#edf1ef",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 805,
+              "y": 525,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 805,
+              "y": 525,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 805,
+              "y": 525,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "text": "油",
+          "fontSize": 38,
+          "fontWeight": 700,
+          "zIndex": 6
+        },
+        {
+          "id": "EL_FOOTNOTE",
+          "label": "过程示意 · 油被分散并带走，未发生化学消失",
+          "shape": "text",
+          "x": 0,
+          "y": 0,
+          "fill": "#edf1ef",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 110,
+              "y": 835,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 110,
+              "y": 835,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 110,
+              "y": 835,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "text": "过程示意 · 油被分散并带走，未发生化学消失",
+          "fontSize": 22,
+          "zIndex": 6
+        },
+        {
+          "id": "T_S02",
+          "label": "亲水端朝水，亲油端伸向油",
+          "shape": "text",
+          "x": 0,
+          "y": 0,
+          "fill": "#edf1ef",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 800,
+              "y": 760,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 800,
+              "y": 760,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 800,
+              "y": 760,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "text": "亲水端朝水，亲油端伸向油",
+          "fontSize": 38,
+          "textAnchor": "middle",
+          "fontWeight": 600,
+          "zIndex": 6
+        }
+      ]
+    },
+    "soap-lab/precision-science/S03.json": {
+      "kind": "vector-scene",
+      "sceneId": "S03",
+      "style": {
+        "typography": {
+          "display": "Georgia, serif",
+          "body": "Arial, \"Microsoft YaHei\", sans-serif"
+        },
+        "consistencyRules": [
+          "同一逻辑对象身份与含义一致",
+          "视觉效果不得误导脚本中的知识关系",
+          "编辑器高亮不进入画面"
+        ],
+        "avoid": [
+          "静态文字轮播代替知识变化",
+          "无意义粒子",
+          "继承网页品牌配色"
+        ],
+        "id": "precision-science",
+        "name": "精密科学风",
+        "intent": "可辨识的结构截面、半透明实体与精确轮廓；材料明暗服务于结构解释",
+        "palette": {
+          "background": "#111e30",
+          "ink": "#edf1ef",
+          "muted": "#93a6b9",
+          "red": "#ee7b76",
+          "blue": "#78b9dd",
+          "material": "#e9eeeb",
+          "shade": "#617d96",
+          "gold": "#e2c48f"
+        },
+        "materials": [
+          "磨砂陶瓷",
+          "拉丝金属",
+          "半透明实体"
+        ],
+        "spatialLanguage": "正交尺度与局部特写，重要界面留出标签空间",
+        "lighting": "柔和侧光",
+        "motionCharacter": "结构逐步揭示，平稳推进与可观察的定向运动",
+        "decorativeGuidance": [
+          "细密结构线与半透明层次，避免装饰光点遮挡机制",
+          "标题与标签形成字体层级，保留可读留白"
+        ]
+      },
+      "parameters": {
+        "speed": 1
+      },
+      "objects": [
+        {
+          "id": "EL_WATER",
+          "label": "水相截面",
+          "shape": "rect",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 130,
+              "y": 225,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 130,
+              "y": 225,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 130,
+              "y": 225,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "width": 1340,
+          "height": 440,
+          "cornerRadius": 30,
+          "fillOpacity": 0.13,
+          "stroke": "#78b9dd",
+          "strokeWidth": 2
+        },
+        {
+          "id": "EL_SURFACE",
+          "label": "附着表面",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#617d96",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 820,
+              "y": 637,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 820,
+              "y": 637,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 820,
+              "y": 637,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "path": "M-240 0 Q0 12 240 0 L240 24 L-240 24Z",
+          "materialKey": "frosted",
+          "zIndex": 1
+        },
+        {
+          "id": "EL_OIL",
+          "label": "油污",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#e2c48f",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 820,
+              "y": 490,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1800,
+              "x": 828,
+              "y": 482,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 865,
+              "y": 454,
+              "scale": 0.63,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 6500,
+              "x": 990,
+              "y": 430,
+              "scale": 0.27,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 1880,
+              "y": 380,
+              "scale": 0.27,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "materialKey": "frosted",
+          "stroke": "#e2c48f",
+          "strokeWidth": 2,
+          "path": "M-180 0 A180 145 0 1 0 180 0 A180 145 0 1 0-180 0Z",
+          "zIndex": 2
+        },
+        {
+          "id": "EL_FLOW_0",
+          "label": "冲洗水流",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 180,
+              "y": 285,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.4,
+              "easing": "smoothstep",
+              "drawProgress": 0.2
+            },
+            {
+              "time_ms": 4500,
+              "x": 480,
+              "y": 277,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.65,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            },
+            {
+              "time_ms": 9000,
+              "x": 1140,
+              "y": 285,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.3,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            }
+          ],
+          "path": "M0 0 Q70-18 135 0 T270 0",
+          "stroke": "#78b9dd",
+          "strokeWidth": 3,
+          "fillOpacity": 0,
+          "lineCap": "round",
+          "zIndex": 1
+        },
+        {
+          "id": "EL_FLOW_1",
+          "label": "冲洗水流",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 230,
+              "y": 310,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.4,
+              "easing": "smoothstep",
+              "drawProgress": 0.2
+            },
+            {
+              "time_ms": 4500,
+              "x": 530,
+              "y": 302,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.65,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            },
+            {
+              "time_ms": 9000,
+              "x": 1190,
+              "y": 310,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.3,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            }
+          ],
+          "path": "M0 0 Q70-18 135 0 T270 0",
+          "stroke": "#78b9dd",
+          "strokeWidth": 3,
+          "fillOpacity": 0,
+          "lineCap": "round",
+          "zIndex": 1
+        },
+        {
+          "id": "EL_FLOW_2",
+          "label": "冲洗水流",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 280,
+              "y": 335,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.4,
+              "easing": "smoothstep",
+              "drawProgress": 0.2
+            },
+            {
+              "time_ms": 4500,
+              "x": 580,
+              "y": 327,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.65,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            },
+            {
+              "time_ms": 9000,
+              "x": 1240,
+              "y": 335,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.3,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            }
+          ],
+          "path": "M0 0 Q70-18 135 0 T270 0",
+          "stroke": "#78b9dd",
+          "strokeWidth": 3,
+          "fillOpacity": 0,
+          "lineCap": "round",
+          "zIndex": 1
+        },
+        {
+          "id": "EL_FLOW_3",
+          "label": "冲洗水流",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 330,
+              "y": 650,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.4,
+              "easing": "smoothstep",
+              "drawProgress": 0.2
+            },
+            {
+              "time_ms": 4500,
+              "x": 630,
+              "y": 642,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.65,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            },
+            {
+              "time_ms": 9000,
+              "x": 1290,
+              "y": 650,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 0.3,
+              "easing": "smoothstep",
+              "drawProgress": 1
+            }
+          ],
+          "path": "M0 0 Q70-18 135 0 T270 0",
+          "stroke": "#78b9dd",
+          "strokeWidth": 3,
+          "fillOpacity": 0,
+          "lineCap": "round",
+          "zIndex": 1
+        },
+        {
+          "id": "EL_DROP_0",
+          "label": "分散油滴",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#e2c48f",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 820,
+              "y": 490,
+              "scale": 0.01,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1800,
+              "x": 828,
+              "y": 482,
+              "scale": 0.04,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 1110,
+              "y": 320,
+              "scale": 0.32,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 6500,
+              "x": 1310,
+              "y": 320,
+              "scale": 0.32,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 1920,
+              "y": 320,
+              "scale": 0.32,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "path": "M-180 0 A180 145 0 1 0 180 0 A180 145 0 1 0-180 0Z",
+          "materialKey": "frosted",
+          "stroke": "#e2c48f",
+          "strokeWidth": 3,
+          "zIndex": 2
+        },
+        {
+          "id": "EL_TAIL_0",
+          "label": "亲油端（伸向油）",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#ee7b76",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 611.549,
+              "y": 403.363,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1800,
+              "x": 619.549,
+              "y": 395.363,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 1037.042,
+              "y": 289.677,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 6500,
+              "x": 1237.042,
+              "y": 289.677,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 1847.042,
+              "y": 289.677,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "path": "M0 0 L20.94 14.89 L41.87 13.13 L63.44 27.47",
+          "stroke": "#ee7b76",
+          "strokeWidth": 8,
+          "lineCap": "round",
+          "fillOpacity": 0,
+          "zIndex": 3
+        },
+        {
+          "id": "EL_HEAD_0",
+          "label": "亲水端（朝水）",
+          "shape": "circle",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 611.549,
+              "y": 403.363,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1800,
+              "x": 619.549,
+              "y": 395.363,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 1037.042,
+              "y": 289.677,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 6500,
+              "x": 1237.042,
+              "y": 289.677,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 1847.042,
+              "y": 289.677,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "radius": 17,
+          "materialKey": "frosted",
+          "stroke": "#e9eeeb",
+          "strokeWidth": 2,
+          "zIndex": 4
+        },
+        {
+          "id": "EL_DROP_1",
+          "label": "分散油滴",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#e2c48f",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 820,
+              "y": 490,
+              "scale": 0.01,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1800,
+              "x": 828,
+              "y": 482,
+              "scale": 0.04,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 1245,
+              "y": 350,
+              "scale": 0.32,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 6500,
+              "x": 1445,
+              "y": 350,
+              "scale": 0.32,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 2010,
+              "y": 350,
+              "scale": 0.32,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "path": "M-180 0 A180 145 0 1 0 180 0 A180 145 0 1 0-180 0Z",
+          "materialKey": "frosted",
+          "stroke": "#e2c48f",
+          "strokeWidth": 3,
+          "zIndex": 2
+        },
+        {
+          "id": "EL_TAIL_1",
+          "label": "亲油端（伸向油）",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#ee7b76",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 678.398,
+              "y": 328.458,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1800,
+              "x": 686.398,
+              "y": 320.458,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 1195.439,
+              "y": 293.46,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 6500,
+              "x": 1395.439,
+              "y": 293.46,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 1960.439,
+              "y": 293.46,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "path": "M0 0 L14.22 23.44 L28.44 28.81 L43.10 51.22",
+          "stroke": "#ee7b76",
+          "strokeWidth": 8,
+          "lineCap": "round",
+          "fillOpacity": 0,
+          "zIndex": 3
+        },
+        {
+          "id": "EL_HEAD_1",
+          "label": "亲水端（朝水）",
+          "shape": "circle",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 678.398,
+              "y": 328.458,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1800,
+              "x": 686.398,
+              "y": 320.458,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 1195.439,
+              "y": 293.46,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 6500,
+              "x": 1395.439,
+              "y": 293.46,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 1960.439,
+              "y": 293.46,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "radius": 17,
+          "materialKey": "frosted",
+          "stroke": "#e9eeeb",
+          "strokeWidth": 2,
+          "zIndex": 4
+        },
+        {
+          "id": "EL_DROP_2",
+          "label": "分散油滴",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#e2c48f",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 820,
+              "y": 490,
+              "scale": 0.01,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1800,
+              "x": 828,
+              "y": 482,
+              "scale": 0.04,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 1340,
+              "y": 435,
+              "scale": 0.32,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 6500,
+              "x": 1540,
+              "y": 435,
+              "scale": 0.32,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 2100,
+              "y": 435,
+              "scale": 0.32,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "path": "M-180 0 A180 145 0 1 0 180 0 A180 145 0 1 0-180 0Z",
+          "materialKey": "frosted",
+          "stroke": "#e2c48f",
+          "strokeWidth": 3,
+          "zIndex": 2
+        },
+        {
+          "id": "EL_TAIL_2",
+          "label": "亲油端（伸向油）",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#ee7b76",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 776.114,
+              "y": 288.766,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1800,
+              "x": 784.114,
+              "y": 280.766,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 1324.64,
+              "y": 364.568,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 6500,
+              "x": 1524.64,
+              "y": 364.568,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 2084.64,
+              "y": 364.568,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "path": "M0 0 L4.41 27.97 L8.82 37.11 L13.36 63.81",
+          "stroke": "#ee7b76",
+          "strokeWidth": 8,
+          "lineCap": "round",
+          "fillOpacity": 0,
+          "zIndex": 3
+        },
+        {
+          "id": "EL_HEAD_2",
+          "label": "亲水端（朝水）",
+          "shape": "circle",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 776.114,
+              "y": 288.766,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1800,
+              "x": 784.114,
+              "y": 280.766,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 1324.64,
+              "y": 364.568,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 6500,
+              "x": 1524.64,
+              "y": 364.568,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 2084.64,
+              "y": 364.568,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "radius": 17,
+          "materialKey": "frosted",
+          "stroke": "#e9eeeb",
+          "strokeWidth": 2,
+          "zIndex": 4
+        },
+        {
+          "id": "EL_DROP_3",
+          "label": "分散油滴",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#e2c48f",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 820,
+              "y": 490,
+              "scale": 0.01,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1800,
+              "x": 828,
+              "y": 482,
+              "scale": 0.04,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 1090,
+              "y": 530,
+              "scale": 0.32,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 6500,
+              "x": 1290,
+              "y": 530,
+              "scale": 0.32,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 2190,
+              "y": 530,
+              "scale": 0.32,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "path": "M-180 0 A180 145 0 1 0 180 0 A180 145 0 1 0-180 0Z",
+          "materialKey": "frosted",
+          "stroke": "#e2c48f",
+          "strokeWidth": 3,
+          "zIndex": 2
+        },
+        {
+          "id": "EL_TAIL_3",
+          "label": "亲油端（伸向油）",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#ee7b76",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 883.397,
+              "y": 292.941,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1800,
+              "x": 891.397,
+              "y": 284.941,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 1112.189,
+              "y": 461.029,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 6500,
+              "x": 1312.189,
+              "y": 461.029,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 2212.189,
+              "y": 461.029,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "path": "M0 0 L-6.37 27.49 L-12.73 36.24 L-19.29 62.48",
+          "stroke": "#ee7b76",
+          "strokeWidth": 8,
+          "lineCap": "round",
+          "fillOpacity": 0,
+          "zIndex": 3
+        },
+        {
+          "id": "EL_HEAD_3",
+          "label": "亲水端（朝水）",
+          "shape": "circle",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 883.397,
+              "y": 292.941,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1800,
+              "x": 891.397,
+              "y": 284.941,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 1112.189,
+              "y": 461.029,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 6500,
+              "x": 1312.189,
+              "y": 461.029,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 2212.189,
+              "y": 461.029,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "radius": 17,
+          "materialKey": "frosted",
+          "stroke": "#e9eeeb",
+          "strokeWidth": 2,
+          "zIndex": 4
+        },
+        {
+          "id": "EL_DROP_4",
+          "label": "分散油滴",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#e2c48f",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 820,
+              "y": 490,
+              "scale": 0.01,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1800,
+              "x": 828,
+              "y": 482,
+              "scale": 0.04,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 1225,
+              "y": 590,
+              "scale": 0.32,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 6500,
+              "x": 1425,
+              "y": 590,
+              "scale": 0.32,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 2280,
+              "y": 590,
+              "scale": 0.32,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "path": "M-180 0 A180 145 0 1 0 180 0 A180 145 0 1 0-180 0Z",
+          "materialKey": "frosted",
+          "stroke": "#e2c48f",
+          "strokeWidth": 3,
+          "zIndex": 2
+        },
+        {
+          "id": "EL_TAIL_4",
+          "label": "亲油端（伸向油）",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#ee7b76",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 976.86,
+              "y": 340.072,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1800,
+              "x": 984.86,
+              "y": 332.072,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 1279.901,
+              "y": 537.525,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 6500,
+              "x": 1479.901,
+              "y": 537.525,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 2334.901,
+              "y": 537.525,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "path": "M0 0 L-15.75 22.11 L-31.51 26.38 L-47.74 47.54",
+          "stroke": "#ee7b76",
+          "strokeWidth": 8,
+          "lineCap": "round",
+          "fillOpacity": 0,
+          "zIndex": 3
+        },
+        {
+          "id": "EL_HEAD_4",
+          "label": "亲水端（朝水）",
+          "shape": "circle",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 976.86,
+              "y": 340.072,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1800,
+              "x": 984.86,
+              "y": 332.072,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 1279.901,
+              "y": 537.525,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 6500,
+              "x": 1479.901,
+              "y": 537.525,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 2334.901,
+              "y": 537.525,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "radius": 17,
+          "materialKey": "frosted",
+          "stroke": "#e9eeeb",
+          "strokeWidth": 2,
+          "zIndex": 4
+        },
+        {
+          "id": "EL_DROP_5",
+          "label": "分散油滴",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#e2c48f",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 820,
+              "y": 490,
+              "scale": 0.01,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1800,
+              "x": 828,
+              "y": 482,
+              "scale": 0.04,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 1350,
+              "y": 625,
+              "scale": 0.32,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 6500,
+              "x": 1550,
+              "y": 625,
+              "scale": 0.32,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 2370,
+              "y": 625,
+              "scale": 0.32,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "path": "M-180 0 A180 145 0 1 0 180 0 A180 145 0 1 0-180 0Z",
+          "materialKey": "frosted",
+          "stroke": "#e2c48f",
+          "strokeWidth": 3,
+          "zIndex": 2
+        },
+        {
+          "id": "EL_TAIL_5",
+          "label": "亲油端（伸向油）",
+          "shape": "path",
+          "x": 0,
+          "y": 0,
+          "fill": "#ee7b76",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 1036.129,
+              "y": 419.886,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1800,
+              "x": 1044.129,
+              "y": 411.886,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 1425.645,
+              "y": 600.46,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 6500,
+              "x": 1625.645,
+              "y": 600.46,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 2445.645,
+              "y": 600.46,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "path": "M0 0 L-21.71 13.00 L-43.41 9.67 L-65.78 22.23",
+          "stroke": "#ee7b76",
+          "strokeWidth": 8,
+          "lineCap": "round",
+          "fillOpacity": 0,
+          "zIndex": 3
+        },
+        {
+          "id": "EL_HEAD_5",
+          "label": "亲水端（朝水）",
+          "shape": "circle",
+          "x": 0,
+          "y": 0,
+          "fill": "#78b9dd",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 1036.129,
+              "y": 419.886,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1800,
+              "x": 1044.129,
+              "y": 411.886,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 1425.645,
+              "y": 600.46,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 6500,
+              "x": 1625.645,
+              "y": 600.46,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 2445.645,
+              "y": 600.46,
+              "scale": 0.55,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "radius": 17,
+          "materialKey": "frosted",
+          "stroke": "#e9eeeb",
+          "strokeWidth": 2,
+          "zIndex": 4
+        },
+        {
+          "id": "EL_HEAD_LABEL",
+          "label": "亲水端 · 朝水",
+          "shape": "text",
+          "x": 0,
+          "y": 0,
+          "fill": "#edf1ef",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 145,
+              "y": 490,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 145,
+              "y": 490,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 145,
+              "y": 490,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "text": "亲水端 · 朝水",
+          "fontSize": 28,
+          "zIndex": 6
+        },
+        {
+          "id": "EL_TAIL_LABEL",
+          "label": "亲油端 · 入油",
+          "shape": "text",
+          "x": 0,
+          "y": 0,
+          "fill": "#edf1ef",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 145,
+              "y": 535,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 145,
+              "y": 535,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 145,
+              "y": 535,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "text": "亲油端 · 入油",
+          "fontSize": 28,
+          "zIndex": 6
+        },
+        {
+          "id": "EL_TITLE",
+          "label": "肥皂为什么能带走油污？",
+          "shape": "text",
+          "x": 0,
+          "y": 0,
+          "fill": "#edf1ef",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 110,
+              "y": 125,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 110,
+              "y": 125,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 110,
+              "y": 125,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "text": "肥皂为什么能带走油污？",
+          "fontSize": 52,
+          "fontWeight": 700,
+          "zIndex": 6
+        },
+        {
+          "id": "EL_STAGE_NOTE",
+          "label": "搅动 → 分散 → 冲洗",
+          "shape": "text",
+          "x": 0,
+          "y": 0,
+          "fill": "#edf1ef",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 110,
+              "y": 190,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 110,
+              "y": 190,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 110,
+              "y": 190,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "text": "搅动 → 分散 → 冲洗",
+          "fontSize": 28,
+          "zIndex": 6
+        },
+        {
+          "id": "EL_OIL_LABEL",
+          "label": "油",
+          "shape": "text",
+          "x": 0,
+          "y": 0,
+          "fill": "#edf1ef",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 820,
+              "y": 490,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 1800,
+              "x": 828,
+              "y": 482,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 865,
+              "y": 454,
+              "scale": 0.63,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 6500,
+              "x": 990,
+              "y": 430,
+              "scale": 0.27,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 1880,
+              "y": 380,
+              "scale": 0.27,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "text": "油",
+          "fontSize": 38,
+          "fontWeight": 700,
+          "zIndex": 6
+        },
+        {
+          "id": "EL_FOOTNOTE",
+          "label": "过程示意 · 油被分散并带走，未发生化学消失",
+          "shape": "text",
+          "x": 0,
+          "y": 0,
+          "fill": "#edf1ef",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 110,
+              "y": 835,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 110,
+              "y": 835,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 110,
+              "y": 835,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "text": "过程示意 · 油被分散并带走，未发生化学消失",
+          "fontSize": 22,
+          "zIndex": 6
+        },
+        {
+          "id": "T_S03",
+          "label": "搅动、分散，再随水流带走",
+          "shape": "text",
+          "x": 0,
+          "y": 0,
+          "fill": "#edf1ef",
+          "keyframes": [
+            {
+              "time_ms": 0,
+              "x": 800,
+              "y": 760,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 4500,
+              "x": 800,
+              "y": 760,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            },
+            {
+              "time_ms": 9000,
+              "x": 800,
+              "y": 760,
+              "scale": 1,
+              "rotation": 0,
+              "opacity": 1,
+              "easing": "smoothstep"
+            }
+          ],
+          "text": "搅动、分散，再随水流带走",
+          "fontSize": 38,
+          "textAnchor": "middle",
+          "fontWeight": 600,
+          "zIndex": 6
+        }
+      ]
+    }
+  },
+  "projectRevision": 1
+}

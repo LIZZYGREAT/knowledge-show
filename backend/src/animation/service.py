@@ -14,7 +14,7 @@ from typing import Any
 from knowledge.config import repository_root
 from workflow.animation import AnimationManifestCandidateStore
 from workflow.state import ProjectStateStore
-from .director import SceneProgramError, direct_scene, is_pn_script, resolve_profile, validate_program
+from .director import DIRECTOR, SceneProgramError, direct_scene, is_pn_script, resolve_profile, validate_program
 
 ROOT = repository_root()
 ID = re.compile(r'^[A-Za-z][A-Za-z0-9_-]{0,63}$')
@@ -173,6 +173,7 @@ class AnimationService:
 
     def _scene_cache_identity(self, project, script, scene, profile, context):
         identity={
+            'director_sha256':hashlib.sha256(DIRECTOR.encode()).hexdigest(),
             'project_id':project['project_id'],
             'script_ref':AnimationService.ref(script),
             'style_profile':profile,

@@ -34,7 +34,7 @@ API Key 由显式操作提交。模型连接测试会实际请求 DeepSeek；生
 | 动画输入交接 | 项目配置、精确脚本 ArtifactRef 与完整脚本 | `GET /api/projects/{project_id}/handoff/animation` | 已实现；无脚本为 `awaiting_script`，有脚本但无动画为 `awaiting_animation` |
 | 查询预览就绪状态 | 当前 Manifest 与真实可加载资源状态 | `GET /api/projects/{project_id}/preview` | 检查当前精确版本、资源内容和真实播放器检查回执；通过才返回 ready 与工作台/bundle URL |
 | 接收动画 Manifest 候选 | Schema、脚本引用、场景/事件覆盖与本地资源文件 → 候选回执 | `POST /api/projects/{project_id}/animation-manifest` | 仅接收候选，不直接发布当前引用；正式发布使用下列生成入口 |
-| 发起动画制作 | `{expected_project_revision, style_id?, custom_profile?, art_preference? (≤512字符), api_key?}` → 动画任务编号 | `POST /api/projects/{project_id}/animations` | 后台构思/验证/实际渲染，CAS 发布；失败保留旧版。`art_preference` 覆盖当前请求的美术偏好，不修改项目 Brief |
+| 发起动画制作 | `{expected_project_revision, style_id?, custom_profile?, art_preference? (≤512字符), api_key?}` → 动画任务编号 | `POST /api/projects/{project_id}/animations` | 后台构思/验证/实际渲染，CAS 发布；失败保留旧版。`art_preference` 覆盖当前请求的美术偏好，与显式 `style_id` 同时传给导演，不修改项目 Brief；工作台仅在明确应用时提交，浏览预设不发起任务 |
 | 动画制作状态 | 安全文案、当前预览与任务 | `GET /api/projects/{project_id}/animations/status`、`GET /api/projects/{project_id}/animations/jobs/{job_id}` | 刷新恢复；服务重启标记 interrupted |
 | 获取已检查场景资源 | 精确动画版本 → 内部 bundle | `GET /api/projects/{project_id}/animations/{artifact_id}/r{revision}/bundle` | 重验不可覆盖文件、资源与检查回执；附当前 ProjectState revision 供提交反馈 |
 | 风格档案 | 四套视频独立美术档案 | `GET /api/animation/styles` | 支持 auto/custom，不决定知识对象或事件 |

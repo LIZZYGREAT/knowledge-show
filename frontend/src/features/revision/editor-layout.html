@@ -89,6 +89,9 @@
   #selectionOverlay{position:absolute;border:2px solid #cfad72;pointer-events:none;display:none}
   .btn{cursor:pointer}.btn:disabled{opacity:.5;cursor:wait}.clip:focus-visible{outline:2px solid #182a22}
   #sendRevision{margin:0 14px 14px}#statusMessage{font-size:12px;line-height:1.7;padding:0 18px 14px;color:var(--muted)}
+  #stylePanel{position:relative;font-size:12px}#stylePanel summary{cursor:pointer;padding:7px;border:1px solid var(--line);border-radius:7px}
+  .style-panel-content{position:absolute;left:0;top:36px;z-index:30;width:min(340px,calc(100vw - 30px));padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 30px #0002;line-height:1.7}
+  .style-panel-content label{display:block}.style-panel-content input{display:block;box-sizing:border-box;width:100%;padding:8px;border:1px solid var(--line);border-radius:6px}.style-panel-content p{margin:10px 0;color:var(--muted)}#styleSwatches{display:flex;gap:6px;margin:8px 0}#styleSwatches span{width:26px;height:26px;border:1px solid #8885;border-radius:50%}
   #styleSelect{max-width:135px;padding:5px;border:1px solid var(--line);background:var(--surface);border-radius:7px}
   @media(max-width:760px){html,body{overflow:auto}.app{height:auto;min-height:100svh}.main{display:flex;flex-direction:column}.right{min-height:600px}.stage{height:320px;flex:none}.chat{width:100%;height:400px;border-left:0;border-top:1px solid var(--line)}.topbar{height:auto;min-height:56px;flex-wrap:wrap;padding:12px;gap:7px}.badge{font-size:10px}.timeline{height:270px}.stage-foot{left:10px;bottom:52px;max-width:70%}.playbar{bottom:9px;right:10px}.frame{border-radius:5px}.btn{padding:5px 8px}.title{font-size:15px}}
 </style></head>
@@ -100,7 +103,13 @@
     <div class="badge"><span id="versionBadge">正在读取动画版本</span></div>
     <div class="badge">16:9</div>
     <div class="badge" id="durBadge">—</div>
-    <select id="styleSelect" aria-label="视频风格"></select><div class="spacer"></div>
+    <details id="stylePanel"><summary>视频画风</summary><div class="style-panel-content">
+      <label>选择预设 <select id="styleSelect" aria-label="视频风格"></select></label>
+      <p id="styleDescription"></p><div id="styleSwatches" aria-hidden="true"></div>
+      <label>补充美术偏好（可选）<input id="stylePreference" maxlength="512" placeholder="例如：纸层更有纤维感，少用深色"></label>
+      <p>浏览预设不会生成视频。应用后会按当前脚本重新制作美术版本，可能产生模型调用费用；已有相同预设版本时可直接切换。</p>
+      <button class="btn primary" id="applyStyle">应用并重新制作</button>
+    </div></details><div class="spacer"></div>
     <button class="btn" id="saveRequest">保存修改请求</button>
     <button class="btn" id="exportVideo">导出视频</button>
     <button class="btn" id="rollback">版本回退</button>

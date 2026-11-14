@@ -1,0 +1,123 @@
+{
+  "project_id": "P_SOAP_LAB",
+  "artifact_id": "PS_SOAP_LAB",
+  "revision": 1,
+  "brief_revision": 1,
+  "knowledge_package_ref": {
+    "artifact_id": "KP_SOAP_LAB",
+    "revision": 1
+  },
+  "direction_id": "D_SOAP",
+  "total_duration_ms": 27000,
+  "core_message": "表面活性剂在油水界面定向排列，在搅动与冲洗中帮助油污分散并被水带走。",
+  "scenes": [
+    {
+      "scene_id": "S01",
+      "start_ms": 0,
+      "duration_ms": 9000,
+      "objective": "水流经过，油污仍附着",
+      "role": "hook",
+      "knowledge_refs": [
+        "K_SOAP_INTERFACE"
+      ],
+      "semantic_constraints": [
+        "水与油接触；水流不直接令油消失。"
+      ],
+      "visual_notes": [
+        "油污及分子保持可追踪身份；无音轨的抽象示意。"
+      ],
+      "events": [
+        {
+          "id": "EV_S01",
+          "offset_ms": 4500,
+          "anchor": true,
+          "description": "水流经过，油污仍附着",
+          "knowledge_refs": [
+            "K_SOAP_INTERFACE"
+          ]
+        }
+      ],
+      "timed_text": [
+        {
+          "id": "T_S01",
+          "offset_ms": 0,
+          "duration_ms": 9000,
+          "text": "只用水，为什么油污还在？",
+          "kind": "subtitle"
+        }
+      ]
+    },
+    {
+      "scene_id": "S02",
+      "start_ms": 9000,
+      "duration_ms": 9000,
+      "objective": "看清分子两端在油水界面的方向",
+      "role": "explain",
+      "knowledge_refs": [
+        "K_SOAP_INTERFACE"
+      ],
+      "semantic_constraints": [
+        "头部朝水，尾部伸向油；界面排列是示意，不是瞬间规则球壳。"
+      ],
+      "visual_notes": [
+        "油污及分子保持可追踪身份；无音轨的抽象示意。"
+      ],
+      "events": [
+        {
+          "id": "EV_S02",
+          "offset_ms": 4500,
+          "anchor": true,
+          "description": "看清分子两端在油水界面的方向",
+          "knowledge_refs": [
+            "K_SOAP_INTERFACE"
+          ]
+        }
+      ],
+      "timed_text": [
+        {
+          "id": "T_S02",
+          "offset_ms": 0,
+          "duration_ms": 9000,
+          "text": "亲水端朝水，亲油端伸向油",
+          "kind": "subtitle"
+        }
+      ]
+    },
+    {
+      "scene_id": "S03",
+      "start_ms": 18000,
+      "duration_ms": 9000,
+      "objective": "搅动使油污分散，再随冲洗水流离开",
+      "role": "payoff",
+      "knowledge_refs": [
+        "K_SOAP_INTERFACE"
+      ],
+      "semantic_constraints": [
+        "油没有化学消失；小油滴需经历分散与冲洗，保留运动连续性。"
+      ],
+      "visual_notes": [
+        "油污及分子保持可追踪身份；无音轨的抽象示意。"
+      ],
+      "events": [
+        {
+          "id": "EV_S03",
+          "offset_ms": 4500,
+          "anchor": true,
+          "description": "搅动使油污分散，再随冲洗水流离开",
+          "knowledge_refs": [
+            "K_SOAP_INTERFACE"
+          ]
+        }
+      ],
+      "timed_text": [
+        {
+          "id": "T_S03",
+          "offset_ms": 0,
+          "duration_ms": 9000,
+          "text": "搅动、分散，再随水流带走",
+          "kind": "subtitle"
+        }
+      ]
+    }
+  ]
+}

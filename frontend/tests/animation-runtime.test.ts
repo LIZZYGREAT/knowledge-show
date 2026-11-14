@@ -36,3 +36,33 @@ describe('manifest validation and independent art', () => {
     expect(() => resolveStyle('not-a-style')).toThrow();
   });
 });
+
+import soap from './fixtures/soap-style-lab/style-paper-editorial.json';
+import type { AnimationBundle } from '../src/animation/runtime/BundleTypes';
+it('loads styled vectors and rejects unrecognized materials or unsafe paint', () => {
+  const bundle = structuredClone(soap) as AnimationBundle;
+  expect(validateBundle(bundle)).toBe(bundle);
+  const object = Object.values(bundle.resources)[0].objects![0];
+  (object as any).materialKey = 'unknown';
+  expect(() => validateBundle(bundle)).toThrow();
+  object.materialKey = 'flat'; object.stroke = 'url(https://invalid)';
+  expect(() => validateBundle(bundle)).toThrow();
+});
+
+import { ease, interpolate } from '../src/animation/runtime/interpolate';
+it('uses outgoing easing with deterministic path drawing and legacy defaults', () => {
+  expect(ease(.25)).toBe(.15625);
+  const frames = [{ time_ms:0,x:0,y:0,opacity:1,scale:1,rotation:0,drawProgress:0,easing:'ease-out-cubic' as const },{time_ms:1000,x:100,y:0,opacity:1,scale:1,rotation:0,drawProgress:1}];
+  expect(interpolate(frames,500).x).toBe(87.5);
+  expect(interpolate(frames,500).drawProgress).toBe(.875);
+  expect(interpolate(frames,1000).x).toBe(100);
+  expect(interpolate(frames,-100).drawProgress).toBe(0);
+  const legacy = frames.map(({easing,drawProgress,...f}) => f);
+  expect(interpolate(legacy,250).x).toBe(15.625);
+  expect(interpolate(legacy,250).drawProgress).toBe(1);
+});
+it('rejects non-finite coordinates hidden in SVG path exponents', () => {
+  const bundle = structuredClone(soap) as AnimationBundle;
+  Object.values(bundle.resources)[0].objects!.find(o => o.shape === 'path')!.path = 'M1e999 0L10 10Z';
+  expect(() => validateBundle(bundle)).toThrow('有限');
+});

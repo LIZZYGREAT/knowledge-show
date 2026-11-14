@@ -153,7 +153,9 @@ function connect() {
   el('load').style.display = 'none'; el('durBadge').textContent = fmt(viewEnd);
   el('versionBadge').textContent = `${projectId ? '已发布动画' : '固定 PN 样片'} · r${bundle.manifest.revision}`;
   el('stageFoot').textContent = `${bundle.script.core_message.slice(0, 50)}`;
-  el<HTMLSelectElement>('styleSelect').value = Object.values(bundle.resources)[0].style.id;
+  const actualStyle = Object.values(bundle.resources)[0].style;
+  if (![...el<HTMLSelectElement>('styleSelect').options].some(o => o.value === actualStyle.id)) el<HTMLSelectElement>('styleSelect').add(new Option(actualStyle.name, actualStyle.id));
+  el<HTMLSelectElement>('styleSelect').value = actualStyle.id; describeStyle();
   unsubscribe = api.subscribe((next, active) => { time = next; playing = active; el('curTime').textContent = `${fmt(time)} / ${fmt(bundle.manifest.total_duration_ms)}`; el('playBtn').textContent = active ? '❚❚' : '▶'; el('playBtn').setAttribute('aria-label', active ? '暂停' : '播放'); updateHead(); updateOverlay(); });
   rebuild(); fit();
 }
@@ -205,25 +207,50 @@ el('rollback').onclick = async () => {
   } catch (error) { message((error as Error).message); }
 };
 el('exportVideo').onclick = async () => { if (!projectId) { message('固定样片请先通过本地验收入口发布为项目，再导出实际文件。'); return; } try { const result = await api(`/api/projects/${projectId}/animations/export`, { method: 'POST', body: JSON.stringify({ artifact_ref: ref() }) }); const poll = async () => { const state = await api(`/api/projects/${projectId}/animations/exports/${result.export_id}`); status.textContent = state.status === 'completed' ? '视频已编码完成，可以下载。' : `正在渲染视频：${state.rendered_frames ?? 0} 帧`; if (state.status === 'completed') { const a = document.createElement('a'); a.href = state.download_url; a.textContent = '下载 MP4'; status.append(' ', a); } else if (state.status === 'failed') message(state.message); else window.setTimeout(() => void poll().catch(e => message(String(e))), 1200); }; void poll(); } catch (e) { message(String(e)); } };
-el<HTMLSelectElement>('styleSelect').onchange = async () => {
-  if (!projectId) { await openVersion(); return; }
-  const selector = el<HTMLSelectElement>('styleSelect');
-  selector.disabled = true;
-  const previous = ref();
+let applyingStyle = false;
+function describeStyle() {
+  const profile = profiles.find(p => p.id === el<HTMLSelectElement>('styleSelect').value);
+  el('styleDescription').textContent = profile ? `${profile.intent}。${profile.motionCharacter}。` : '当前版本使用自定义美术档案。';
+  el('styleSwatches').replaceChildren(...(profile ? [profile.palette.background, profile.palette.material, profile.palette.blue, profile.palette.gold].map(color => {
+    const swatch = document.createElement('span'); swatch.style.background = color; return swatch;
+  }) : []));
+}
+el<HTMLSelectElement>('styleSelect').onchange = describeStyle;
+el('applyStyle').onclick = async () => {
+  if (applyingStyle || !bundle) return;
+  const selector = el<HTMLSelectElement>('styleSelect'), button = el<HTMLButtonElement>('applyStyle');
+  const preference = el<HTMLInputElement>('stylePreference').value.trim();
+  if (!projectId) { message('固定样片：应用预设只更新离线预览，不调用模型。'); await openVersion(); return; }
+  if (!preference && Object.values(bundle.resources).every(r => r.style.id === selector.value)) { message('当前视频已使用这一预设。'); return; }
+  applyingStyle = true; button.disabled = true; selector.disabled = true; el<HTMLInputElement>('stylePreference').disabled = true;
+  const previous = ref(), targetStyle = selector.value;
   try {
-    const result = await api(`/api/projects/${projectId}/animations`, { method: 'POST', body: JSON.stringify({ expected_project_revision: bundle.projectRevision, style_id: selector.value, ...(el<HTMLInputElement>('revisionApiKey').value ? { api_key: el<HTMLInputElement>('revisionApiKey').value } : {}) }) });
+    // Only reuse a published, exact-script version when there is no new free-text request.
+    if (!preference) {
+      const history = await api(`/api/projects/${projectId}/animations/versions`);
+      for (const candidate of [...history.versions].reverse() as ArtifactRef[]) {
+        if (sameRef(candidate, previous)) continue;
+        const prior: AnimationBundle = await api(`/api/projects/${projectId}/animations/${candidate.artifact_id}/r${candidate.revision}/bundle`);
+        if (sameRef(prior.manifest.production_script_ref, bundle.manifest.production_script_ref) && prior.manifest.brief_revision === bundle.manifest.brief_revision && Object.values(prior.resources).every(r => r.style.id === targetStyle)) {
+          const active = await api(`/api/projects/${projectId}/animations/activate`, { method: 'POST', body: JSON.stringify({ artifact_ref: candidate, expected_project_revision: bundle.projectRevision }) });
+          revisionHistory.push({ ref: previous, projectRevision: bundle.projectRevision });
+          message('已切换到当前脚本的现有美术版本，没有重新生成。'); await openVersion(active.artifact_ref); return;
+        }
+      }
+    }
+    const result = await api(`/api/projects/${projectId}/animations`, { method: 'POST', body: JSON.stringify({ expected_project_revision: bundle.projectRevision, style_id: targetStyle, art_preference: preference, ...(el<HTMLInputElement>('revisionApiKey').value ? { api_key: el<HTMLInputElement>('revisionApiKey').value } : {}) }) });
     message('正在制作新的全片美术版本，当前版本仍可播放。');
     let state;
     do {
       await new Promise(resolve => setTimeout(resolve, 1200));
       state = await api(`/api/projects/${projectId}/animations/jobs/${result.job_id}`);
     } while (['queued', 'running'].includes(state.status));
-    if (state.status !== 'completed') throw new Error(state.message);
+    if (state.status !== 'completed') throw new Error(state.message ?? '本次制作未完成，旧版仍可播放。');
     revisionHistory.push({ ref: previous, projectRevision: bundle.projectRevision });
     await openVersion(state.artifact_ref);
   } catch (error) {
-    message((error as Error).message); selector.value = Object.values(bundle.resources)[0].style.id;
-  } finally { selector.disabled = false; }
+    message((error as Error).message);
+  } finally { applyingStyle = false; button.disabled = false; selector.disabled = false; el<HTMLInputElement>('stylePreference').disabled = false; }
 };
 window.addEventListener('keydown', e => { if ((e.target as HTMLElement).isContentEditable || ['INPUT', 'SELECT'].includes((e.target as HTMLElement).tagName)) return; if (e.code === 'Space') { e.preventDefault(); el('playBtn').click(); } if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') void seek(time + (e.key === 'ArrowLeft' ? -1000 : 1000)); });
 resize = new ResizeObserver(fit); resize.observe(stage);

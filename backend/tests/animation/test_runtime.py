@@ -210,7 +210,7 @@ def test_auto_profile_uses_script_topic_and_preserves_explicit_choice():
     assert preferred_profile_id('敦煌风格的视觉表达',{'core_message':'概率','scenes':[]})=='modern-graphic'
 
 @pytest.mark.anyio
-async def test_formal_generation_job_publishes_only_after_renderer_receipt(runtime,tmp_path):
+async def test_formal_generation_job_publishes_only_after_renderer_receipt(runtime,tmp_path,monkeypatch):
     projects,project,script,service=runtime
     created=[]
     class Services:
@@ -221,9 +221,15 @@ async def test_formal_generation_job_publishes_only_after_renderer_receipt(runti
         value=Services();created.append(value);return value
     app=create_app(state_store=projects,job_store=JobStore(tmp_path/'jobs'),revision_store=RevisionRequestStore(tmp_path/'requests'),animation_manifest_store=service.candidates,knowledge_export_dir=tmp_path/'knowledge',script_export_dir=tmp_path/'script',services_factory=factory)
     app.state.animation_runtime.validator=lambda *_:{'status':'validated'}
+    captured=[]
+    original=app.state.animation_runtime.generate
+    async def capture(*args,**kwargs):
+        captured.append(kwargs)
+        return await original(*args,**kwargs)
+    monkeypatch.setattr(app.state.animation_runtime,'generate',capture)
     base=f"/api/projects/{project['project_id']}"
     async with AsyncClient(transport=ASGITransport(app=app),base_url='http://testclient') as client:
-        response=await client.post(base+'/animations',json={'expected_project_revision':project['revision'],'api_key':'TRANSIENT_TEST_KEY'})
+        response=await client.post(base+'/animations',json={'expected_project_revision':project['revision'],'api_key':'TRANSIENT_TEST_KEY','style_id':'paper-editorial','art_preference':'纸层更有纤维感'})
         assert response.status_code==202
         job=response.json()['job_id']
         for _ in range(100):
@@ -231,6 +237,8 @@ async def test_formal_generation_job_publishes_only_after_renderer_receipt(runti
             if state['status'] not in ['queued','running']: break
             await asyncio.sleep(.01)
         assert state['status']=='completed'
+        assert captured[0]['style_id']=='paper-editorial'
+        assert captured[0]['art_preference']=='纸层更有纤维感'
         assert created[0].closed
         ready=(await client.get(base+'/preview')).json()
         assert ready['status']=='ready'
@@ -323,7 +331,7 @@ async def test_invalid_scene_gets_one_bounded_retry_and_valid_scenes_are_cached(
     current=projects.load(project['project_id'])
     await service.generate(current,script,client=Client())
     assert len(calls)==8
-    cache_path=next((service.root/project['project_id']/'generation-cache').glob('*.json'))
+    cache_path=next(path for path in (service.root/project['project_id']/'generation-cache').glob('*.json') if json.loads(path.read_text())['resource']['sceneId']=='S02')
     damaged=json.loads(cache_path.read_text())
     damaged['resource']['objects'][0]['label']+=' changed'
     cache_path.write_text(json.dumps(damaged))
@@ -349,3 +357,43 @@ async def test_model_local_rewrite_cannot_replace_stable_object_ids(runtime):
             return SimpleNamespace(value=value)
     with pytest.raises(ValueError,match='对象身份'):
         await direct_scene(Client(),scene,PROFILES[0],previous=previous,feedback='请更清楚一些')
+
+@pytest.mark.parametrize('style',['paper-editorial','precision-science','modern-graphic','narrative-collage'])
+def test_soap_fixtures_use_validated_internal_programs(style):
+    from pathlib import Path
+    from jsonschema import Draft202012Validator
+    root=Path(__file__).resolve().parents[3]
+    fixture=root/'frontend/tests/fixtures/soap-style-lab'
+    bundle=json.loads((fixture/f'style-{style}.json').read_text())
+    script=json.loads((fixture/'production-script.json').read_text())
+    assert bundle['script']==script
+    Draft202012Validator(json.loads((root/'contracts/schemas/production-script.schema.json').read_text())).validate(script)
+    for scene,resource in zip(script['scenes'],bundle['resources'].values()):
+        value={'objects':resource['objects'],'anchor_times_ms':[4500]}
+        assert validate_program(scene,value)==resource['objects']
+        bad=copy.deepcopy(value);bad['objects'][0]['materialKey']='url(https://invalid)'
+        with pytest.raises(ValueError,match='外观'): validate_program(scene,bad)
+        bad=copy.deepcopy(value);bad['objects'][0]['strokeWidth']=float('nan')
+        with pytest.raises(ValueError,match='外观'): validate_program(scene,bad)
+
+@pytest.mark.anyio
+@pytest.mark.parametrize('style',['paper-editorial','precision-science','modern-graphic','narrative-collage'])
+async def test_fake_director_emits_supported_materials_and_motion(style):
+    from pathlib import Path
+    fixture=Path(__file__).resolve().parents[3]/'frontend/tests/fixtures/soap-style-lab'
+    bundle=json.loads((fixture/f'style-{style}.json').read_text())
+    class FakeDirector:
+        async def generate_json(self,**kwargs):
+            assert 'materialKey' in kwargs['instructions'] and 'drawProgress' in kwargs['instructions']
+            scene=kwargs['data']['scene']
+            resource=next(r for r in bundle['resources'].values() if r['sceneId']==scene['scene_id'])
+            return SimpleNamespace(value={'objects':resource['objects'],'anchor_times_ms':[4500]})
+    for scene in bundle['script']['scenes']:
+        resource=await direct_scene(FakeDirector(),scene,resolve_profile(style))
+        assert resource['kind']=='vector-scene' and resource['style']['id']==style
+        bad={'objects':copy.deepcopy(resource['objects']),'anchor_times_ms':[4500]}
+        bad['objects'][0]['keyframes'][0]['easing']='arbitrary-js'
+        with pytest.raises(ValueError,match='运动曲线'): validate_program(scene,bad)
+        bad['objects'][0]['keyframes'][0].pop('easing')
+        bad['objects'][0]['keyframes'][0]['drawProgress']=float('inf')
+        with pytest.raises(ValueError,match='路径显现'): validate_program(scene,bad)

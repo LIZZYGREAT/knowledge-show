@@ -1,6 +1,6 @@
 # knowledge-show 当前项目状态
 
-> `main@82c6aaa` 已合并 PR #16，包含主链路交接修复与动画运行时/工作台能力。当前首页任务分支 `feat/home-curiosity-stage` 承接 `fix/user-experience-design-review` 的体验修复；体验修复按 `docs/tasks/open/backend/用户体验与过度设计审查.md` 完成静音字幕约束、创作进度、动画恢复、分幕生成与知识必填门槛调整；新主题真实模型验收仍未执行。
+> `main@0c74d0a` 已合并 PR #18（包含主链路交接修复与动画运行时/工作台能力）。视频画风任务分支 `feat/video-art-styles` 基于首页分支 `feat/home-curiosity-stage`，后者承接 `fix/user-experience-design-review` 的体验修复；体验修复按 `docs/tasks/open/backend/用户体验与过度设计审查.md` 完成静音字幕约束、创作进度、动画恢复、分幕生成与知识必填门槛调整；新主题真实模型验收仍未执行。
 
 ## 主线与分支状态
 
@@ -33,6 +33,12 @@ PR #16 集成验证记录：后端 `PYTHONPATH=backend/src .venv/bin/python -m p
 
 前端 `npm run build` 通过，`npm test` 18 项通过；`npm run test:e2e -- --workers=2 --output=/tmp/ks-flow-draw-restored-e2e` 37 项通过（Chromium，提供 `LD_LIBRARY_PATH` / `FONTCONFIG_FILE` / `PLAYWRIGHT_BROWSERS_PATH`）。浏览器回归检查开场流线逐渐生长、墨晕后出现标题、墨晕转场、波纹/螺旋元素不存在、遮罩中的完整知识文字、暂停恢复及既有创作与工作台流程。实际截图覆盖 1440×900、1280×720、390px 手机与减少动画，以及起点、生长中、完整流线、墨晕、结论和循环边界，位于 `/tmp/ks-draw-intro-*`。预览录屏为 `/tmp/ks-draw-intro-preview.mp4`。负责人视觉确认与 Safari / 真机验收待完成，任务留在 open。
 
+## 视频画风与化学试片
+
+`feat/video-art-styles` 基于本地 `feat/home-curiosity-stage@5c5b39d` 分段实现视频画风优化，没有切换远程 main 或改动首页。通用 vector-scene 增加安全纸纹/落影、半透明渐变、印刷网点、描边/字体/图层、逐段 easing 与路径显现；Python/TS 同步校验，旧字段默认兼容，公共五类 Schema 不变。显式预设与自由美术偏好同时交给导演；工作台浏览预设不生成任务，明确应用时才重制或复用当前脚本的现有版本，失败保留旧预览。
+
+27 秒三幕肥皂去油 fixture 已用四种风格实际同步播放、截图和确定性 Seek；纸艺版本经隔离 Fake Director 的真实 API/浏览器检查发布、工作台元件框选、仅 S02 局部修订、版本回退/恢复与 MP4 下载验收。成片为 1280×720、24fps、648 帧，无音轨。预览与编码中帧 SSIM 为 0.989901–0.991112。后端全量 136 项、前端构建及 21 项单测、Chromium 47 项和契约校验通过。详细字段、关键帧/视频位置及复现命令见 `frontend/tests/fixtures/soap-style-lab/README.md`。真实 DeepSeek 调用 0 次、费用 0；负责人审美确认、付费一幕四风格试验及新主题正式 165 秒成片仍待完成，任务留在 open。
+
 ## 责任与活动任务
 
 | 工作范围 | 主要负责方 | 当前状态 |
@@ -42,7 +48,8 @@ PR #16 集成验证记录：后端 `PYTHONPATH=backend/src .venv/bin/python -m p
 | `frontend/src/animation/`、`frontend/src/features/` | 按团队当前任务认领 | main 已接通创作页、动画预览、真实工作台、定向修订和同源导出；当前任务分支增加连续进度、动画任务恢复与纯风格版本复用 |
 | `backend/src/workflow/`、`backend/src/api/`、`contracts/` | 双方按任务协商 | main 含精确状态/产物交接、候选校验、检查后动画发布及修订锚点验证 |
 
-- 当前任务：`docs/tasks/open/frontend/首页知识剧场动画设计与实施方案.md`，分支 `feat/home-curiosity-stage`，首页纸艺骰子剧场已实现，保留在 open 等负责人视觉确认。基于体验修复分支继续开发，没有修改生产层或公共契约。
+- 当前任务：`docs/tasks/open/frontend/视频画风优化与化学跨风格试片执行方案.md`，分支 `feat/video-art-styles`。无费用实现及渲染验收已落地，真实模型试验和负责人视觉确认待进行。
+- 首页待验收：`docs/tasks/open/frontend/首页知识剧场动画设计与实施方案.md`，分支 `feat/home-curiosity-stage`，首页纸艺骰子剧场已实现，保留在 open 等负责人视觉确认。基于体验修复分支继续开发，没有修改生产层或公共契约。
 - 体验审查：`docs/tasks/open/backend/用户体验与过度设计审查.md` 的实现由当前分支承接；没有进行付费真实模型验收。
 - 后端主链路方案：`docs/tasks/open/backend/主链路收尾修订方案.md`；实现已进入 main，方案保留在 open 等负责人验收。
 - 主工作流交接补全方案：`docs/tasks/open/backend/主工作流交接补全执行方案.md`；实现已进入 main，方案保留在 open 等负责人验收。
