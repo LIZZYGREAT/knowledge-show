@@ -1,6 +1,6 @@
 # knowledge.show 前端
 
-独立的 React + TypeScript + Vite 创作界面。当前产品与表单原则见 `docs/tasks/open/frontend/前端视觉与交互设计.md`；首页动态视觉与创作页装饰改版按 `前端视觉重新确立方向设计方案.md` 执行。运行于本地，无需启动 Streamlit。
+独立的 React + TypeScript + Vite 创作界面。当前产品与表单原则见 `docs/tasks/open/frontend/前端视觉与交互设计.md`；首页知识剧场按 `../docs/tasks/open/frontend/首页知识剧场动画设计与实施方案.md` 实现；创作页保留既有装饰与表单。运行于本地，无需启动 Streamlit。
 
 ```bash
 cd frontend
@@ -19,7 +19,7 @@ npm run test:e2e
 
 ## 已实现范围
 
-- 暖白、墨绿视觉 Token；首页以青绿丝绸般的回卷流带为主体，同一参数曲面驱动生长、收尖、褶皱、高光、细纹和流动微粒。`flowGeometry` 在紧弯处限制带宽，避免纹理翻折裂口；移动端减少曲面采样和微粒。`useFlowMotion` 控制开场、持续等待与失焦/离屏暂停，减少动效时直接显示完整静态姿态。
+- 暖白、墨绿视觉 Token；首页 `CuriosityStage` 从一点开始，沿旧几何场用约 5.5 秒逐渐画出青绿流线，金色种子跟随生长尖端；流体收拢后通过柔和的不规则墨晕揭开纸艺骰子演示，再展开 36 个有序组合、六组和为 7 的高亮和数量分布，最后收回流体。20 秒循环共用 `useFlowMotion` 时间源；不包含波纹、旋转螺旋或后加的三维骰子版本。失焦、离屏或页面隐藏时暂停，减少动画直接展示结论。旧 `FlowArtwork` 仅在可见转场中绘制，旧 `LivingFlowScene` 保留；首页演示不连接生产层或外部 API。
 - 创作页使用独立的 `EditorialOrnament` 装饰组件：标题两侧枝叶、宽幅波纹分隔、主题区尾纹、模式花边与展开偏好的收尾。装饰随布局流动、不接收指针事件；主题聚焦时金线轻微展开，手机隐藏边角并保留短波纹和小芽。
 - 暖金凝结点以唯一 `idea-seed` 身份在首页与主题输入旁共享；View Transition 不可用或减少动效时仍可直接进入表单，品牌顶栏独立保留。
 - 品牌独立使用 Georgia / Times New Roman 字族和统一基线；中文标题保留本机展示字体回退，不分发字体。首页容器最大 1500px，创作页 1380px；高级偏好采用“深度 / 单行美术偏好、整行创意、并排包含 / 避开”栅格，手机自然单列。
@@ -38,9 +38,9 @@ npm run test:e2e
 
 导出需要已构建的 `dist/`、Playwright Chromium、FFmpeg 和 ffprobe。可配置 `ANIMATION_FFMPEG` / `ANIMATION_FFPROBE` 的绝对路径；未安装时返回真实失败，不生成假下载。完整离线验收、运行时约束与实测结果见 [动画运行说明](../docs/work/frontend/animation/运行时与首幕预览.md)。没有配音和音效。
 
-当前验证包括生产构建、13 项逻辑测试、真实工作台和既有创作页浏览器回归；具体计数以 STATUS 为准。
+当前验证包括生产构建、概率分布与循环连续性逻辑测试、首页及创作页与真实工作台浏览器回归；具体计数以 STATUS 为准。
 
-开发服务器可使用 `/?flow-pose=0.0909`、`/?flow-pose=0.5455`、`/?flow-pose=1` 固定检查初始、高光和完整姿态；参数仅在 Vite 开发模式生效，值为 0–1，正式构建忽略此参数。正常入口不带参数，连续播放完整动画。
+开发服务器可使用 `/?stage-pose=0`、`/?stage-pose=0.125`、`/?stage-pose=0.275`、`/?stage-pose=0.355`、`/?stage-pose=0.77`、`/?stage-pose=1` 固定检查起点、生长中、完整流线、墨晕衔接、结论与循环边界；参数值为 0–1，仅在 Vite 开发模式生效。正常入口连续播放，正式构建忽略此参数。
 
 当前 WSL 环境缺少浏览器系统库，验证时将 libnspr4、libnss3、libasound2 与中文字体解包到 `/tmp` 并通过 `LD_LIBRARY_PATH` / `FONTCONFIG_FILE` 使用；这些属于本机测试环境，不进入项目依赖或产物。其他环境按 Playwright 的运行库要求准备。
 

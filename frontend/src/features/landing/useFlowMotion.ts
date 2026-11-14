@@ -6,10 +6,11 @@ const FRAME_INTERVAL = 1000 / 30;
 export function useFlowMotion(
   target: RefObject<HTMLElement | null>,
   animate = true,
+  staticTime = INTRO_DURATION / 1000,
 ) {
   const [time, setTime] = useState(() =>
     window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      ? INTRO_DURATION / 1000
+      ? staticTime
       : 0,
   );
   const [paused, setPaused] = useState(true);
@@ -46,8 +47,8 @@ export function useFlowMotion(
       const stop = media.matches || document.hidden || !visible || !focused;
       setPaused(stop);
       if (media.matches) {
-        elapsed.current = INTRO_DURATION;
-        setTime(INTRO_DURATION / 1000);
+        elapsed.current = staticTime * 1000;
+        setTime(staticTime);
       } else if (!stop) {
         frame = requestAnimationFrame(tick);
       }
@@ -80,7 +81,7 @@ export function useFlowMotion(
       window.removeEventListener("blur", handleBlur);
       media.removeEventListener("change", sync);
     };
-  }, [target, animate]);
+  }, [target, animate, staticTime]);
 
   return { time, paused, compact };
 }

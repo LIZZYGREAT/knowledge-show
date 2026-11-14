@@ -1,6 +1,6 @@
 # knowledge-show 当前项目状态
 
-> `main@82c6aaa` 已合并 PR #16，包含主链路交接修复与动画运行时/工作台能力。当前任务分支 `fix/user-experience-design-review` 基于该提交，按 `docs/tasks/open/backend/用户体验与过度设计审查.md` 完成静音字幕约束、创作进度、动画恢复、分幕生成与知识必填门槛调整；新主题真实模型验收仍未执行。
+> `main@82c6aaa` 已合并 PR #16，包含主链路交接修复与动画运行时/工作台能力。当前首页任务分支 `feat/home-curiosity-stage` 承接 `fix/user-experience-design-review` 的体验修复；体验修复按 `docs/tasks/open/backend/用户体验与过度设计审查.md` 完成静音字幕约束、创作进度、动画恢复、分幕生成与知识必填门槛调整；新主题真实模型验收仍未执行。
 
 ## 主线与分支状态
 
@@ -25,7 +25,13 @@ PR #16 集成验证记录：后端 `PYTHONPATH=backend/src .venv/bin/python -m p
 
 ## 用户体验审查分支验证
 
-当前分支后端动画与知识定向回归：`PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests/animation/test_runtime.py backend/tests/knowledge/test_package.py -q`：32 项通过。前端 `npm run build` 通过，`npm test` 14 项通过；新增 Playwright 用例可由 `npx playwright test ... --list` 枚举（30 项）。实际 E2E 启动曾因当前环境 Chromium 缺少 `libnspr4.so` 退出，故该分支 E2E 未验证通过；不能把 PR #16 的 32 项 E2E 记录当作本分支结果。公共 Schema 未变；本轮未调用真实付费模型。
+体验审查分支当时的后端动画与知识定向回归：`PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests/animation/test_runtime.py backend/tests/knowledge/test_package.py -q`：32 项通过。前端 `npm run build` 通过，`npm test` 14 项通过；新增 Playwright 用例可由 `npx playwright test ... --list` 枚举（30 项）。实际 E2E 启动曾因当前环境 Chromium 缺少 `libnspr4.so` 退出，故该分支 E2E 未验证通过；不能把 PR #16 的 32 项 E2E 记录当作本分支结果。公共 Schema 未变；本轮未调用真实付费模型。
+
+## 首页知识剧场验证
+
+`feat/home-curiosity-stage` 首页恢复从一点开始、约 5.5 秒逐渐画出青绿流线的旧开场，金色种子沿生长尖端移动，再通过柔和的不规则墨晕衔接到纸艺骰子及组合演示。20 秒循环覆盖流线生长、流体收拢、墨晕揭示、骰子落定、组合展开、数量分布和收回流体；不包含后续波纹、螺旋及三维骰子版本。减少动画直接展示结论，离屏、失焦或页面隐藏时暂停；旧 `LivingFlowScene` 保留。首页不影响生产动画风格、API 或公共 Schema。
+
+前端 `npm run build` 通过，`npm test` 18 项通过；`npm run test:e2e -- --workers=2 --output=/tmp/ks-flow-draw-restored-e2e` 37 项通过（Chromium，提供 `LD_LIBRARY_PATH` / `FONTCONFIG_FILE` / `PLAYWRIGHT_BROWSERS_PATH`）。浏览器回归检查开场流线逐渐生长、墨晕后出现标题、墨晕转场、波纹/螺旋元素不存在、遮罩中的完整知识文字、暂停恢复及既有创作与工作台流程。实际截图覆盖 1440×900、1280×720、390px 手机与减少动画，以及起点、生长中、完整流线、墨晕、结论和循环边界，位于 `/tmp/ks-draw-intro-*`。预览录屏为 `/tmp/ks-draw-intro-preview.mp4`。负责人视觉确认与 Safari / 真机验收待完成，任务留在 open。
 
 ## 责任与活动任务
 
@@ -36,14 +42,15 @@ PR #16 集成验证记录：后端 `PYTHONPATH=backend/src .venv/bin/python -m p
 | `frontend/src/animation/`、`frontend/src/features/` | 按团队当前任务认领 | main 已接通创作页、动画预览、真实工作台、定向修订和同源导出；当前任务分支增加连续进度、动画任务恢复与纯风格版本复用 |
 | `backend/src/workflow/`、`backend/src/api/`、`contracts/` | 双方按任务协商 | main 含精确状态/产物交接、候选校验、检查后动画发布及修订锚点验证 |
 
-- 当前任务：`docs/tasks/open/backend/用户体验与过度设计审查.md`，分支 `fix/user-experience-design-review`，基于 `main@82c6aaa` 执行中；没有进行付费真实模型验收。
+- 当前任务：`docs/tasks/open/frontend/首页知识剧场动画设计与实施方案.md`，分支 `feat/home-curiosity-stage`，首页纸艺骰子剧场已实现，保留在 open 等负责人视觉确认。基于体验修复分支继续开发，没有修改生产层或公共契约。
+- 体验审查：`docs/tasks/open/backend/用户体验与过度设计审查.md` 的实现由当前分支承接；没有进行付费真实模型验收。
 - 后端主链路方案：`docs/tasks/open/backend/主链路收尾修订方案.md`；实现已进入 main，方案保留在 open 等负责人验收。
 - 主工作流交接补全方案：`docs/tasks/open/backend/主工作流交接补全执行方案.md`；实现已进入 main，方案保留在 open 等负责人验收。
 - 动画层与工作台方案：`docs/tasks/open/frontend/动画层与工作台接入执行方案.md`；固定样片 P1–P4 已实现，保留在 open 等待产品/视觉验收。
 
 ## 下一步
 
-- 为验证本分支新增浏览器流程，需要在安装 Chromium 系统运行库（含 `libnspr4.so`）的环境运行 E2E；当前只确认用例可枚举，没有声称 E2E 通过。
+- 首页与既有创作流程的 Chromium 回归已在恢复本机 `/tmp` 系统库配置后实测；仍需负责人确认首页视觉效果，Safari 与真实移动设备尚未验收。
 - 对新主题继续审查知识机制、关键帧、运动和美术质量；固定 PN 样片不替代新主题验收。一次真实新主题的付费生成需用户明确确认后再执行。
 - 由知识/脚本执行器消费动画层保存的上游反馈；动画层不静默改写上游成果。
 

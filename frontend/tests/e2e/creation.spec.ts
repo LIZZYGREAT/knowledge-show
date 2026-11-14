@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { FLOW_DRAW_DURATION, STAGE_DURATION, STATIC_STAGE_TIME } from "../../src/features/landing/curiosityMotion";
 
 async function prepareConnectedPage(page: Page) {
   await page.route("**/api/model/test", (route) =>
@@ -598,9 +599,9 @@ test("demo has explicit events, recoverable failure, no fabricated preview", asy
   await expect(page.getByRole("status")).toContainText("尚无真实动画资源");
   await expect(page.getByRole("button", { name: "进入工作台" })).toHaveCount(0);
 });
-for (const width of [375, 768, 1280, 1440, 1920])
+for (const width of [375, 390, 768, 1280, 1440, 1920])
   test(`responsive layout ${width}`, async ({ page }) => {
-    await page.setViewportSize({ width, height: 900 });
+    await page.setViewportSize({ width, height: width === 1280 ? 720 : 900 });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/");
     await expect(
@@ -613,11 +614,15 @@ for (const width of [375, 768, 1280, 1440, 1920])
     ).toBe(true);
     const landing = await page.locator(".landing").boundingBox();
     expect(landing!.width).toBeGreaterThanOrEqual(Math.min(width, 1500) - 2);
+    if (width >= 1280) {
+      const footer = await page.locator(".landing-footer").boundingBox();
+      expect(footer!.y + footer!.height).toBeLessThanOrEqual(page.viewportSize()!.height);
+    }
     const brand = await page.locator(".brand").boundingBox();
     const settings = await page.locator(".settings-button").boundingBox();
     expect(brand!.x + brand!.width).toBeLessThan(settings!.x);
-    const theatre = await page.locator(".flow-theatre").boundingBox();
-    const artwork = await page.locator(".flow-artwork").boundingBox();
+    const theatre = await page.locator(".curiosity-theatre").boundingBox();
+    const artwork = await page.locator(".curiosity-artwork").boundingBox();
     expect(artwork!.height / theatre!.height).toBeGreaterThan(0.65);
     await page.getByRole("button", { name: "开始创作" }).click();
     const composer = await page.locator(".composer").boundingBox();
@@ -660,7 +665,7 @@ test("shared bead travels into the topic prompt, including an immediate click", 
   page,
 }) => {
   await page.goto("/");
-  await expect(page.locator(".living-flow-scene")).toBeVisible();
+  await expect(page.locator(".curiosity-stage")).toBeVisible();
   const origin = await page.locator(".idea-seed").boundingBox();
   await page.getByRole("button", { name: "开始创作" }).click();
   await expect(page.locator("#main-content")).toHaveAttribute(
@@ -702,9 +707,9 @@ test("no view transitions fallback and reduced motion keep the same form usable"
   );
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  await expect(page.locator(".living-flow-scene")).toHaveAttribute(
-    "data-pose",
-    "1.000",
+  await expect(page.locator(".curiosity-stage")).toHaveAttribute(
+    "data-time",
+    STATIC_STAGE_TIME.toFixed(3),
   );
   await page.getByRole("button", { name: "开始创作" }).click();
   await expect(page.locator("#main-content")).toHaveAttribute(
@@ -718,9 +723,9 @@ test("no view transitions fallback and reduced motion keep the same form usable"
     "保留的主题",
   );
 });
-test("flow scene grows continuously and pauses on blur", async ({ page }) => {
+test("knowledge theatre plays continuously and pauses on blur", async ({ page }) => {
   await page.goto("/");
-  const stage = page.locator(".living-flow-scene");
+  const stage = page.locator(".curiosity-stage");
   await expect
     .poll(async () => Number(await stage.getAttribute("data-pose")))
     .toBeGreaterThan(0.1);
@@ -736,34 +741,83 @@ test("flow scene grows continuously and pauses on blur", async ({ page }) => {
     .toBeGreaterThan(Number(paused));
 });
 
-test("flow key poses have a substantial, distinct silhouette and a static review mode", async ({ page }) => {
-  const paths: string[] = [];
-  for (const pose of [0.5 / 5.5, 3 / 5.5, 1]) {
-    await page.goto(`/?flow-pose=${pose}`);
-    await expect(page.locator(".living-flow-scene")).toHaveAttribute("data-paused", "true");
-    const body = page.locator(".flow-body");
-    const path = (await body.getAttribute("d"))!;
-    expect(path).not.toMatch(/NaN|Infinity/);
-    paths.push(path);
-    const bounds = await body.boundingBox();
-    expect(bounds!.width).toBeGreaterThan(15);
-    if (pose > 0.5) {
-      const scene = await page.locator(".flow-artwork").boundingBox();
-      expect(bounds!.width).toBeGreaterThan(scene!.width * 0.55);
-      expect(bounds!.height).toBeGreaterThan(scene!.height * 0.5);
-    }
+test("knowledge theatre has stable objects through its narrative and loop", async ({ page }) => {
+  const positions: string[] = [];
+  for (const pose of [0, (FLOW_DRAW_DURATION + 1.5) / STAGE_DURATION, (FLOW_DRAW_DURATION + 6) / STAGE_DURATION, STATIC_STAGE_TIME / STAGE_DURATION, 1]) {
+    await page.goto(`/?stage-pose=${pose}`);
+    await expect(page.locator(".curiosity-stage")).toHaveAttribute("data-paused", "true");
+    await expect(page.locator(".stage-die")).toHaveCount(2);
+    await expect(page.locator("[data-combination]")).toHaveCount(36);
+    const point = await page.locator('[data-combination="1+6"] [data-moving-point]').getAttribute("transform");
+    expect(point).not.toMatch(/NaN|Infinity/);
+    positions.push(point!);
+    if (pose === STATIC_STAGE_TIME / STAGE_DURATION) await expect(page.locator(".stage-result")).toHaveAttribute("opacity", "1");
   }
-  expect(new Set(paths).size).toBe(3);
+  expect(new Set(positions).size).toBe(3);
+  expect(positions[0]).toBe(positions[4]);
 });
 
-test("silhouette and attached motes continue moving after the opening settles", async ({ page }) => {
+test("opening flow grows from a point before revealing the knowledge scene", async ({ page }) => {
+  const paths: string[] = [];
+  const widths: number[] = [];
+  for (const seconds of [0, 2.5, FLOW_DRAW_DURATION]) {
+    await page.goto(`/?stage-pose=${seconds / STAGE_DURATION}`);
+    const body = page.locator(".flow-body");
+    paths.push((await body.getAttribute("d"))!);
+    widths.push((await body.boundingBox())!.width);
+    await expect(page.locator(".curiosity-stage")).toHaveAttribute("data-ink", "0.000");
+    await expect(page.locator(".stage-question")).toHaveAttribute("opacity", "0");
+  }
+  expect(new Set(paths).size).toBe(3);
+  expect(widths[0]).toBeLessThan(widths[2] * .3);
+});
+
+test("ink connects silk to dice without ripple or spiral effects", async ({ page }) => {
+  await page.goto("/?stage-pose=0");
+  await expect(page.locator(".stage-silk")).toHaveAttribute("opacity", "1");
+  await expect(page.locator(".curiosity-stage")).toHaveAttribute("data-ink", "0.000");
+  await expect(page.locator(".stage-question")).toHaveAttribute("opacity", "0");
+  await page.goto(`/?stage-pose=${(FLOW_DRAW_DURATION + 1.6) / STAGE_DURATION}`);
+  const ink = Number(await page.locator(".curiosity-stage").getAttribute("data-ink"));
+  expect(ink).toBeGreaterThan(0);
+  expect(ink).toBeLessThan(1);
+  await expect(page.locator(".stage-question")).toHaveAttribute("opacity", "0");
+  await page.goto(`/?stage-pose=${(FLOW_DRAW_DURATION + 3.1) / STAGE_DURATION}`);
+  await expect(page.locator(".stage-question")).toHaveAttribute("opacity", "1");
+  await expect(page.locator(".stage-ink-ripples, .stage-vortex-front, .stage-vortex-back, .stage-die-cube")).toHaveCount(0);
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  const stage = page.locator(".living-flow-scene");
-  await expect(stage).toHaveAttribute("data-settled", "true", { timeout: 12000 });
-  const path = await page.locator(".flow-body").getAttribute("d");
-  const mote = await page.locator(".flow-motes circle").first().getAttribute("cx");
-  await expect.poll(() => page.locator(".flow-body").getAttribute("d")).not.toBe(path);
-  await expect.poll(() => page.locator(".flow-motes circle").first().getAttribute("cx")).not.toBe(mote);
+  await expect(page.locator(".stage-silk")).toHaveAttribute("opacity", "0");
+  await expect(page.locator(".stage-silk .flow-body")).toHaveCount(0);
+  await expect(page.locator(".stage-question")).toHaveAttribute("opacity", "1");
+  expect(await page.locator(".curiosity-artwork").evaluate(svg => {
+    const path = svg.querySelector<SVGPathElement>(".stage-ink-mask")!;
+    return [...svg.querySelectorAll<SVGTextElement>(".stage-knowledge text")].every(text => {
+      const box = text.getBBox();
+      return [[box.x, box.y], [box.x + box.width, box.y + box.height]].every(([x, y]) =>
+        path.isPointInFill(new DOMPoint(x, y)));
+    });
+  })).toBe(true);
+});
+
+test("theatre pauses offscreen and responds to motion preference changes", async ({ page }) => {
+  await page.goto("/");
+  const stage = page.locator(".curiosity-stage");
+  await expect(stage).toHaveAttribute("data-paused", "false");
+  await stage.evaluate(el => { (el as HTMLElement).style.transform = "translateY(200vh)"; });
+  await expect(stage).toHaveAttribute("data-paused", "true");
+  const time = await stage.getAttribute("data-time");
+  await page.waitForTimeout(150);
+  expect(await stage.getAttribute("data-time")).toBe(time);
+  await stage.evaluate(el => { (el as HTMLElement).style.transform = ""; });
+  await expect(stage).toHaveAttribute("data-paused", "false");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(stage).toHaveAttribute("data-paused", "true");
+  await expect(stage).toHaveAttribute("data-time", STATIC_STAGE_TIME.toFixed(3));
+  await expect(page.locator(".stage-result")).toHaveAttribute("opacity", "1");
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await expect(stage).toHaveAttribute("data-paused", "false");
+  await expect.poll(async () => Number(await stage.getAttribute("data-time"))).toBeGreaterThan(STATIC_STAGE_TIME);
 });
 
 test("ornaments stay decorative while focus, textarea resize and preferences change", async ({ page }) => {
@@ -806,7 +860,7 @@ test("early navigation and rapid return keep only one shared seed and preserve i
   await page.getByRole("button", { name: "开始创作" }).click();
   await page.getByLabel("你想让大家了解什么？").fill("往返时保留好奇心");
   await page.getByRole("button", { name: "knowledge.show 首页" }).click();
-  await expect(page.locator(".living-flow-scene")).toBeVisible();
+  await expect(page.locator(".curiosity-stage")).toBeVisible();
   await page.getByRole("button", { name: "开始创作" }).click();
   await expect(page.locator(".idea-seed")).toHaveCount(1);
   await expect(page.getByLabel("你想让大家了解什么？")).toHaveValue("往返时保留好奇心");
