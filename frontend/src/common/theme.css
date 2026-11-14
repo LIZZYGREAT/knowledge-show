@@ -28,6 +28,16 @@
 body {
   margin: 0;
 }
+body:has(.generation) {
+  background-color: var(--ks-canvas);
+  background-image:
+    radial-gradient(ellipse at 12% 4%, rgba(114, 195, 177, 0.14), transparent 32%),
+    radial-gradient(ellipse at 88% 10%, rgba(207, 173, 114, 0.12), transparent 30%),
+    radial-gradient(ellipse at 50% 108%, rgba(46, 107, 78, 0.05), transparent 38%),
+    radial-gradient(rgba(46, 107, 78, 0.055) 1px, transparent 1.1px);
+  background-size: auto, auto, auto, 26px 26px;
+  background-attachment: fixed;
+}
 button,
 input,
 textarea {
@@ -608,9 +618,13 @@ summary span {
 }
 .creation-timeline {
   display: flex;
+  justify-content: center;
+  width: max-content;
+  max-width: 100%;
   list-style: none;
   padding: 0;
-  margin: 0 0 20px;
+  margin: 0 auto 20px;
+  gap: 112px;
   text-align: left;
 }
 .creation-timeline li {
@@ -618,20 +632,21 @@ summary span {
   align-items: flex-start;
   gap: 15px;
   position: relative;
-  flex: 1;
+  flex: none;
 }
 .creation-timeline li:not(:last-child):after {
   content: "";
   position: absolute;
   top: 22px;
   left: 58px;
-  right: 15px;
+  right: -112px;
   border-top: 1px dashed var(--ks-line-strong);
 }
 .creation-timeline li.completed:after {
   border-top: 1px solid var(--ks-accent);
 }
 .stage-node {
+  position: relative;
   width: 45px;
   height: 45px;
   border: 1px solid var(--ks-line-strong);
@@ -643,6 +658,48 @@ summary span {
   font-size: 12px;
   color: var(--ks-muted);
   flex-shrink: 0;
+}
+.stage-node::before {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border: 1px solid rgba(46, 107, 78, 0.15);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.completed .stage-node::before {
+  border-color: rgba(46, 107, 78, 0.28);
+}
+.completed .stage-node::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ks-warm);
+  box-shadow: 0 0 0 3px rgba(207, 173, 114, 0.18);
+}
+.running .stage-node::before {
+  border-style: dashed;
+  border-color: var(--ks-accent);
+  animation: stage-node-spin 18s linear infinite;
+}
+.running .stage-node::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ks-warm);
+  box-shadow: 0 0 0 3px rgba(207, 173, 114, 0.14);
+  animation: stage-node-pulse 2.6s ease-in-out infinite;
+}
+.failed .stage-node::before {
+  border-color: rgba(152, 64, 42, 0.25);
 }
 .creation-timeline li > div {
   background: var(--ks-canvas);
@@ -741,6 +798,17 @@ summary span {
     box-shadow: 0 0 0 6px var(--ks-accent-soft);
   }
 }
+@keyframes stage-node-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes stage-node-pulse {
+  50% {
+    opacity: 0.45;
+    transform: scale(0.72);
+  }
+}
 @media (max-width: 900px) {
   .site-header {
     padding: 0 28px;
@@ -753,8 +821,14 @@ summary span {
   .generation {
     padding: 0 28px 45px;
   }
+  .creation-timeline {
+    gap: 62px;
+  }
   .creation-timeline li {
     gap: 9px;
+  }
+  .creation-timeline li:not(:last-child):after {
+    right: -62px;
   }
   .creation-timeline h2 {
     font-size: 15px;

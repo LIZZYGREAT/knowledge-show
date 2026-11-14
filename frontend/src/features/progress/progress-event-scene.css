@@ -2,15 +2,17 @@
   --scene-accent: #238c7d;
   --scene-accent-rgb: 35, 140, 125;
   position: relative;
-  height: clamp(336px, 31vw, 404px);
-  margin: 26px 0 14px;
+  height: clamp(364px, 32.5vw, 452px);
+  margin: 28px 0 16px;
   overflow: hidden;
   isolation: isolate;
   border: 1px solid rgba(46, 107, 78, 0.07);
   border-radius: 30px;
   background:
+    radial-gradient(ellipse at 14% 16%, rgba(114, 195, 177, 0.16), transparent 36%),
+    radial-gradient(ellipse at 86% 80%, rgba(207, 173, 114, 0.18), transparent 38%),
     radial-gradient(ellipse at 50% 42%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.5) 46%, rgba(255, 255, 255, 0) 74%),
-    linear-gradient(118deg, rgba(226, 239, 229, 0.52), rgba(255, 255, 255, 0.32) 50%, rgba(243, 232, 207, 0.45));
+    linear-gradient(118deg, rgba(226, 239, 229, 0.55), rgba(255, 255, 255, 0.32) 50%, rgba(243, 232, 207, 0.48));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.82),
     0 22px 48px -42px rgba(31, 72, 52, 0.55);
@@ -21,12 +23,21 @@
   position: absolute;
   left: 50%;
   top: 44%;
-  width: min(680px, 72%);
+  width: min(760px, 76%);
   aspect-ratio: 1;
   transform: translate(-50%, -50%);
   border-radius: 50%;
   background: radial-gradient(circle, rgba(114, 195, 177, 0.1), rgba(207, 173, 114, 0.05) 46%, transparent 68%);
   animation: progress-aurora 13s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+.progress-event-scene::after {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border: 1px solid rgba(46, 107, 78, 0.1);
+  border-radius: 22px;
   pointer-events: none;
 }
 
@@ -55,6 +66,114 @@
   --scene-accent-rgb: 152, 64, 42;
 }
 
+.progress-backdrop {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(46, 107, 78, 0.16) 1px, transparent 1.2px);
+  background-size: 24px 24px;
+  -webkit-mask-image: radial-gradient(ellipse at 50% 54%, transparent 28%, #000 80%);
+  mask-image: radial-gradient(ellipse at 50% 54%, transparent 28%, #000 80%);
+  opacity: 0.62;
+}
+
+.progress-sky {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.progress-sky-ribbon {
+  fill: none;
+  stroke-width: 68;
+  stroke-linecap: round;
+  opacity: 0.34;
+  filter: blur(18px);
+  vector-effect: non-scaling-stroke;
+}
+
+.progress-sky-lines path {
+  fill: none;
+  stroke: rgba(46, 107, 78, 0.28);
+  stroke-width: 1.2;
+  stroke-dasharray: 2 6;
+  vector-effect: non-scaling-stroke;
+}
+
+.progress-sky-dots line {
+  stroke: rgba(177, 136, 68, 0.45);
+  stroke-width: 3.8;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.progress-sky-dots line.mint {
+  stroke: rgba(46, 143, 124, 0.38);
+}
+
+.progress-sky-dots line.teal {
+  stroke: rgba(46, 107, 78, 0.36);
+}
+
+.progress-sky-orbit {
+  fill: none;
+  stroke: rgba(46, 107, 78, 0.38);
+  stroke-width: 1.6;
+  stroke-dasharray: 2 8;
+  vector-effect: non-scaling-stroke;
+  animation: progress-sky-flow 30s linear infinite;
+}
+
+.progress-sky-orbit.orbit-b {
+  stroke: rgba(207, 173, 114, 0.4);
+  stroke-dasharray: 1 9;
+  animation-duration: 42s;
+  animation-direction: reverse;
+}
+
+.progress-sky-orbit.orbit-c {
+  stroke: rgba(207, 173, 114, 0.32);
+  stroke-dasharray: 1 10;
+  animation-duration: 24s;
+}
+
+.progress-corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgba(177, 136, 68, 0.38);
+}
+
+.progress-corner.corner-tl {
+  top: 16px;
+  left: 18px;
+  border-width: 1px 0 0 1px;
+  border-top-left-radius: 10px;
+}
+
+.progress-corner.corner-tr {
+  top: 16px;
+  right: 18px;
+  border-width: 1px 1px 0 0;
+  border-top-right-radius: 10px;
+}
+
+.progress-corner.corner-bl {
+  bottom: 16px;
+  left: 18px;
+  border-width: 0 0 1px 1px;
+  border-bottom-left-radius: 10px;
+}
+
+.progress-corner.corner-br {
+  bottom: 16px;
+  right: 18px;
+  border-width: 0 1px 1px 0;
+  border-bottom-right-radius: 10px;
+}
+
 .progress-event-ornament {
   position: absolute;
   inset: 0;
@@ -77,26 +196,26 @@
 }
 
 .progress-track-base {
-  stroke-width: 1.8;
+  stroke-width: 2.2;
   opacity: 0.44;
 }
 
 .progress-track-guide {
   stroke: rgba(46, 107, 78, 0.22);
-  stroke-width: 1.5;
+  stroke-width: 1.8;
   stroke-dasharray: 4 9;
   opacity: 0.72;
   animation: progress-guide-flow 20s linear infinite;
 }
 
 .progress-track-aura {
-  stroke-width: 22;
-  opacity: 0.42;
+  stroke-width: 30;
+  opacity: 0.46;
   transition: stroke-dashoffset 1.25s cubic-bezier(0.22, 0.75, 0.25, 1);
 }
 
 .progress-track-fill {
-  stroke-width: 5.4;
+  stroke-width: 7;
   stroke-dasharray: 1000;
   filter: drop-shadow(0 1px 2px rgba(24, 55, 42, 0.16));
   transition: stroke-dashoffset 1.25s cubic-bezier(0.22, 0.75, 0.25, 1);
@@ -104,7 +223,7 @@
 
 .progress-track-shine {
   stroke: rgba(255, 255, 255, 0.66);
-  stroke-width: 1.4;
+  stroke-width: 1.6;
   stroke-dasharray: 1000;
   opacity: 0.9;
   transition: stroke-dashoffset 1.25s cubic-bezier(0.22, 0.75, 0.25, 1);
@@ -128,6 +247,10 @@
   stroke-width: 0.7;
 }
 
+.ambient-comets .progress-comet {
+  opacity: 0.62;
+}
+
 .comet-mint {
   filter: drop-shadow(0 0 6px rgba(88, 189, 164, 0.7));
 }
@@ -148,14 +271,14 @@
 
 .progress-stage-aura {
   position: absolute;
-  width: min(470px, 54%);
+  width: min(540px, 56%);
   aspect-ratio: 1;
   transform: translate(-50%, -50%);
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgba(var(--scene-accent-rgb), 0.2) 0,
-    rgba(var(--scene-accent-rgb), 0.08) 38%,
+    rgba(var(--scene-accent-rgb), 0.24) 0,
+    rgba(var(--scene-accent-rgb), 0.1) 38%,
     transparent 70%
   );
   transition: left 1.25s cubic-bezier(0.22, 0.75, 0.25, 1), top 1.25s cubic-bezier(0.22, 0.75, 0.25, 1);
@@ -165,7 +288,7 @@
   position: absolute;
   display: block;
   border-radius: 50%;
-  opacity: 0.42;
+  opacity: 0.62;
   animation: progress-mote-drift 7.5s ease-in-out infinite alternate;
   will-change: transform, opacity;
 }
@@ -185,6 +308,75 @@
   box-shadow: 0 0 13px rgba(207, 173, 114, 0.42);
 }
 
+.progress-mote.mote-soft {
+  filter: blur(1.2px);
+  opacity: 0.3;
+}
+
+.progress-twinkle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #fffdf6;
+  box-shadow:
+    0 0 7px 2px rgba(207, 173, 114, 0.5),
+    0 0 13px rgba(114, 195, 177, 0.34);
+  opacity: 0;
+  animation: progress-twinkle 4.6s ease-in-out infinite;
+}
+
+.progress-diamond {
+  position: absolute;
+  transform: rotate(45deg);
+  border: 1px solid rgba(207, 173, 114, 0.55);
+  background: rgba(255, 253, 247, 0.36);
+  box-shadow: 0 0 9px rgba(207, 173, 114, 0.22);
+  opacity: 0.52;
+  animation: progress-diamond-float 8s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+.progress-diamond.diamond-mint {
+  border-color: rgba(35, 140, 125, 0.42);
+  box-shadow: 0 0 9px rgba(35, 140, 125, 0.2);
+}
+
+.progress-diamond.diamond-teal {
+  border-color: rgba(46, 107, 78, 0.38);
+  box-shadow: 0 0 9px rgba(46, 107, 78, 0.16);
+}
+
+.progress-plus {
+  position: absolute;
+  opacity: 0.52;
+  animation: progress-plus-twinkle 6.4s ease-in-out infinite;
+}
+
+.progress-plus::before,
+.progress-plus::after {
+  content: "";
+  position: absolute;
+  border-radius: 2px;
+  background: rgba(177, 136, 68, 0.62);
+}
+
+.progress-plus::before {
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: 100%;
+  transform: translateX(-50%);
+}
+
+.progress-plus::after {
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  transform: translateY(-50%);
+}
+
 .progress-track-decor {
   position: absolute;
   inset: 0;
@@ -193,8 +385,8 @@
 
 .progress-milestone {
   position: absolute;
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   display: grid;
   place-items: center;
   transform: translate(-50%, -50%);
@@ -205,9 +397,35 @@
   transition: background 0.45s ease, border-color 0.45s ease, box-shadow 0.45s ease;
 }
 
+.progress-milestone::before {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border: 1px dashed rgba(46, 107, 78, 0.17);
+  border-radius: 50%;
+  transition: border-color 0.45s ease, border-style 0.45s ease;
+}
+
+.progress-milestone::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  opacity: 0.55;
+}
+
+.progress-milestone.is-passed::before {
+  border-style: solid;
+  border-color: rgba(177, 136, 68, 0.3);
+}
+
 .progress-milestone i {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: rgba(46, 107, 78, 0.18);
   transition: background 0.45s ease, transform 0.45s ease;
@@ -232,24 +450,49 @@
 
 .progress-head {
   position: absolute;
-  width: 148px;
-  height: 148px;
+  width: 176px;
+  height: 176px;
   transform: translate(-50%, -50%);
   transition: left 1.25s cubic-bezier(0.22, 0.75, 0.25, 1), top 1.25s cubic-bezier(0.22, 0.75, 0.25, 1);
   pointer-events: none;
+}
+
+.progress-head::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0 66%,
+    rgba(var(--scene-accent-rgb), 0.3) 78%,
+    transparent 90%
+  );
+  -webkit-mask: radial-gradient(circle, transparent 66%, #000 68%);
+  mask: radial-gradient(circle, transparent 66%, #000 68%);
+  animation: progress-head-spin 8s linear infinite;
+  opacity: 0.85;
+}
+
+.progress-head::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px dotted rgba(var(--scene-accent-rgb), 0.18);
+  border-radius: 50%;
 }
 
 .progress-head-halo {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(var(--scene-accent-rgb), 0.3) 0, rgba(var(--scene-accent-rgb), 0.12) 38%, transparent 70%);
+  background: radial-gradient(circle, rgba(var(--scene-accent-rgb), 0.34) 0, rgba(var(--scene-accent-rgb), 0.14) 38%, transparent 70%);
   animation: progress-head-breathe 3.4s ease-in-out infinite;
 }
 
 .progress-head-orbit {
   position: absolute;
-  inset: 22px;
+  inset: 26px;
   border: 1.2px dashed rgba(var(--scene-accent-rgb), 0.44);
   border-radius: 50%;
   animation: progress-head-spin 12s linear infinite;
@@ -257,7 +500,7 @@
 
 .progress-head-satellite {
   position: absolute;
-  inset: 18px;
+  inset: 21px;
   border-radius: 50%;
   animation: progress-head-spin 7.4s linear infinite;
 }
@@ -275,7 +518,7 @@
 }
 
 .progress-head-satellite.satellite-two {
-  inset: 10px;
+  inset: 12px;
   animation: progress-head-spin 11.5s linear infinite reverse;
 }
 
@@ -289,7 +532,7 @@
 
 .progress-head-ring {
   position: absolute;
-  inset: 40px;
+  inset: 47px;
   border: 2.5px solid rgba(var(--scene-accent-rgb), 0.72);
   border-radius: 50%;
   background: radial-gradient(circle at 42% 34%, #ffffff 0 32%, #f4f7f0 70%, #e6efe4 100%);
@@ -302,7 +545,7 @@
 
 .progress-head-core {
   position: absolute;
-  inset: 61px;
+  inset: 72px;
   border-radius: 50%;
   background: var(--scene-accent);
   box-shadow:
@@ -312,7 +555,7 @@
 
 .progress-head-surge {
   position: absolute;
-  inset: 30px;
+  inset: 36px;
   border: 2px solid rgba(var(--scene-accent-rgb), 0.52);
   border-radius: 50%;
   animation: progress-head-surge 1.15s cubic-bezier(0.22, 0.75, 0.25, 1) both;
@@ -320,14 +563,14 @@
 
 .progress-complete-flare {
   position: absolute;
-  inset: 32px;
+  inset: 39px;
   border: 2px solid rgba(207, 173, 114, 0.72);
   border-radius: 50%;
   animation: progress-complete-flare 1.8s cubic-bezier(0.16, 0.75, 0.3, 1) both;
 }
 
 .progress-complete-flare.flare-two {
-  inset: 24px;
+  inset: 29px;
   border-color: rgba(177, 136, 68, 0.38);
   animation-delay: 0.22s;
 }
@@ -396,6 +639,15 @@
   overflow-wrap: anywhere;
   visibility: hidden;
   will-change: transform, opacity;
+}
+
+.progress-flight-label::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: inherit;
+  pointer-events: none;
 }
 
 .progress-flight-label.stage-script {
@@ -473,6 +725,20 @@
   box-shadow: 0 0 7px rgba(74, 168, 146, 0.6);
 }
 
+.progress-flight-spark.spark-3 {
+  width: 3px;
+  height: 3px;
+  background: #c4ebe0;
+  box-shadow: 0 0 6px rgba(196, 235, 224, 0.7);
+}
+
+.progress-flight-spark.spark-4 {
+  width: 5px;
+  height: 5px;
+  background: #e3c993;
+  box-shadow: 0 0 8px rgba(227, 201, 147, 0.7);
+}
+
 .progress-static-events {
   display: none;
 }
@@ -529,6 +795,7 @@
   animation: none;
 }
 
+.progress-event-scene.motion-limited .progress-head::before,
 .progress-event-scene.motion-limited .progress-head-halo,
 .progress-event-scene.motion-limited .progress-head-orbit,
 .progress-event-scene.motion-limited .progress-head-satellite,
@@ -536,8 +803,16 @@
 .progress-event-scene.motion-limited .progress-track-guide,
 .progress-event-scene.motion-limited .progress-track-shimmer,
 .progress-event-scene.motion-limited .progress-mote,
+.progress-event-scene.motion-limited .progress-twinkle,
+.progress-event-scene.motion-limited .progress-diamond,
+.progress-event-scene.motion-limited .progress-plus,
+.progress-event-scene.motion-limited .progress-sky-orbit,
 .progress-event-scene.motion-limited .progress-milestone {
   animation: none;
+}
+
+.progress-event-scene.motion-limited .progress-twinkle {
+  opacity: 0;
 }
 
 .progress-event-scene.motion-limited .progress-head-surge,
@@ -586,8 +861,27 @@
 }
 
 @keyframes progress-mote-drift {
-  from { transform: translate3d(0, 0, 0) scale(0.82); opacity: 0.24; }
-  to { transform: translate3d(7px, -11px, 0) scale(1.15); opacity: 0.52; }
+  from { transform: translate3d(0, 0, 0) scale(0.82); opacity: 0.36; }
+  to { transform: translate3d(7px, -11px, 0) scale(1.15); opacity: 0.74; }
+}
+
+@keyframes progress-twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.4); }
+  45%, 55% { opacity: 0.95; transform: scale(1); }
+}
+
+@keyframes progress-diamond-float {
+  from { transform: translate3d(0, 0, 0) rotate(45deg) scale(0.85); opacity: 0.36; }
+  to { transform: translate3d(6px, -9px, 0) rotate(58deg) scale(1.1); opacity: 0.62; }
+}
+
+@keyframes progress-sky-flow {
+  to { stroke-dashoffset: -220; }
+}
+
+@keyframes progress-plus-twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.82) rotate(0deg); }
+  50% { opacity: 0.62; transform: scale(1.05) rotate(8deg); }
 }
 
 @keyframes progress-complete-flare {
@@ -609,26 +903,43 @@
 
 @media (max-width: 760px) {
   .progress-event-scene {
-    height: 306px;
-    margin: 20px -2px 10px;
+    height: 332px;
+    margin: 22px -2px 10px;
     border-radius: 24px;
   }
 
-  .progress-head {
-    width: 108px;
-    height: 108px;
+  .progress-event-scene::after {
+    inset: 7px;
+    border-radius: 18px;
   }
 
-  .progress-head-orbit { inset: 16px; }
-  .progress-head-ring { inset: 29px; }
-  .progress-head-core { inset: 44px; }
-  .progress-head-surge { inset: 22px; }
-  .progress-complete-flare { inset: 24px; }
+  .progress-corner {
+    width: 14px;
+    height: 14px;
+  }
+
+  .progress-corner.corner-tl { top: 12px; left: 13px; }
+  .progress-corner.corner-tr { top: 12px; right: 13px; }
+  .progress-corner.corner-bl { bottom: 12px; left: 13px; }
+  .progress-corner.corner-br { bottom: 12px; right: 13px; }
+
+  .progress-head {
+    width: 112px;
+    height: 112px;
+  }
+
+  .progress-head-orbit { inset: 17px; }
+  .progress-head-satellite { inset: 14px; }
+  .progress-head-satellite.satellite-two { inset: 8px; }
+  .progress-head-ring { inset: 30px; }
+  .progress-head-core { inset: 46px; }
+  .progress-head-surge { inset: 23px; }
+  .progress-complete-flare { inset: 25px; }
   .progress-complete-flare.flare-two { inset: 18px; }
 
   .progress-milestone {
-    width: 15px;
-    height: 15px;
+    width: 16px;
+    height: 16px;
   }
 
   .progress-flight-label {
@@ -671,6 +982,7 @@
   }
 
   .progress-event-scene::before,
+  .progress-event-scene .progress-head::before,
   .progress-event-scene .progress-head-halo,
   .progress-event-scene .progress-head-orbit,
   .progress-event-scene .progress-head-satellite,
@@ -678,6 +990,10 @@
   .progress-event-scene .progress-track-guide,
   .progress-event-scene .progress-track-shimmer,
   .progress-event-scene .progress-mote,
+  .progress-event-scene .progress-twinkle,
+  .progress-event-scene .progress-diamond,
+  .progress-event-scene .progress-plus,
+  .progress-event-scene .progress-sky-orbit,
   .progress-event-scene .progress-complete-flare,
   .progress-event-scene .progress-milestone {
     animation: none !important;
