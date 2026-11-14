@@ -237,7 +237,7 @@ class RevisionRequestStore:
             elif anchor_kind == "time_range":
                 if kind == "animation_manifest":
                     duration = manifest.get("total_duration_ms") if manifest else None
-                elif kind == "production_script":
+                elif script is not None:
                     duration = script.get("total_duration_ms") if script else None
                 else:
                     duration = project["brief"]["effective"].get("target_duration_ms")

@@ -714,6 +714,17 @@ async def test_revision_anchors_resolve_against_exact_published_mock_artifacts(t
                 )
                 rejected.append((request_id, response))
 
+            project_range = await client.post(
+                f"/api/projects/{project['project_id']}/revision-requests",
+                json=_anchored_revision_request(
+                    project,
+                    request_id="RR_PROJECT_RANGE_EXCEEDS_SCRIPT",
+                    target_kind="project_state",
+                    anchors=[{"kind": "time_range", "start_ms": 0, "end_ms": 30001}],
+                ),
+            )
+            rejected.append(("RR_PROJECT_RANGE_EXCEEDS_SCRIPT", project_range))
+
             stale_target = _anchored_revision_request(
                 project,
                 request_id="RR_STALE_MANIFEST",
