@@ -1,12 +1,12 @@
 # knowledge-show 当前项目状态
 
-> `main@16affe4` 是本次集成的共同基线，已包含 PR #13 的本地任务 API 与知识→脚本流程。当前分支 `integration/mainline-animation-pr16` 合入了 PR #14 主链路交接修复和 PR #15 动画运行时/工作台能力；这些改动尚未进入 `main`。PR #14、#15 仍保持打开，本分支用于合并评审 PR #16。
+> `main@82c6aaa` 已合并 PR #16，包含主链路交接修复与动画运行时/工作台能力。当前任务分支 `fix/user-experience-design-review` 基于该提交，执行 `docs/tasks/open/backend/用户体验与过度设计审查.md`；新主题真实模型验收仍未执行。
 
 ## 主线与分支状态
 
 - **main 已完成**：知识→脚本本地任务闭环、ProjectState 与精确产物版本、React 进度页、动画脚本交接及候选 Manifest 接收入口。
-- **当前集成分支**：主链路修复覆盖完整需求快照与恢复、脚本摘要独立重读、动画候选绑定当前脚本/Brief、Manifest 关系约束、修订锚点解析和安全失败诊断。动画层提供受控场景生成、浏览器检查后发布、真实工作台、局部修订、版本回退及 MP4 导出。
-- **集成边界**：候选 Manifest 仍不会成为当前动画；正式动画版本经真实播放器检查后以 CAS 发布。修订锚点只从当前精确、已发布的产物解析，动画候选不会作为已发布版本读取。上游知识/脚本反馈可路由保存，但不会由动画层静默改写。
+- **main 当前能力**：主链路修复覆盖完整需求快照与恢复、脚本摘要独立重读、动画候选绑定当前脚本/Brief、Manifest 关系约束、修订锚点解析和安全失败诊断。动画层提供受控场景生成、浏览器检查后发布、真实工作台、局部修订、版本回退及 MP4 导出。
+- **生产边界**：候选 Manifest 仍不会成为当前动画；正式动画版本经真实播放器检查后以 CAS 发布。修订锚点只从当前精确、已发布的产物解析，动画候选不会作为已发布版本读取。上游知识/脚本反馈可路由保存，但不会由动画层静默改写。
 - **当前限制**：PN 固定样本已覆盖完整导出；新主题模型生成仅用注入客户端验证，尚未进行付费模型视觉验收。脚本真实模型验收也未在本轮执行。配音和音效尚未接入。
 
 ## 当前可用状态
@@ -18,9 +18,9 @@
 - **固定样片导出**：PN v2 七幕、165 秒样片已实际编码为 H.264、1280×720、24fps、3960 帧；预览与视频采样帧 SSIM 为 0.988581–0.993574。没有配音或音效。导出复用纯视频 Player，不包括工作台覆盖物。运行细节见 `docs/work/frontend/animation/运行时与首幕预览.md`。
 - **契约**：现行五类 Schema 和跨对象校验位于 `contracts/`。本次集成没有改变公共 Schema；动画 bundle 与风格档案仍是内部实现数据。
 
-## 本次集成验证
+## PR #16 集成验证
 
-本节在 PR #16 集成分支上记录实际执行结果。后端 `PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests --import-mode=importlib -q`：120 项通过；`.venv/bin/python contracts/validate_contracts.py`：PASS；前端 `npm run build`：通过、`npm test`：14 项通过；Playwright E2E：32 项通过（隔离 Vite 端口 5174，Chromium 系统库通过 `LD_LIBRARY_PATH` 提供）。后端 pytest 和浏览器服务需在沙箱外执行，因为受限沙箱会阻止本地绑定端口或挂起后台线程。动画精确发布版本锚点解析有新增回归覆盖；候选 Manifest 仍按预期被拒绝。主链路修复分支和动画分支此前各自的测试记录可在对应提交历史查看。
+PR #16 集成验证记录：后端 `PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests --import-mode=importlib -q`：120 项通过；`.venv/bin/python contracts/validate_contracts.py`：PASS；前端 `npm run build`：通过、`npm test`：14 项通过；Playwright E2E：32 项通过（隔离 Vite 端口 5174，Chromium 系统库通过 `LD_LIBRARY_PATH` 提供）。后端 pytest 和浏览器服务需在沙箱外执行，因为受限沙箱会阻止本地绑定端口或挂起后台线程。动画精确发布版本锚点解析有回归覆盖；候选 Manifest 仍按预期被拒绝。
 
 ## 责任与活动任务
 
@@ -28,16 +28,17 @@
 | --- | --- | --- |
 | `backend/src/knowledge/`、`backend/tests/knowledge/` | 成员 A（知识层） | 首版、16:9 配置和 83 项知识层测试已进入 `main` |
 | `backend/src/script/`、`backend/tests/script/` | 成员 B（脚本层） | 结构化生成、有限修复、校验和版本发布已实现；本轮未做真实模型脚本验收 |
-| `frontend/src/animation/`、`frontend/src/features/` | 按团队当前任务认领 | 集成分支已接通创作页、动画预览、真实工作台、定向修订和同源导出 |
-| `backend/src/workflow/`、`backend/src/api/`、`contracts/` | 双方按任务协商 | 集成分支含精确状态/产物交接、候选校验、检查后动画发布及修订锚点验证 |
+| `frontend/src/animation/`、`frontend/src/features/` | 按团队当前任务认领 | main 已接通创作页、动画预览、真实工作台、定向修订和同源导出 |
+| `backend/src/workflow/`、`backend/src/api/`、`contracts/` | 双方按任务协商 | main 含精确状态/产物交接、候选校验、检查后动画发布及修订锚点验证 |
 
-- 后端主链路方案：`docs/tasks/open/backend/主链路收尾修订方案.md`；实现已带入集成分支，保留在 open 等负责人验收。
-- 主工作流交接补全方案：`docs/tasks/open/backend/主工作流交接补全执行方案.md`；实现已带入集成分支，保留在 open 等负责人验收。
+- 当前任务：`docs/tasks/open/backend/用户体验与过度设计审查.md`，分支 `fix/user-experience-design-review`，基于 `main@82c6aaa` 执行中；没有进行付费真实模型验收。
+- 后端主链路方案：`docs/tasks/open/backend/主链路收尾修订方案.md`；实现已进入 main，方案保留在 open 等负责人验收。
+- 主工作流交接补全方案：`docs/tasks/open/backend/主工作流交接补全执行方案.md`；实现已进入 main，方案保留在 open 等负责人验收。
 - 动画层与工作台方案：`docs/tasks/open/frontend/动画层与工作台接入执行方案.md`；固定样片 P1–P4 已实现，保留在 open 等待产品/视觉验收。
 
 ## 下一步
 
-- 评审并集成 PR #16；PR #14 和 PR #15 是本集成分支的来源，仍保持打开。
+- 按当前用户体验审查方案，先完成静音字幕规则、连续进度与动画生成恢复，再处理修订/知识门槛等问题。
 - 对新主题继续审查知识机制、关键帧、运动和美术质量；固定 PN 样片不替代新主题验收。
 - 由知识/脚本执行器消费动画层保存的上游反馈；动画层不静默改写上游成果。
 
