@@ -198,6 +198,10 @@ input::placeholder {
   transform: rotate(-2deg);
 }
 .hero-subtitle {
+  max-width: 25em;
+  text-wrap: pretty;
+  line-height: 1.9;
+  padding-right: 24px;
   font-size: 18px;
   color: var(--ks-muted);
   margin: 25px 0 32px;

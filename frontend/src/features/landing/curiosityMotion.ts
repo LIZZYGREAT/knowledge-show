@@ -27,7 +27,7 @@ export function combinationState(index: number, time: number) {
     x: x + (427 + (sum - 2) * 20 - x) * gather + Math.sin(gather * Math.PI) * (row - 2.5) * 9,
     y: y + (466 - rank * 10 - y) * gather - Math.sin(gather * Math.PI) * 30,
     radius: (10 - gather * 6.6) * (.5 + grow * .5), opacity: grow,
-    highlight: sum === 7 ? easeBetween(t, 5.1 + row * .15, 5.5 + row * .15) : 0,
+    highlight: sum === 7 ? easeBetween(t, 5.1 + row * .15, 5.5 + row * .15) * (1 - easeBetween(t, 9.5, 10.1)) : 0,
     win: sum === 7, gather,
   };
 }

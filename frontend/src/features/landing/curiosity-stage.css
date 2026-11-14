@@ -16,3 +16,23 @@
 .curiosity-artwork .stage-small { font-size: 15px; fill: #788571; }
 .curiosity-artwork .stage-gold { fill: #987435; font-weight: 600; }
 .curiosity-stage figcaption { text-align: center; font-size: 13px; letter-spacing: .08em; color: var(--ks-muted); margin-top: -14px; }
+.curiosity-artwork .stage-distribution text { font-size: 12px; }
+@media (min-width: 1001px) {
+  .curiosity-theatre { max-height: calc(100svh - 240px); }
+}
+@media (max-width: 1000px) {
+  .curiosity-stage { margin: -8px -16px 0; }
+  .curiosity-stage figcaption { font-size: 12px; letter-spacing: .02em; }
+}
+@media (max-width: 600px) {
+  .curiosity-stage { width: 100%; max-width: 430px; margin: 4px auto 16px; overflow: clip; }
+  .curiosity-theatre { aspect-ratio: 560 / 480; }
+  .curiosity-artwork .stage-small { font-size: 18px; }
+  .curiosity-artwork .stage-axis { font-size: 17px; }
+  .curiosity-stage figcaption { margin: 10px 0 0; font-size: 12px; }
+  .curiosity-artwork .stage-distribution text { font-size: 16px; }
+  .stage-distribution [data-sum="3"],
+  .stage-distribution [data-sum="5"],
+  .stage-distribution [data-sum="9"],
+  .stage-distribution [data-sum="11"] { display: none; }
+}

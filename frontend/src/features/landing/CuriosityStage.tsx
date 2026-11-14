@@ -37,7 +37,7 @@ export function CuriosityStage({ pose }: { pose?: number }) {
   const id = useId().replace(/:/g, "");
   return <figure ref={ref} className="curiosity-stage" data-time={time.toFixed(3)} data-paused={pose !== undefined || motion.paused} data-pose={(t / STAGE_DURATION).toFixed(3)} aria-label="知识动画演示：两个公平六面骰子共有36种等可能的有序组合，其中6种点数和为7，比其他点数和的组合都多。">
     <div className="curiosity-theatre">
-      <svg className="curiosity-artwork" viewBox="0 0 800 640" aria-hidden="true" focusable="false">
+      <svg className="curiosity-artwork" viewBox={motion.compact ? "140 65 560 480" : "0 0 800 640"} aria-hidden="true" focusable="false">
         <defs>
           <linearGradient id={`${id}-paper`} x2=".8" y2="1"><stop stopColor="#fffef8"/><stop offset="1" stopColor="#eceee2"/></linearGradient>
           <linearGradient id={`${id}-ivory`} x2=".8" y2="1"><stop stopColor="#fffef4"/><stop offset="1" stopColor="#e8e3ce"/></linearGradient>
@@ -85,14 +85,14 @@ export function CuriosityStage({ pose }: { pose?: number }) {
           {Array.from({ length: 11 }, (_, i) => {
             const sum = i + 2;
             return <g key={sum}>
-              <text x={427 + i * 20} y="485" textAnchor="middle" className={sum === 7 ? "stage-axis stage-gold" : "stage-axis"}>{sum}</text>
+              <text data-sum={sum} x={427 + i * 20} y="485" textAnchor="middle" className={sum === 7 ? "stage-axis stage-gold" : "stage-axis"}>{sum}</text>
             </g>;
           })}
         </g>
         <path d="M99 394Q146 462 189 438" fill="none" stroke="#bfa56d" strokeWidth=".8"/>
         <circle cx="108" cy="405" r="3" fill="#c9a75f"/>
       </svg>
-      <IdeaSeed style={{ left: "18%", top: "65%" }}/>
+      <IdeaSeed style={{ left: motion.compact ? "2%" : "18%", top: motion.compact ? "73%" : "65%" }}/>
     </div>
     <figcaption>36 种等可能的组合，6 种相加为 7。</figcaption>
   </figure>;
