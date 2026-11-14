@@ -34,7 +34,7 @@ PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests/knowledge -q
 PYTHONPATH=backend/src STREAMLIT_SERVER_ADDRESS=127.0.0.1 STREAMLIT_SERVER_PORT=8501 .venv/bin/python -m streamlit run backend/src/knowledge/devtools/review_app.py
 ```
 
-当前集成分支的 83 项知识层测试通过；契约校验覆盖五类 Schema、连贯样例、十三种负例和非推荐方向切换。四份历史 ProductionScript 也通过新版 Schema 校验。真实 API 验收覆盖基础定义、进阶自注意力机制和带 `focus` / `must_include` 的骰子概率主题。本次跨层消费 Smoke 使用已发布知识包和固定 ProjectState / ProductionScript Mock，不调用 API；它检查版本引用、方向、时间轴及锚点事件映射，不代表真实脚本生成或动画播放已打通。前端分支已记录生产构建、7 项逻辑测试和 8 项 Chromium 浏览器测试通过。
+当前集成分支的 83 项知识层测试通过；契约校验覆盖五类 Schema、连贯样例、十三种负例和非推荐方向切换。四份历史 ProductionScript 也通过新版 Schema 校验。真实 API 验收覆盖基础定义、进阶自注意力机制和带 `focus` / `must_include` 的骰子概率主题。本次跨层消费 Smoke 使用已发布知识包和固定 ProjectState / ProductionScript Mock，不调用 API；它检查版本引用、方向、时间轴及锚点事件映射，不代表真实脚本生成或动画播放已打通。前端分支的纸艺视觉重构已通过生产构建、7 项逻辑测试和 11 项 Chromium 浏览器测试，覆盖五种屏宽、字段保留及实体转场。
 
 ## 目录与文档入口
 

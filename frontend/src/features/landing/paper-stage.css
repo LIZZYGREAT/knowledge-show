@@ -1,0 +1,76 @@
+.living-paper-stage {
+  margin: 0;
+  min-width: 0;
+  align-self: center;
+  position: relative;
+}
+.paper-theatre {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 720/560;
+}
+.paper-shape {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.living-paper-stage figcaption {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-align: center;
+  color: var(--ks-muted);
+  margin-top: 10px;
+}
+.idea-seed {
+  display: block;
+  width: 8%;
+  aspect-ratio: 1;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  view-transition-name: idea-seed;
+  z-index: 2;
+  border-radius: 50%;
+  isolation: isolate;
+}
+.seed-core {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at 30% 25%,
+    #7ca28a 0%,
+    #376e50 35%,
+    #193e2a 78%
+  );
+  box-shadow:
+    inset -3px -5px 7px #102c2633,
+    0 4px 5px #1a342621;
+}
+.living-paper-stage[data-settled="true"] .seed-core {
+  animation: seed-rest 7s ease-in-out infinite;
+}
+.living-paper-stage[data-paused="true"] .seed-core {
+  animation-play-state: paused;
+}
+@keyframes seed-rest {
+  50% {
+    transform: translateY(-2px) rotate(-3deg);
+  }
+}
+@media (max-width: 600px) {
+  .paper-ground-shadow {
+    filter: none;
+    opacity: 0.08;
+  }
+  .living-paper-stage figcaption {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .seed-core {
+    animation: none !important;
+  }
+}

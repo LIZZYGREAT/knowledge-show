@@ -1,4 +1,4 @@
-import { KnowledgeScene } from "../landing/LandingHero";
+import { IdeaSeed } from "../landing/LivingPaperStage";
 import { type FormEvent, useRef } from "react";
 import { depths, modes, type Draft } from "../../common/creation";
 const examples = [
@@ -22,32 +22,41 @@ export function CreationComposer({
   const topicRef = useRef<HTMLTextAreaElement>(null);
   const change = (key: keyof Draft, value: string) =>
     onChange({ ...draft, [key]: value });
-  const field = (key: keyof Draft, label: string, placeholder: string) => (
-    <label className="field">
-      {label}
+  const field = (
+    key: keyof Draft,
+    label: string,
+    placeholder: string,
+    wide = false,
+  ) => (
+    <div className={`field ${wide ? "field-wide" : ""}`}>
+      <label htmlFor={`preference-${key}`}>{label}</label>
       <textarea
+        id={`preference-${key}`}
         value={draft[key]}
         onChange={(e) => change(key, e.target.value)}
         placeholder={placeholder}
-        rows={3}
+        rows={2}
       />
-    </label>
+    </div>
   );
   const submit = (e: FormEvent) => {
     e.preventDefault();
     onSubmit();
   };
   return (
-    <main className="composer page-enter">
+    <main className="composer">
       <div className="composer-heading">
-        <KnowledgeScene small />
         <p className="eyebrow">A LITTLE CURIOSITY GOES A LONG WAY</p>
         <h1>从一个问题开始。</h1>
         <p>你负责好奇，我们让它成为故事。</p>
       </div>
       <form onSubmit={submit}>
         <label className="topic-label" htmlFor="topic">
-          你想让大家了解什么？<span>必填</span>
+          <span className="topic-prompt">
+            <IdeaSeed />
+            你想让大家了解什么？
+          </span>
+          <span className="required-label">必填</span>
         </label>
         <div className={`topic-stage ${draft.topic ? "has-topic" : ""}`}>
           <textarea
@@ -135,26 +144,22 @@ export function CreationComposer({
                 ))}
               </div>
             </fieldset>
-            {field(
-              "art_style",
-              "美术风格偏好",
-              "例如：纸张质感、克制的线条与暖色",
-            )}
+            <label className="field">
+              美术风格偏好
+              <input
+                value={draft.art_style}
+                onChange={(e) => change("art_style", e.target.value)}
+                placeholder="例如：纸张质感、克制的线条与暖色"
+              />
+            </label>
             {field(
               "creative_idea",
               "你的创意",
               "例如：从一个生活中的小误会讲起",
+              true,
             )}
-            {field(
-              "must_include",
-              "希望包含的内容（每行一项）",
-              "一个贴近日常的例子",
-            )}
-            {field(
-              "must_avoid",
-              "希望避开的内容（每行一项）",
-              "过于复杂的公式",
-            )}
+            {field("must_include", "想出现的内容", "一个贴近日常的例子")}
+            {field("must_avoid", "希望避开的内容", "过于复杂的公式")}
           </div>
         </details>
         <div className="form-bottom">
