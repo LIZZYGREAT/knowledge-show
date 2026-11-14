@@ -29,9 +29,9 @@ PR #16 集成验证记录：后端 `PYTHONPATH=backend/src .venv/bin/python -m p
 
 ## 首页知识剧场验证
 
-`feat/home-curiosity-stage` 首页改为纸艺骰子概率演示，复用外围丝带与可见性调度，10.5 秒连续循环覆盖骰子落定、36 个有序组合展开、六组和为 7 的高亮、数量分布和收拢。减少动画直接展示完整结论；旧 `LivingFlowScene` 保留。首页演示不影响生产动画风格、API 或公共 Schema。
+`feat/home-curiosity-stage` 首页保留青绿流体开场，通过柔和的不规则墨晕衔接到纸艺骰子及组合演示。14.5 秒循环覆盖流体收拢、墨晕揭示、骰子落定、组合展开、数量分布和收回流体；不包含后续波纹、螺旋及三维骰子版本。减少动画直接展示结论，离屏、失焦或页面隐藏时暂停；旧 `LivingFlowScene` 保留。首页不影响生产动画风格、API 或公共 Schema。
 
-前端 `npm run build` 通过，`npm test` 16 项通过；`npm run test:e2e -- --workers=2 --output=/tmp/ks-stage-e2e-final` 35 项通过；回环高亮淡出收尾后另跑舞台定向回归 3 项通过（Chromium，提供 `LD_LIBRARY_PATH` / `FONTCONFIG_FILE` / `PLAYWRIGHT_BROWSERS_PATH`）。实际截图覆盖 1440×900、1280×720、390px 手机与减少动画，以及初始、滚动、组合、结论和循环边界；已录制两轮真实播放。本机 5 秒抽样约 29.8 次状态更新/秒，页面无 JS 错误；不代表真实移动设备性能。临时截图与录屏位于 `/tmp/ks-stage-*`，不入库。负责人视觉确认与 Safari / 真机验收待完成，任务留在 open。
+前端 `npm run build` 通过，`npm test` 17 项通过；`npm run test:e2e -- --workers=2 --output=/tmp/ks-ink-only-e2e` 36 项通过（Chromium，提供 `LD_LIBRARY_PATH` / `FONTCONFIG_FILE` / `PLAYWRIGHT_BROWSERS_PATH`）。浏览器回归检查墨晕转场、波纹/螺旋元素不存在、遮罩中的完整知识文字、暂停恢复及既有创作与工作台流程。实际截图覆盖 1440×900、1280×720、390px 手机与减少动画，以及流体、墨晕、骰子、组合、结论和循环边界，位于 `/tmp/ks-ink-only-*`。预览录屏为 `/tmp/ks-ink-only-preview.mp4`。负责人视觉确认与 Safari / 真机验收待完成，任务留在 open。
 
 ## 责任与活动任务
 

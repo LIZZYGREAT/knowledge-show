@@ -1,7 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { combinationState, stageState, STAGE_DURATION, STATIC_STAGE_TIME } from "../src/features/landing/curiosityMotion";
+import { combinationState, stageState, inkState, STAGE_DURATION, STATIC_STAGE_TIME } from "../src/features/landing/curiosityMotion";
 
 describe("dice demonstration", () => {
+  it("reveals the full knowledge scene in ink and restores the silk at the loop seam", () => {
+    const full = inkState(STATIC_STAGE_TIME);
+    expect(full.bloom).toBe(1);
+    expect(full.silkOpacity).toBe(0);
+    const initial = inkState(0);
+    const end = inkState(STAGE_DURATION - .001);
+    for (const key of ["bloom", "fold", "silkOpacity", "scale", "flowTime"] as const) {
+      expect(end[key]).toBeCloseTo(initial[key], 3);
+    }
+  });
   it("preserves all 36 ordered outcomes and their triangular sum distribution", () => {
     const groups = new Map<number, Set<number>>();
     let highlighted = 0;
