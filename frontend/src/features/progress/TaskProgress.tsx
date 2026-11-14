@@ -1,12 +1,13 @@
 import { AnimationHandoff, type AnimationPhase } from './AnimationHandoff';
 import { useEffect, useState } from "react";
+import { ProgressEventScene, type ProgressSceneStatus } from "./ProgressEventScene";
 import {
   getJob,
   getProductionScript,
   type JobSnapshot,
   type ProductionScriptSummary,
 } from "../../common/api";
-import { stageNames, stageOrder } from "../../common/progress";
+import { stageNames, stageOrder, type Stage } from "../../common/progress";
 
 const stageCopy: Record<string, string> = {
   pending: "尚未开始",
@@ -120,6 +121,19 @@ export function TaskProgress({
   const animationReady = animationPhase === "ready";
   const animationRunning = animationPhase === "running";
   const animationFailed = animationPhase === "failed";
+  const sceneStage: Stage = ready ? "animation" : job?.current_stage ?? "knowledge";
+  const stageStatus = job?.stages[sceneStage];
+  const normalizedStageStatus: ProgressSceneStatus = ["pending", "running", "completed", "failed"].includes(stageStatus ?? "")
+    ? stageStatus as ProgressSceneStatus
+    : "pending";
+  const sceneStatus: ProgressSceneStatus = failed
+    ? "failed"
+    : sceneStage === "animation" && ready
+      ? animationReady ? "completed" : animationRunning ? "running" : animationFailed ? "failed" : "pending"
+      : normalizedStageStatus;
+  const currentMessage = ready
+    ? jobError || scriptError || animationMessage
+    : jobError || scriptError || job?.message || "正在读取任务状态。";
 
   return (
     <main className="generation page-enter">
@@ -162,21 +176,9 @@ export function TaskProgress({
           );
         })}
       </ol>
-      <div className={`progress-scene real-progress-scene ${failed || ready ? "paused" : ""}`}>
-        <svg viewBox="0 0 1000 260" preserveAspectRatio="none" aria-hidden="true">
-          <path d="M0 180 C160 180 160 50 330 100 S550 240 680 120 S880 80 1000 70" />
-        </svg>
-        <div className="event-bubbles" aria-live="polite">
-          <div className="event-bubble bubble-0">
-            <span />
-            {ready ? animationMessage : job?.message ?? "正在连接本地创作服务"}
-          </div>
-        </div>
-      </div>
+      <ProgressEventScene stage={sceneStage} status={sceneStatus} streamKey={jobId} />
       <p className="current-action" role="status">
-        {ready
-          ? jobError || scriptError || animationMessage
-          : jobError || scriptError || job?.message || "正在读取任务状态。"}
+        {currentMessage}
       </p>
       {ready && script && (
         <section className="script-overview" aria-label="脚本概览">

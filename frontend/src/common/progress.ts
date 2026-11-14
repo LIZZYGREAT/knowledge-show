@@ -7,12 +7,14 @@ export const stageNames: Record<Stage, string> = {
 export const stageOrder: Stage[] = ["knowledge", "script", "animation"];
 export type Progress = {
   stages: Record<Stage, "pending" | "running" | "completed" | "failed">;
-  messages: { id: number; text: string }[];
+  messages: { id: number; stage: Stage; text: string }[];
+  nextMessageId: number;
   error: boolean;
 };
 export const emptyProgress = (): Progress => ({
   stages: { knowledge: "pending", script: "pending", animation: "pending" },
   messages: [],
+  nextMessageId: 1,
   error: false,
 });
 // Local UI adapter, not a new shared transport contract. Only delivery.completed
@@ -102,9 +104,7 @@ export function applyEvent(state: Progress, e: UiEvent): Progress {
             ? "failed"
             : "running",
     },
-    messages: [
-      ...state.messages,
-      { id: (state.messages.at(-1)?.id ?? 0) + 1, text: e.text },
-    ].slice(-4),
+    messages: [...state.messages, { id: state.nextMessageId, stage: e.stage, text: e.text }].slice(-4),
+    nextMessageId: state.nextMessageId + 1,
   };
 }

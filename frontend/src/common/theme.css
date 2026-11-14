@@ -670,75 +670,9 @@ summary span {
   border-color: var(--ks-bad);
   color: var(--ks-bad);
 }
-.progress-scene {
-  height: 285px;
-  position: relative;
-  margin: 35px 0 15px;
-}
-.progress-scene > svg {
-  width: 100%;
-  height: 100%;
-  stroke: var(--ks-line-strong);
-  stroke-width: 1;
-  fill: none;
-}
-.event-bubbles {
-  position: absolute;
-  inset: 0;
-}
-.event-bubble {
-  position: absolute;
-  border: 1px solid var(--ks-line);
-  background: var(--ks-surface-soft);
-  padding: 13px 18px;
-  border-radius: 24px;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  animation:
-    bubble-enter 0.4s ease both,
-    drift 7s ease-in-out 0.4s infinite alternate;
-  max-width: 42%;
-}
-.event-bubble > span {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--ks-accent);
-  flex-shrink: 0;
-}
-.bubble-0 {
-  left: 2%;
-  top: 39%;
-}
-.bubble-1 {
-  left: 30%;
-  top: 8%;
-  animation-duration: 0.4s, 8s;
-}
-.bubble-2 {
-  left: 43%;
-  top: 70%;
-  animation-duration: 0.4s, 6s;
-}
-.bubble-3 {
-  right: 0;
-  top: 34%;
-  animation-duration: 0.4s, 9s;
-}
-.paused .event-bubble {
-  animation-play-state: paused;
-}
-.paused ~ .current-action {
-  color: var(--ks-muted);
-}
 .current-action {
   min-height: 52px;
   font-size: 15px;
-}
-.real-progress-scene .event-bubble {
-  animation: none;
 }
 .script-overview {
   max-width: 680px;
@@ -807,21 +741,6 @@ summary span {
     box-shadow: 0 0 0 6px var(--ks-accent-soft);
   }
 }
-@keyframes bubble-enter {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-@keyframes drift {
-  to {
-    transform: translate(5px, -8px);
-  }
-}
 @media (max-width: 900px) {
   .site-header {
     padding: 0 28px;
@@ -839,9 +758,6 @@ summary span {
   }
   .creation-timeline h2 {
     font-size: 15px;
-  }
-  .event-bubble {
-    font-size: 12px;
   }
 }
 @media (max-width: 600px) {
@@ -943,32 +859,6 @@ summary span {
   }
   .creation-timeline li > div {
     padding-left: 7px;
-  }
-  .progress-scene {
-    height: 300px;
-    margin-top: 20px;
-  }
-  .event-bubble {
-    max-width: 86%;
-    font-size: 11px;
-    padding: 10px 13px;
-  }
-  .bubble-0 {
-    left: 0;
-    top: 4%;
-  }
-  .bubble-1 {
-    left: auto;
-    right: 0;
-    top: 28%;
-  }
-  .bubble-2 {
-    left: 0;
-    top: 54%;
-  }
-  .bubble-3 {
-    right: 0;
-    top: 79%;
   }
   .progress-actions {
     gap: 8px;

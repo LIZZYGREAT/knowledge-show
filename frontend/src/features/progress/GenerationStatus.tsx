@@ -7,6 +7,7 @@ import {
   stageOrder,
   type UiEvent,
 } from "../../common/progress";
+import { ProgressEventScene } from "./ProgressEventScene";
 const sequence: UiEvent[] = [
   knowledgeEvent({ phase: "brief", event_type: "completed" })!,
   knowledgeEvent({ phase: "research", event_type: "started" })!,
@@ -31,6 +32,10 @@ export function GenerationStatus({
       progress.stages[stage] === "running" ||
       progress.stages[stage] === "failed",
   );
+  const sceneStage = current ?? [...stageOrder].reverse().find(
+    (stage) => progress.stages[stage] === "completed",
+  ) ?? "knowledge";
+  const sceneStatus = progress.error ? "failed" : progress.stages[sceneStage];
   const exhausted = cursor === sequence.length;
   function next() {
     if (cursor < sequence.length) {
@@ -95,29 +100,21 @@ export function GenerationStatus({
           </li>
         ))}
       </ol>
-      <div
-        className={`progress-scene ${progress.error || exhausted ? "paused" : ""}`}
-      >
-        <svg
-          viewBox="0 0 1000 260"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        >
-          <path d="M0 180 C160 180 160 50 330 100 S550 240 680 120 S880 80 1000 70" />
-        </svg>
-        <div
-          className="event-bubbles"
-          aria-live="polite"
-          aria-relevant="additions"
-        >
-          {progress.messages.map((message, index) => (
-            <div key={message.id} className={`event-bubble bubble-${index}`}>
-              <span />
-              {message.text}
-            </div>
-          ))}
-        </div>
-      </div>
+      <ProgressEventScene
+        stage={sceneStage}
+        status={sceneStatus}
+        streamKey="generation-demo"
+        recentEvents={progress.messages.map((message) => ({
+          id: `demo:${message.id}`,
+          stage: message.stage,
+          text: message.text,
+        }))}
+        incomingEvents={progress.messages.map((message) => ({
+          id: `demo:${message.id}`,
+          stage: message.stage,
+          text: message.text,
+        }))}
+      />
       <p className="current-action" role="status">
         {progress.error
           ? "演示连接已中断。可以重试这一步，或返回修改想法。"
