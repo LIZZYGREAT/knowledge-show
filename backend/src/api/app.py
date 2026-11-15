@@ -204,7 +204,8 @@ def create_app(
         except Exception as exc:
             code, message = _public_error(exc)
             logger.info("Model connection check failed (%s)", code)
-            return _error(503 if code != "invalid_key" else 401, code, message)
+            status = {"invalid_key": 401, "insufficient_balance": 402}.get(code, 503)
+            return _error(status, code, message)
         return {"connected": bool(connected)}
 
     @app.post("/api/projects", status_code=201)

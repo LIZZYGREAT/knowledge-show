@@ -11,11 +11,11 @@ ROOT = repository_root()
 PROFILES = json.loads((ROOT / 'frontend/src/animation/styles/profiles/profiles.json').read_text())
 DIRECTOR = '''You are the Animation Director for a knowledge video. Create an original, coherent SVG scene program from the exact script scene, selected art profile, knowledge constraints and event schedule.
 Return JSON {"objects": [...], "anchor_times_ms": [...]}. No HTML, JS, URLs, network, secrets or external assets.
-Use 1600x900 logical coordinates. Each object needs: id (stable EL_... or exact timed_text ID), label, shape (circle/rect/path/text), x,y,width,height,radius,path,text,fill (#RRGGBB), keyframes.
+Use 1600x900 logical coordinates. Each object needs: id (stable EL_... or exact timed_text ID), label, shape (circle/rect/path/text), x,y,width,height,radius,path,text,fill (#RRGGBB), keyframes. Every fill and stroke must be a six-digit hex color such as #4986A3; prefer the exact values in style_profile.palette. Never use color names, #RGB, rgb()/rgba(), hsl(), transparent, gradients or other CSS color syntax.
 Keyframes need time_ms,x,y,opacity (0..1),scale (>0),rotation. Sorted, include time 0 and scene duration. Values interpolate smoothly and deterministically.
 Optional appearance fields: stroke (#RRGGBB), strokeWidth (0..30), cornerRadius (0..500, rect), fillOpacity (0..1), lineCap (butt/round/square), materialKey (flat/paper-layer/frosted/ink-print), fontSize (8..160), fontWeight (100..900), textAnchor (start/middle/end), zIndex (-100..100). Materials are rendered as safe SVG: paper-layer has fibers and a soft raised edge, frosted uses translucent highlights, ink-print uses halftone dots, flat is a solid graphic. Use them selectively on meaningful actors; do not place textures on every label. Text may include newline breaks; no markup. Keep subtitles inside the frame with readable spacing.
 Each keyframe may have easing: smoothstep (legacy default), linear, ease-in-cubic, ease-out-cubic, ease-in-out-cubic. Easing on a frame controls the outgoing segment. Optional drawProgress (0..1, path only, default 1) reveals the stroke using normalized path length; use fillOpacity:0 for drawn lines. All properties are computed from absolute time, never live CSS animations. Example path frames: [{"time_ms":0,"x":200,"y":400,"opacity":1,"scale":1,"rotation":0,"drawProgress":0,"easing":"ease-out-cubic"},{"time_ms":9000,"x":400,"y":400,"opacity":1,"scale":1,"rotation":0,"drawProgress":1}]. Camera, groups, arbitrary CSS and custom scripts are not supported; coordinated actors can share transform trajectories while keeping their own IDs.
-Objects must be recognizable knowledge actors whose states change continuously in response to the script, not slides of titles. Do not make a field of meaningless particles. Object identity persists across keyframes. Supply every timed_text object with exact ID and exact text; its visibility is enforced by the runtime.
+Objects must be recognizable knowledge actors whose states change continuously in response to the script, not slides of titles. Do not make a field of meaningless particles or empty decorative panels. Object identity persists across keyframes. Supply every timed_text object with exact ID and exact text; its visibility is enforced by the runtime. Do not repeat a timed_text sentence in a second text object; subtitles are already rendered by the runtime.
 For every anchor:true event include its exact offset in anchor_times_ms and a keyframe at that offset. Preserve script facts, semantic constraints and all event times. Never silently rewrite upstream content.
 Use scene_context for the whole-film message, neighboring scene goals, verified facts, prior object identities and the user's visual preference. Keep the facts and stable object meanings consistent across scenes. Respect the user's visual preference while using the art profile as a concrete material and motion reference. Art profile guides materials, light and motion, not object composition. For a local revision change only requested appearance or animation parameters and preserve object IDs and all required text. Use at most 60 objects and 64 keyframes per object. Paths use only SVG path commands and finite numbers.'''
 
@@ -114,6 +114,10 @@ def validate_program(scene: dict[str, Any], program: dict[str, Any]) -> list[dic
     for text in scene.get('timed_text',[]):
         obj=next((o for o in objects if o['id']==text['id']),None)
         if obj is None or obj.get('text') != text['text'] or obj['shape']!='text': raise ValueError('必须保留脚本文字和身份。')
+    timed_text_ids={text['id'] for text in scene.get('timed_text',[])}
+    timed_text_values={text['text'] for text in scene.get('timed_text',[])}
+    if any(obj.get('shape')=='text' and obj['id'] not in timed_text_ids and obj.get('text') in timed_text_values for obj in objects):
+        raise ValueError('脚本字幕不得在其他场景对象中重复。')
     anchors={e['offset_ms'] for e in scene['events'] if e.get('anchor')}
     if not anchors.issubset(set(program.get('anchor_times_ms',[]))): raise ValueError('关键事件未在真实时间登记。')
     if not anchors.issubset({f['time_ms'] for o in objects for f in o['keyframes']}): raise ValueError('关键事件缺少对应关键帧。')
@@ -127,7 +131,7 @@ class SceneProgramError(ValueError):
 async def direct_scene(client: Any, scene: dict[str,Any], profile: dict[str,Any], *, previous: dict[str,Any] | None=None, feedback: str | None=None, scene_context: dict[str,Any] | None=None, format_feedback: str | None=None) -> dict[str,Any]:
     instructions=DIRECTOR
     if format_feedback:
-        instructions += '\nCorrect the previous format/validation error and return one complete valid JSON scene program. Do not change the script facts or event schedule.'
+        instructions += '\nCorrect this format/validation error and return one complete valid JSON scene program: ' + format_feedback + '. Every fill and stroke must be a six-digit hex color (#RRGGBB), preferably a value from style_profile.palette. Do not repeat timed_text in other text objects. Do not change script facts or event times.'
     response=await client.generate_json(instructions=instructions,data={'scene':scene,'scene_context':scene_context or {},'style_profile':profile,'previous_resource':previous,'feedback':feedback,'format_feedback':format_feedback},max_output_tokens=14000)
     program=response.value
     try:
