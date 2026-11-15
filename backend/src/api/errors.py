@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import re
+
 from fastapi.responses import JSONResponse
 
+from knowledge.package import PackageValidationError
 from workflow.service import WorkflowError
 from workflow.state import ProjectStateConflict, ProjectStateError
 
@@ -18,14 +21,25 @@ def error_response(status_code: int, code: str, message: str) -> JSONResponse:
 def public_error(exc: Exception) -> tuple[str, str]:
     diagnostic = str(exc).lower()
     name = type(exc).__name__.lower()
+    status_code = getattr(exc, "status_code", None)
+    has_status = lambda code: bool(re.search(rf"\b{code}\b", diagnostic))
     if "missing" in diagnostic and "key" in diagnostic:
         return "missing_key", "请先配置可用的 API Key。"
-    if "rejected the api key" in diagnostic or "401" in diagnostic or "403" in diagnostic:
+    if (
+        status_code in {401, 403}
+        or "rejected the api key" in diagnostic
+        or has_status(401)
+        or has_status(403)
+    ):
         return "invalid_key", "API Key 无法使用，请检查后重试。"
-    if "rate limited" in diagnostic or "429" in diagnostic:
+    if status_code == 402 or has_status(402):
+        return "insufficient_balance", "模型服务账号余额不足，请检查 API 账户余额后重试。"
+    if status_code == 429 or "rate limited" in diagnostic or has_status(429):
         return "rate_limited", "服务暂时繁忙，请稍后重试。"
     if "timeout" in diagnostic or "connection" in name:
         return "temporarily_unavailable", "暂时无法连接生成服务，请检查网络后重试。"
+    if isinstance(exc, PackageValidationError):
+        return "insufficient_evidence", "现有资料不足以形成可核验的创作方向，请缩小主题范围或补充可靠资料后重试。"
     if isinstance(exc, ProjectStateConflict):
         return "conflict", "项目状态已更新，请刷新后重试。"
     if isinstance(exc, (ProjectStateError, WorkflowError, ValueError)):

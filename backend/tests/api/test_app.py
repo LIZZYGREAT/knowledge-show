@@ -342,6 +342,42 @@ async def test_invalid_requests_and_connection_failures_do_not_echo_details(loca
 
 
 @pytest.mark.anyio
+async def test_connection_test_reports_insufficient_provider_balance_without_details():
+    class InsufficientBalanceError(RuntimeError):
+        status_code = 402
+
+    async def out_of_balance(_):
+        raise InsufficientBalanceError("provider account private-id has no balance")
+
+    app = api_module.create_app(connection_test=out_of_balance)
+    async with app.router.lifespan_context(app):
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://127.0.0.1"
+        ) as client:
+            response = await client.post(
+                "/api/model/test", json={"api_key": "sk-private-detail"}
+            )
+
+    assert response.status_code == 402
+    assert response.json()["error"]["code"] == "insufficient_balance"
+    assert "余额" in response.json()["error"]["message"]
+    assert "private-id" not in response.text
+    assert "sk-private-detail" not in response.text
+
+
+def test_package_validation_failure_has_actionable_public_message():
+    from api.errors import public_error
+    from knowledge.package import PackageValidationError
+
+    code, message = public_error(
+        PackageValidationError("No candidate direction has all essential claims verified with traceable evidence.")
+    )
+    assert code == "insufficient_evidence"
+    assert "缩小主题范围" in message
+    assert "traceable evidence" not in message
+
+
+@pytest.mark.anyio
 async def test_api_restart_marks_unfinished_jobs_interrupted(tmp_path):
     projects = ProjectStateStore(tmp_path / "projects")
     jobs = JobStore(tmp_path / "jobs")

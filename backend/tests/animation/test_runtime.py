@@ -188,6 +188,10 @@ def test_program_checks_text_anchors_geometry_and_executable_payloads(runtime):
     with pytest.raises(ValueError): validate_program(scene,bad)
     bad=copy.deepcopy(valid);bad['objects'][0]['html']='<script>alert(1)</script>'
     with pytest.raises(ValueError,match='不支持的字段'): validate_program(scene,bad)
+    bad=copy.deepcopy(valid)
+    caption=next(text for text in scene['timed_text'] if text['kind']=='subtitle')
+    bad['objects'].append(dict(id='EL_DUPLICATE_CAPTION',label='重复字幕',shape='text',text=caption['text'],fill='#ffffff',keyframes=copy.deepcopy(valid['objects'][0]['keyframes'])))
+    with pytest.raises(ValueError,match='字幕不得.*重复'): validate_program(scene,bad)
 
 
 def test_profiles_and_child_environment_are_independent_of_app_secrets(monkeypatch):
@@ -385,6 +389,7 @@ async def test_fake_director_emits_supported_materials_and_motion(style):
     class FakeDirector:
         async def generate_json(self,**kwargs):
             assert 'materialKey' in kwargs['instructions'] and 'drawProgress' in kwargs['instructions']
+            assert '#RRGGBB' in kwargs['instructions'] and 'style_profile.palette' in kwargs['instructions']
             scene=kwargs['data']['scene']
             resource=next(r for r in bundle['resources'].values() if r['sceneId']==scene['scene_id'])
             return SimpleNamespace(value={'objects':resource['objects'],'anchor_times_ms':[4500]})

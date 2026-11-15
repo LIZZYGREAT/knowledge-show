@@ -96,6 +96,38 @@ test("key stays out of persistent browser storage and cannot fake connection", a
   await expect(page.getByLabel("API Key", { exact: true })).toHaveValue("");
 });
 
+test("connection failure shows the server reason instead of a generic abort", async ({ page }) => {
+  await page.route("**/api/model/test", (route) =>
+    route.fulfill({
+      status: 401,
+      contentType: "application/json",
+      body: JSON.stringify({
+        error: { code: "invalid_key", message: "API Key 无法使用，请检查后重试。" },
+      }),
+    }),
+  );
+  await page.goto("/");
+  await page.getByRole("button", { name: "设置", exact: true }).click();
+  await page.getByLabel("API Key", { exact: true }).fill("sk-invalid-for-test");
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "测试连接", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("API Key 无法使用");
+  await expect(page.getByRole("status")).not.toContainText("连接已停止");
+});
+
+test("connection timeout keeps its own message and can be retried", async ({ page }) => {
+  await page.clock.install();
+  await page.route("**/api/model/test", () => new Promise(() => undefined));
+  await page.goto("/");
+  await page.getByRole("button", { name: "设置", exact: true }).click();
+  await page.getByLabel("API Key", { exact: true }).fill("sk-timeout-for-test");
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "测试连接", exact: true }).click();
+  await page.clock.fastForward(65000);
+  await expect(page.getByRole("status")).toContainText("连接超时");
+  await expect(page.getByRole("status")).not.toContainText("连接已停止");
+});
+
 test("script-only confirmation stops before animation generation", async ({ page }) => {
   let animationStarts = 0;
   await prepareConnectedPage(page);

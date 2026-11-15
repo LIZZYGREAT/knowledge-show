@@ -49,13 +49,15 @@ export function ApiSettingsDrawer({
     controller.current = request;
     setStatus("testing");
     setMessage("");
+    let timedOut = false;
     const timeout = window.setTimeout(() => {
+      timedOut = true;
       request.abort();
       if (controller.current === request) {
         setStatus("failed");
-        setMessage("连接超时，请重试。");
+        setMessage("连接超时，请检查网络后重试。");
       }
-    }, 15000);
+    }, 65000);
     try {
       const ok = await testConnection(key.trim(), request.signal);
       if (request.signal.aborted) return;
@@ -63,14 +65,18 @@ export function ApiSettingsDrawer({
       setMessage(
         ok ? "连接成功，可以用于后续创作。" : "密钥无法使用，请检查后重试。",
       );
-    } catch {
-      if (controller.current === request) {
-        setStatus("failed");
-        setMessage("暂时无法连接，请检查本地服务或网络后重试。");
-      }
+    } catch (error) {
+      // A timeout owns its message; do not replace it with the generic abort text.
+      if (controller.current !== request || timedOut) return;
+      setStatus("failed");
+      setMessage(
+        error instanceof Error && error.message
+          ? error.message
+          : "暂时无法连接，请检查本地服务或网络后重试。",
+      );
     } finally {
       window.clearTimeout(timeout);
-      if (controller.current === request && request.signal.aborted) {
+      if (controller.current === request && request.signal.aborted && !timedOut) {
         setStatus("failed");
         setMessage("连接已停止，请重试。");
       }
