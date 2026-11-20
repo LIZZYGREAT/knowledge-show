@@ -23,7 +23,7 @@
 
 .idea-seed {
   display: block;
-  width: 3.4%;
+  width: 2.75%;
   aspect-ratio: 1;
   position: absolute;
   transform: translate(-50%, -50%);
@@ -31,15 +31,15 @@
   z-index: 2;
   border-radius: 50%;
   pointer-events: none;
-  border: 1.5px solid rgba(224, 141, 48, 0.55);
-  background: radial-gradient(circle, rgba(254, 236, 198, 0.8), rgba(242, 169, 75, 0.15) 70%);
-  box-shadow: 0 0 18px rgba(224, 141, 48, 0.28);
+  border: 1.5px solid rgba(224, 141, 48, 0.72);
+  background: radial-gradient(circle, rgba(255, 246, 224, 0.96), rgba(242, 169, 75, 0.36) 72%);
+  box-shadow: 0 0 14px rgba(224, 141, 48, 0.36);
 }
 
 .idea-seed::after {
   content: "";
   position: absolute;
-  inset: -26%;
+  inset: -28%;
   border: 1px solid rgba(224, 141, 48, 0.24);
   border-radius: inherit;
 }
@@ -47,13 +47,13 @@
 .seed-core {
   display: block;
   position: absolute;
-  width: 34%;
-  height: 34%;
-  left: 33%;
-  top: 33%;
+  width: 44%;
+  height: 44%;
+  left: 28%;
+  top: 28%;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #fff7df, #f2a94b 60%, #d47e1c 100%);
-  box-shadow: 0 0 10px 2px rgba(242, 169, 75, 0.5);
+  background: radial-gradient(circle at 35% 35%, #fff9e8, #f0a43b 62%, #cc7418 100%);
+  box-shadow: 0 0 8px 1px rgba(242, 169, 75, 0.55);
 }
 
 .living-flow-scene figcaption {

@@ -131,8 +131,9 @@ export function CuriosityStage({
   const pnLocal = Math.max(0, cycle - 20);
   const reverse = smoothstep(pnLocal, 4.4, 5.5);
   const currentLevel = smoothstep(pnLocal, 0.3, 1.5) * (1 - reverse * 0.94);
-  const barrierWidth = lerp(28, 118, reverse);
+  const barrierWidth = lerp(34, 124, reverse);
   const needleAngle = lerp(-62, 62, currentLevel);
+  const wireDashOffset = -pnLocal * 38;
 
   return (
     <figure
@@ -192,8 +193,8 @@ export function CuriosityStage({
               </radialGradient>
               <linearGradient id={`${id}-prism`} x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0%" stopColor="#ffffff" stopOpacity=".95" />
-                <stop offset="48%" stopColor="#d9f4ef" stopOpacity=".72" />
-                <stop offset="100%" stopColor="#cfe7fa" stopOpacity=".85" />
+                <stop offset="48%" stopColor="#d9f4ef" stopOpacity=".74" />
+                <stop offset="100%" stopColor="#cfe7fa" stopOpacity=".86" />
               </linearGradient>
               <linearGradient id={`${id}-beam`} x1="0" y1="0" x2="1" y2="0">
                 <stop offset="0%" stopColor="#f5b95b" stopOpacity=".12" />
@@ -201,15 +202,29 @@ export function CuriosityStage({
                 <stop offset="100%" stopColor="#fff3d2" stopOpacity=".95" />
               </linearGradient>
               <linearGradient id={`${id}-pn-glass`} x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#fdeae6" />
-                <stop offset="48%" stopColor="#ffffff" />
-                <stop offset="100%" stopColor="#e5f2fd" />
+                <stop offset="0%" stopColor="#fff2ee" />
+                <stop offset="46%" stopColor="#ffffff" />
+                <stop offset="54%" stopColor="#ffffff" />
+                <stop offset="100%" stopColor="#ecf6fe" />
+              </linearGradient>
+              <linearGradient id={`${id}-pn-frame`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#d5e5e0" />
+                <stop offset="100%" stopColor="#a7c4bc" />
               </linearGradient>
               <linearGradient id={`${id}-barrier`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#f6d598" stopOpacity=".18" />
-                <stop offset="50%" stopColor="#ebb052" stopOpacity=".36" />
-                <stop offset="100%" stopColor="#f6d598" stopOpacity=".18" />
+                <stop offset="0%" stopColor="#fbe3b4" stopOpacity=".24" />
+                <stop offset="50%" stopColor="#efb65a" stopOpacity=".42" />
+                <stop offset="100%" stopColor="#fbe3b4" stopOpacity=".24" />
               </linearGradient>
+              <radialGradient id={`${id}-electron`} cx="34%" cy="30%" r="72%">
+                <stop offset="0%" stopColor="#8ed4ff" />
+                <stop offset="55%" stopColor="#2f8ce6" />
+                <stop offset="100%" stopColor="#1b65b8" />
+              </radialGradient>
+              <radialGradient id={`${id}-dial-face`} cx="50%" cy="35%" r="68%">
+                <stop offset="0%" stopColor="#ffffff" />
+                <stop offset="100%" stopColor="#f2f7f5" />
+              </radialGradient>
             </defs>
 
             <rect width="800" height="560" fill={`url(#${id}-sunwash)`} />
@@ -290,16 +305,18 @@ export function CuriosityStage({
                     </g>
                   );
                 })}
-                <g transform={`translate(548 ${lerp(334, 316, histReveal)})`}>
-                  <rect x="-46" y="-18" width="92" height="28" rx="14" fill="#e69238" />
-                  <text y="1" textAnchor="middle" className="stage-pill-text">
+                {/* Subtle golden stem linking the crowning IdeaSeed to the 7 badge */}
+                <line x1="548" y1="292" x2="548" y2="306" stroke="#e59a38" strokeWidth="1.4" strokeDasharray="2 3" />
+                <g transform={`translate(548 ${lerp(334, 318, histReveal)})`}>
+                  <rect x="-46" y="-15" width="92" height="28" rx="14" fill="#e69238" />
+                  <text y="3" textAnchor="middle" className="stage-pill-text">
                     7 · 占 6/36
                   </text>
                 </g>
               </g>
             </g>
 
-            {/* ── ACT 02: PRISM REFRACTION & DISPERSION ─────────────────── */}
+            {/* ── ACT 02: PRISM REFRACTION & BRAND LOGO FUSION ──────────── */}
             <g opacity={opacity.prism}>
               <text x="400" y="76" textAnchor="middle" className="stage-question">
                 {SHOWREEL_ACTS[1].question}
@@ -366,17 +383,23 @@ export function CuriosityStage({
                 </g>
               ))}
 
-              {/* Frosted crystal prism */}
+              {/* Frosted crystal prism echoing our knowledge.show BrandLogo */}
               <g
                 transform={`translate(400 ${lerp(340, 314, easeOutBack(prismReveal))}) scale(${lerp(0.86, 1, easeOutCubic(prismReveal))})`}
               >
-                <ellipse cy="112" rx="92" ry="12" fill="#0f7c6b" opacity=".09" />
+                <ellipse cy="112" rx="96" ry="13" fill="#0f7c6b" opacity=".09" />
                 <polygon
                   points="0,-116 -104,92 104,92"
                   fill={`url(#${id}-prism)`}
-                  stroke="#5fb8ab"
-                  strokeWidth="2"
+                  stroke="#3db4a0"
+                  strokeWidth="2.2"
                   strokeLinejoin="round"
+                />
+                {/* Optical inner facet highlight */}
+                <polygon
+                  points="0,-108 -96,86 0,14"
+                  fill="#ffffff"
+                  opacity=".34"
                 />
                 <path
                   d="M-6,-94 L-84,78 M2,-96 L78,78"
@@ -388,94 +411,246 @@ export function CuriosityStage({
               </g>
             </g>
 
-            {/* ── ACT 03: PN JUNCTION ONE-WAY VALVE ─────────────────────── */}
+            {/* ── ACT 03: HIGH-CRAFT PN JUNCTION APPARATUS ──────────────── */}
             <g opacity={opacity.pn}>
               <text x="400" y="76" textAnchor="middle" className="stage-question">
-                {reverse > 0.5 ? "反向接通：势垒加宽，电流截止" : SHOWREEL_ACTS[2].question}
+                {reverse > 0.5 ? "反向接通：耗尽层加宽，电流截止" : SHOWREEL_ACTS[2].question}
               </text>
 
-              {/* Wires & terminals */}
+              {/* Floating P / N region badges cleanly ABOVE the chamber (zero overlap!) */}
+              <g>
+                <rect x="140" y="156" width="128" height="30" rx="15" fill="#fff2ee" stroke="#f0b7ac" strokeWidth="1.2" />
+                <text x="204" y="176" textAnchor="middle" className="stage-micro" fill="#c74b3b">
+                  P 区 · 空穴 (+)
+                </text>
+                <rect x="384" y="156" width="128" height="30" rx="15" fill="#ebf5fe" stroke="#a8cff5" strokeWidth="1.2" />
+                <text x="448" y="176" textAnchor="middle" className="stage-micro" fill="#216db8">
+                  N 区 · 电子 (−)
+                </text>
+              </g>
+
+              {/* Copper/silver lead wires + live current-flow pulse dashes */}
               <path
-                d="M72,278 H134 M524,278 H608"
-                stroke="#8bb5ac"
-                strokeWidth="3.5"
+                d="M54,286 H116 M536,286 H600"
+                stroke="#9fbcb4"
+                strokeWidth="4"
                 strokeLinecap="round"
               />
-              <circle cx="96" cy="278" r="16" fill="#ffffff" stroke={reverse > 0.5 ? "#348ce3" : "#e36353"} strokeWidth="2" />
-              <text x="96" y="284" textAnchor="middle" className="stage-polarity" fill={reverse > 0.5 ? "#348ce3" : "#e36353"}>
-                {reverse > 0.5 ? "−" : "+"}
-              </text>
-              <circle cx="566" cy="278" r="16" fill="#ffffff" stroke={reverse > 0.5 ? "#e36353" : "#348ce3"} strokeWidth="2" />
-              <text x="566" y="284" textAnchor="middle" className="stage-polarity" fill={reverse > 0.5 ? "#e36353" : "#348ce3"}>
-                {reverse > 0.5 ? "+" : "−"}
-              </text>
+              {currentLevel > 0.25 && (
+                <path
+                  d="M54,286 H116 M536,286 H600"
+                  stroke="#12a68a"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeDasharray="6 14"
+                  strokeDashoffset={wireDashOffset}
+                  opacity={currentLevel}
+                />
+              )}
 
-              {/* Chamber shadow & translucent glass body */}
-              <rect x="136" y="206" width="388" height="154" rx="28" fill="#13423b" opacity=".07" />
+              {/* Polarity terminal badges */}
+              <g>
+                <circle
+                  cx="82"
+                  cy="286"
+                  r="17"
+                  fill="#ffffff"
+                  stroke={reverse > 0.5 ? "#2f8ce6" : "#e35d4b"}
+                  strokeWidth="2.2"
+                />
+                <text
+                  x="82"
+                  y="292"
+                  textAnchor="middle"
+                  className="stage-polarity"
+                  fill={reverse > 0.5 ? "#2f8ce6" : "#e35d4b"}
+                >
+                  {reverse > 0.5 ? "−" : "+"}
+                </text>
+                <circle
+                  cx="566"
+                  cy="286"
+                  r="17"
+                  fill="#ffffff"
+                  stroke={reverse > 0.5 ? "#e35d4b" : "#2f8ce6"}
+                  strokeWidth="2.2"
+                />
+                <text
+                  x="566"
+                  y="292"
+                  textAnchor="middle"
+                  className="stage-polarity"
+                  fill={reverse > 0.5 ? "#e35d4b" : "#2f8ce6"}
+                >
+                  {reverse > 0.5 ? "+" : "−"}
+                </text>
+              </g>
+
+              {/* Metallic left & right electrode end-caps */}
+              <rect x="114" y="228" width="22" height="116" rx="8" fill="#dfe9e6" stroke="#9eb8b1" strokeWidth="1.5" />
+              <rect x="516" y="228" width="22" height="116" rx="8" fill="#dfe9e6" stroke="#9eb8b1" strokeWidth="1.5" />
+
+              {/* Layered glass chamber shadow + outer frame + inner crystal well */}
+              <rect x="132" y="214" width="390" height="164" rx="28" fill="#13423b" opacity=".08" />
               <rect
-                x="134"
-                y="196"
-                width="390"
+                x="128"
+                y="204"
+                width="396"
                 height="164"
                 rx="26"
                 fill={`url(#${id}-pn-glass)`}
-                stroke="#b7d2ca"
-                strokeWidth="2"
+                stroke={`url(#${id}-pn-frame)`}
+                strokeWidth="2.4"
               />
-              <text x="166" y="226" className="stage-micro" fill="#c85a4b">P 区（空穴 +）</text>
-              <text x="492" y="226" textAnchor="end" className="stage-micro" fill="#2c75bd">N 区（电子 −）</text>
-
-              {/* Breathing depletion barrier */}
-              <rect
-                x={329 - barrierWidth / 2}
-                y="204"
-                width={barrierWidth}
-                height="148"
-                rx="14"
-                fill={`url(#${id}-barrier)`}
-                stroke="#e09a38"
-                strokeDasharray="4 4"
-                strokeWidth="1.2"
+              {/* Top specular glass highlight */}
+              <path
+                d="M154,212 H498"
+                stroke="#ffffff"
+                strokeWidth="3"
+                strokeLinecap="round"
+                opacity=".9"
               />
-              <text x="329" y="384" textAnchor="middle" className="stage-small">
-                {reverse > 0.5 ? "耗尽层变宽 · 形成阻挡墙" : "耗尽层变窄 · 载流子顺畅穿过"}
-              </text>
 
-              {/* Live Ammeter Gauge */}
-              <g transform="translate(674 282)">
-                <circle r="68" fill="#ffffff" stroke="#c7dcd5" strokeWidth="2" />
+              {/* Breathing depletion barrier with etched fixed lattice ions */}
+              <g>
+                <rect
+                  x={326 - barrierWidth / 2}
+                  y="212"
+                  width={barrierWidth}
+                  height="148"
+                  rx="14"
+                  fill={`url(#${id}-barrier)`}
+                  stroke="#e09a38"
+                  strokeDasharray="4 4"
+                  strokeWidth="1.3"
+                />
+                {/* Etched fixed ion lattice sites (visible especially as depletion widens) */}
+                {[-1, 1].map((side) =>
+                  [0, 1, 2].map((row) => {
+                    const ix = 326 + side * Math.max(10, barrierWidth * 0.25);
+                    const iy = 244 + row * 42;
+                    return (
+                      <g key={`${side}-${row}`} opacity={0.35 + reverse * 0.55}>
+                        <circle
+                          cx={ix}
+                          cy={iy}
+                          r="7"
+                          fill="#fff8eb"
+                          stroke="#d99a3d"
+                          strokeWidth="1"
+                        />
+                        <text
+                          x={ix}
+                          y={iy + 3.5}
+                          textAnchor="middle"
+                          fontSize="10"
+                          fontWeight="700"
+                          fill="#b8761c"
+                        >
+                          {side < 0 ? "−" : "+"}
+                        </text>
+                      </g>
+                    );
+                  }),
+                )}
+              </g>
+
+              {/* Bottom caption pill below chamber */}
+              <g transform="translate(326 404)">
+                <rect x="-126" y="-15" width="252" height="30" rx="15" fill="#ffffff" stroke="#d5e5df" />
+                <text y="4" textAnchor="middle" className="stage-small">
+                  {reverse > 0.5 ? "耗尽层变宽 · 形成单向阻挡墙" : "耗尽层变窄 · 载流子顺畅穿过"}
+                </text>
+              </g>
+
+              {/* High-Craft Precision Ammeter Gauge (pivot matches IdeaSeed at 674, 286!) */}
+              <g transform="translate(674 286)">
+                <circle r="76" fill="#13423b" opacity=".06" cy="5" />
+                <circle r="74" fill={`url(#${id}-dial-face)`} stroke="#bfd6cf" strokeWidth="2.2" />
+                <circle r="66" fill="none" stroke="#ffffff" strokeWidth="1.5" />
+                {/* 17 fine radial graduation ticks */}
+                {Array.from({ length: 17 }, (_, i) => {
+                  const deg = -115 + (i * 230) / 16;
+                  const rad = ((deg - 90) * Math.PI) / 180;
+                  const inner = i % 4 === 0 ? 48 : 53;
+                  const outer = 60;
+                  return (
+                    <line
+                      key={i}
+                      x1={Math.cos(rad) * inner}
+                      y1={Math.sin(rad) * inner}
+                      x2={Math.cos(rad) * outer}
+                      y2={Math.sin(rad) * outer}
+                      stroke={i % 4 === 0 ? "#688983" : "#b5cbc5"}
+                      strokeWidth={i % 4 === 0 ? "1.6" : "1"}
+                      strokeLinecap="round"
+                    />
+                  );
+                })}
+                {/* Background & live progress arc */}
                 <path
-                  d="M-44,18 A48,48 0 1,1 44,18"
+                  d="M-43,20 A47,47 0 1,1 43,20"
                   fill="none"
-                  stroke="#e7f1ee"
-                  strokeWidth="8"
+                  stroke="#e3efeb"
+                  strokeWidth="7.5"
                   strokeLinecap="round"
                 />
                 <path
-                  d="M-44,18 A48,48 0 1,1 44,18"
+                  d="M-43,20 A47,47 0 1,1 43,20"
                   fill="none"
-                  stroke={currentLevel > 0.25 ? "#129e84" : "#d98245"}
-                  strokeWidth="8"
+                  stroke={currentLevel > 0.25 ? "#129e84" : "#e08d30"}
+                  strokeWidth="7.5"
                   strokeLinecap="round"
                   pathLength="1"
                   strokeDasharray="1"
                   strokeDashoffset={1 - currentLevel}
                 />
+                {/* Tapered precision needle */}
                 <g transform={`rotate(${needleAngle})`}>
-                  <path d="M0,6 L0,-38" stroke="#122926" strokeWidth="2.8" strokeLinecap="round" />
+                  <path
+                    d="M-2.2,10 L0,-44 L2.2,10 Z"
+                    fill="#122926"
+                  />
                 </g>
-                <circle r="6" fill="#e69238" />
-                <text y="38" textAnchor="middle" className="stage-micro" fill="#526f6b">
+                <text y="44" textAnchor="middle" className="stage-micro" fill={currentLevel > 0.25 ? "#0d856f" : "#b86c1c"}>
                   {currentLevel > 0.25 ? "导通 · 电流强" : "截止 · 电流 ≈ 0"}
                 </text>
               </g>
             </g>
 
-            {/* ── SHARED CONTINUOUS KNOWLEDGE BEADS ACROSS ALL 3 ACTS ───── */}
+            {/* ── SHARED CONTINUOUS KNOWLEDGE ACTORS ACROSS ALL 3 ACTS ─── */}
             <g className="stage-shared-beads">
               {Array.from({ length: 36 }, (_, i) => {
                 const b = sharedBeadState(i, cycle);
                 if (b.opacity <= 0.01) return null;
+                if (b.kind === "hole") {
+                  return (
+                    <g
+                      key={i}
+                      data-combination={`${Math.floor(i / 6) + 1}+${(i % 6) + 1}`}
+                      transform={`translate(${b.x.toFixed(1)} ${b.y.toFixed(1)})`}
+                      opacity={b.opacity}
+                    >
+                      <circle r={b.r + 3.2} fill="#e35d4b" opacity=".12" />
+                      <circle r={b.r} fill="#fff8f6" stroke="#e35d4b" strokeWidth="2.1" />
+                      <path d="M-3,0 H3 M0,-3 V3" stroke="#d14634" strokeWidth="1.4" strokeLinecap="round" />
+                    </g>
+                  );
+                }
+                if (b.kind === "electron") {
+                  return (
+                    <g
+                      key={i}
+                      data-combination={`${Math.floor(i / 6) + 1}+${(i % 6) + 1}`}
+                      transform={`translate(${b.x.toFixed(1)} ${b.y.toFixed(1)})`}
+                      opacity={b.opacity}
+                    >
+                      <circle r={b.r + 3} fill="#2f8ce6" opacity=".14" />
+                      <circle r={b.r} fill={`url(#${id}-electron)`} stroke="#ffffff" strokeWidth="1.1" />
+                      <circle cx="-1.9" cy="-1.9" r="1.7" fill="#ffffff" opacity=".88" />
+                    </g>
+                  );
+                }
                 return (
                   <g
                     key={i}

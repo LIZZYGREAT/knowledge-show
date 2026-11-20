@@ -35,8 +35,8 @@ export const SHOWREEL_ACTS: readonly ShowreelAct[] = [
     index: "03",
     label: "PN 结阀门",
     question: "同一个 PN 结，为何只让电流单向通过？",
-    caption: "正接时势垒变窄载流子畅行，反接时势垒加宽电流截止。",
-    prompt: "同一个 PN 结，为什么正向接通能导电、反向接通就会截止？请展示载流子与势垒的变化。",
+    caption: "正接时耗尽层变窄载流子畅行，反接时耗尽层加宽电流截止。",
+    prompt: "同一个 PN 结，为什么正向接通能导电、反向接通就会截止？请展示空穴、电子与耗尽层的变化。",
     seekTo: 22.0,
   },
 ] as const;
@@ -92,27 +92,36 @@ export function actOpacities(cycle: number) {
   return { dice, prism, pn };
 }
 
+/**
+ * The golden curiosity spark (echoing our Prism-Spark brand logo) is never detached:
+ * - Act 1: bridges the two dice -> glides to crown the golden "7" histogram peak
+ * - Act 2: anchors at the optical refraction core inside the crystal prism
+ * - Act 3: serves as the exact golden center jewel pivot of the live ammeter needle
+ */
 export function seedPositionAt(cycle: number): [number, number] {
-  const p1 = smoothstep(cycle, 9.2, 10.8);
-  const p2 = smoothstep(cycle, 19.2, 20.8);
+  const toCrown = smoothstep(cycle, 4.8, 6.4);
+  const p1 = smoothstep(cycle, 9.2, 10.7);
+  const p2 = smoothstep(cycle, 19.2, 20.7);
   const p3 = smoothstep(cycle, 28.8, 30);
 
-  // Act 1 focal point: hovers gently near the golden 7 peak
-  const a1x = 468 + Math.sin(cycle * 1.4) * 6;
-  const a1y = 216 + Math.cos(cycle * 1.1) * 5;
-  // Act 2 focal point: shimmering at the prism apex refraction point
-  const a2x = 398 + Math.sin(cycle * 1.6) * 5;
-  const a2y = 214 + Math.cos(cycle * 1.2) * 4;
-  // Act 3 focal point: centered above the PN junction seam
-  const a3x = 350 + Math.sin(cycle * 1.5) * 6;
-  const a3y = 248 + Math.cos(cycle * 1.3) * 4;
+  // Act 1: between the two dice -> directly crowning the "7 · 占 6/36" badge
+  const a1x = lerp(235, 548, toCrown);
+  const a1y = lerp(280, 276, toCrown) - Math.sin(toCrown * Math.PI) * 34;
+
+  // Act 2: inside the heart of the crystal prism (echoing our BrandLogo!)
+  const a2x = 400;
+  const a2y = 314;
+
+  // Act 3: exact center pivot of the live ammeter gauge (674, 286)
+  const a3x = 674;
+  const a3y = 286;
 
   let x = lerp(a1x, a2x, p1);
   let y = lerp(a1y, a2y, p1);
   x = lerp(x, a3x, p2);
   y = lerp(y, a3y, p2);
-  x = lerp(x, a1x, p3);
-  y = lerp(y, a1y, p3);
+  x = lerp(x, 235, p3);
+  y = lerp(y, 280, p3);
   return [x, y];
 }
 
@@ -138,7 +147,7 @@ export function spectralWavePath(bandIndex: number, cycle: number, reveal: numbe
     const x = lerp(x0, x1, u);
     const base = lerp(y0, y1, u);
     const amp = 7.5 * Math.sin(u * Math.PI * 0.85) * smoothstep(u, 0, 0.14);
-    const phase = (x - x0) / band.wavelength * Math.PI * 2 - cycle * 4.4;
+    const phase = ((x - x0) / band.wavelength) * Math.PI * 2 - cycle * 4.4;
     const y = base + Math.sin(phase) * amp;
     points.push(`${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`);
   }
@@ -153,6 +162,7 @@ export type SharedBead = {
   stroke: string;
   opacity: number;
   highlight: boolean;
+  kind: "dot" | "photon" | "hole" | "electron";
 };
 
 export function sharedBeadState(index: number, cycle: number): SharedBead {
@@ -183,7 +193,7 @@ export function sharedBeadState(index: number, cycle: number): SharedBead {
   const toBeam = smoothstep(cycle, 8.9, 10.3);
   const bandIndex = index % 5;
   const band = SPECTRAL_BANDS[bandIndex];
-  const travel = ((cycle - 10.2) * 0.44 + (index * 0.137)) % 1;
+  const travel = ((cycle - 10.2) * 0.44 + index * 0.137) % 1;
   const u = travel < 0 ? travel + 1 : travel;
   const inBeam = u < 0.34;
   const beamU = u / 0.34;
@@ -198,21 +208,27 @@ export function sharedBeadState(index: number, cycle: number): SharedBead {
         7.5 *
         Math.sin(waveU * Math.PI * 0.85);
 
-  // Bridge 2->3 & Act 3: Carriers in PN junction (forward then reverse)
+  // Bridge 2->3 & Act 3: Organic golden-ratio staggered carriers strictly inside chamber (y: 232..342)
   const toPn = smoothstep(cycle, 19.0, 20.5);
   const pnLocal = Math.max(0, cycle - 20);
   const reverse = smoothstep(pnLocal, 4.4, 5.5);
   const isHole = index % 2 === 0;
-  const laneY = 278 + ((index % 5) - 2) * 24;
-  const forwardFlow = ((pnLocal * 0.24 + index * 0.083) % 1);
+  // Golden-ratio phase eliminates stiff vertical columns
+  const phaseOffset = (index * 0.6180339887) % 1;
+  const laneSlot = index % 4;
+  const laneY = 236 + laneSlot * 34 + ((index % 3) - 1) * 5;
+  const forwardFlow = (pnLocal * 0.21 + phaseOffset) % 1;
   const forwardX = isHole
-    ? lerp(144, 514, forwardFlow)
-    : lerp(514, 144, forwardFlow);
-  // Under reverse bias, holes pull left (150..255) and electrons pull right (405..510)
-  const pullLeft = 152 + ((index * 23) % 98) + Math.sin(cycle * 2.2 + index) * 4;
-  const pullRight = 408 + ((index * 29) % 98) + Math.cos(cycle * 2.2 + index) * 4;
+    ? lerp(154, 498, forwardFlow)
+    : lerp(498, 154, forwardFlow);
+  // Under reverse bias, holes pull left (154..252) and electrons pull right (402..500)
+  const pullLeft = 156 + ((phaseOffset * 94) % 94) + Math.sin(cycle * 2.1 + index) * 4;
+  const pullRight = 402 + ((phaseOffset * 94) % 94) + Math.cos(cycle * 2.1 + index) * 4;
   const pnX = lerp(forwardX, isHole ? pullLeft : pullRight, reverse);
-  const pnY = laneY + Math.sin(cycle * 3 + index * 1.4) * (3.5 * (1 - reverse * 0.4));
+  const pnY = Math.max(
+    228,
+    Math.min(346, laneY + Math.sin(cycle * 2.6 + index * 1.7) * (4.5 * (1 - reverse * 0.45))),
+  );
 
   // Seamless Bridge 3->1
   const toStart = smoothstep(cycle, 28.8, 29.95);
@@ -225,25 +241,31 @@ export function sharedBeadState(index: number, cycle: number): SharedBead {
   y = lerp(y, srcY, toStart);
 
   let r = lerp(a1r, inBeam ? 4.4 : 4.8, toBeam);
-  r = lerp(r, isHole ? 5.8 : 5.2, toPn);
+  r = lerp(r, isHole ? 7.2 : 6.2, toPn);
   r = lerp(r, 4.5, toStart);
 
   let fill = isSeven && launch > 0.45 ? "#f0a43b" : "#89d6c6";
   let stroke = isSeven && launch > 0.45 ? "#c97a16" : "#2e8b7a";
+  let kind: SharedBead["kind"] = "dot";
+
   if (toBeam > 0.5 && toPn <= 0.5) {
     fill = inBeam ? "#f6b95b" : band.color;
     stroke = "#ffffff";
+    kind = "photon";
   } else if (toPn > 0.5) {
-    fill = isHole ? "#e66b5b" : "#348ce3";
-    stroke = "#ffffff";
+    fill = isHole ? "#fff7f5" : "#2d8be6";
+    stroke = isHole ? "#e35d4b" : "#ffffff";
+    kind = isHole ? "hole" : "electron";
   }
+
+  // Keep only 22 clean, readable carriers during PN act (fade out extra 14 smoothly so chamber feels spacious & refined!)
+  const pnDensityFade = index >= 22 ? 1 - toPn * (1 - toStart) : 1;
 
   const opacity =
     cycle < 1.3
       ? 0
-      : cycle < 9.5
-        ? clamp01(launch * 1.5)
-        : 1 - toStart * 0.9;
+      : (cycle < 9.5 ? clamp01(launch * 1.5) : 1 - toStart * 0.9) *
+        pnDensityFade;
 
   return {
     x,
@@ -253,5 +275,6 @@ export function sharedBeadState(index: number, cycle: number): SharedBead {
     stroke,
     opacity,
     highlight: isSeven && cycle >= 2.6 && cycle <= 9.2,
+    kind,
   };
 }
