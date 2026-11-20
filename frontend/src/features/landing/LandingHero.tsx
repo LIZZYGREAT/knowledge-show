@@ -1,10 +1,18 @@
 import { CuriosityStage } from "./CuriosityStage";
-import { AmbientMotifs } from "../../components/AmbientMotifs";
+import { BrandLogo } from "../../components/BrandLogo";
+import { TopicIcon, WorkflowStepIcon } from "../../components/StudioIcons";
 
 const quickSparks = [
-  ["生日悖论", "为什么只要 23 个人，就很可能出现相同的生日？"],
-  ["注意力机制", "AI 的注意力机制，是怎样理解一句话的？"],
-  ["彩虹怎么来的", "白光穿过三棱镜后，为什么会散开成彩虹？"],
+  ["birthday", "生日悖论", "为什么只要 23 个人，就很可能出现相同的生日？"],
+  ["attention", "注意力机制", "AI 的注意力机制，是怎样理解一句话的？"],
+  ["rainbow", "彩虹怎么来的", "白光穿过三棱镜后，为什么会散开成彩虹？"],
+] as const;
+
+const workflowSteps = [
+  ["explore", "知识探索"],
+  ["script", "脚本编排"],
+  ["animate", "模板动画"],
+  ["tune", "工作台微调"],
 ] as const;
 
 export function LandingHero({
@@ -26,10 +34,9 @@ export function LandingHero({
 
   return (
     <main className="landing">
-      <AmbientMotifs variant="hero" />
       <div className="hero-copy">
         <div className="hero-badge">
-          <span className="hero-badge-dot" aria-hidden="true" />
+          <BrandLogo size={20} />
           <span className="eyebrow">KNOWLEDGE, SHOW ME · 清新知识动画工坊</span>
         </div>
         <h1>
@@ -72,15 +79,15 @@ export function LandingHero({
           <div className="hero-sparks" aria-label="快捷灵感主题">
             <span className="hero-sparks-label">一键试问</span>
             <div className="hero-sparks-list">
-              {quickSparks.map(([label, prompt]) => (
+              {quickSparks.map(([iconKey, label, prompt]) => (
                 <button
                   key={label}
                   type="button"
                   className="hero-spark-chip"
                   onClick={() => onStartWithTopic(prompt)}
                 >
-                  <span className="spark-dot" aria-hidden="true" />
-                  {label}
+                  <TopicIcon topicKey={iconKey} />
+                  <span>{label}</span>
                 </button>
               ))}
             </div>
@@ -92,10 +99,22 @@ export function LandingHero({
       </div>
       <CuriosityStage pose={pose} onTryTopic={onStartWithTopic} />
       <footer className="landing-footer">
-        <span>好奇心，是所有好故事的开始。</span>
-        <span>
-          知识探索 <i /> 脚本编排 <i /> 模板动画 <i /> 工作台微调
-        </span>
+        <span className="landing-footer-quote">好奇心，是所有好故事的开始。</span>
+        <ol className="landing-workflow-strip" aria-label="创作流程">
+          {workflowSteps.map(([step, label], idx) => (
+            <li key={step} className="landing-workflow-item">
+              <span className="landing-workflow-icon">
+                <WorkflowStepIcon step={step} />
+              </span>
+              <span>{label}</span>
+              {idx < workflowSteps.length - 1 && (
+                <span className="landing-workflow-arrow" aria-hidden="true">
+                  →
+                </span>
+              )}
+            </li>
+          ))}
+        </ol>
       </footer>
     </main>
   );

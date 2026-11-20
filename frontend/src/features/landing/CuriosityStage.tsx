@@ -1,4 +1,5 @@
 import { useId, useRef } from "react";
+import { BrandLogo } from "../../components/BrandLogo";
 import { IdeaSeed } from "./LivingFlowScene";
 import "./curiosity-stage.css";
 import { useFlowMotion } from "./useFlowMotion";
@@ -148,8 +149,8 @@ export function CuriosityStage({
       <div className="curiosity-viewport">
         <div className="curiosity-chrome">
           <span className="curiosity-live-pill" aria-hidden="true">
-            <i />
-            LIVE MECHANISM
+            <BrandLogo size={16} />
+            <span>KNOWLEDGE.SHOW · LIVE</span>
           </span>
           <div className="curiosity-chapters" role="group" aria-label="切换知识演示章节">
             {SHOWREEL_ACTS.map((item) => (
@@ -399,15 +400,25 @@ export function CuriosityStage({
                 <polygon
                   points="0,-108 -96,86 0,14"
                   fill="#ffffff"
-                  opacity=".34"
+                  opacity=".38"
                 />
                 <path
                   d="M-6,-94 L-84,78 M2,-96 L78,78"
                   stroke="#ffffff"
                   strokeWidth="2"
-                  strokeOpacity=".85"
+                  strokeOpacity=".88"
                   strokeLinecap="round"
                 />
+                {/* Living Brand Logo signature: golden 4-point curiosity spark glowing at prism heart */}
+                <g opacity={0.45 + 0.55 * spectrumReveal}>
+                  <path
+                    d="M0,-24 L4.6,-4.6 L24,0 L4.6,4.6 L0,24 L-4.6,4.6 L-24,0 L-4.6,-4.6 Z"
+                    fill="#fff7e2"
+                    stroke="#e59a38"
+                    strokeWidth="1.2"
+                  />
+                  <circle r="4.5" fill="#f0a43b" />
+                </g>
               </g>
             </g>
 

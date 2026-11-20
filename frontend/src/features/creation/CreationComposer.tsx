@@ -1,14 +1,18 @@
-import { EditorialOrnament } from "../../components/EditorialOrnament";
-import { AmbientMotifs } from "../../components/AmbientMotifs";
+import { BrandLogo } from "../../components/BrandLogo";
+import {
+  NarrativeModeIcon,
+  TopicIcon,
+  WorkflowStepIcon,
+} from "../../components/StudioIcons";
 import { IdeaSeed } from "../landing/LivingFlowScene";
 import { type FormEvent, useRef } from "react";
 import { depths, modes, type Draft } from "../../common/creation";
 import { profiles } from "../../animation/styles/profiles";
 
 const examples = [
-  ["生日悖论", "为什么只要 23 个人，就很可能出现相同的生日？"],
-  ["注意力机制", "AI 的注意力机制，是怎样理解一句话的？"],
-  ["时间的方向", "时间为什么不能倒流？"],
+  ["birthday", "生日悖论", "为什么只要 23 个人，就很可能出现相同的生日？"],
+  ["attention", "注意力机制", "AI 的注意力机制，是怎样理解一句话的？"],
+  ["time", "时间的方向", "时间为什么不能倒流？"],
 ] as const;
 
 const modeDescriptions: Record<(typeof modes)[number][0], string> = {
@@ -20,14 +24,11 @@ const modeDescriptions: Record<(typeof modes)[number][0], string> = {
   custom: "用你自己的话描述节奏、氛围或叙事视角",
 };
 
-const modeIcons: Record<(typeof modes)[number][0], string> = {
-  auto: "✦",
-  creative: "◈",
-  visual_explain: "◎",
-  knowledge_dense: "▤",
-  story: "◐",
-  custom: "✎",
-};
+const composerSteps = [
+  ["explore", "01", "提出好奇"],
+  ["script", "02", "知识核验与编剧"],
+  ["animate", "03", "模板动画与微调"],
+] as const;
 
 export function CreationComposer({
   draft,
@@ -75,21 +76,25 @@ export function CreationComposer({
 
   return (
     <main className="composer page-enter">
-      <AmbientMotifs variant="studio" />
       <div className="composer-heading">
-        <EditorialOrnament
-          variant="sprig"
-          className="heading-sprig heading-sprig-left"
-        />
-        <EditorialOrnament
-          variant="sprig"
-          className="heading-sprig heading-sprig-right"
-        />
-        <p className="eyebrow">CREATOR&apos;S DESK · FROM QUESTION TO FILM</p>
+        <div className="composer-brand-pill">
+          <BrandLogo size={20} />
+          <p className="eyebrow">CREATOR&apos;S DESK · FROM QUESTION TO FILM</p>
+        </div>
         <h1>从一个问题开始。</h1>
         <p>你负责好奇，我们把背后的机制做成值得看完的动态画面。</p>
+        <ol className="composer-journey" aria-label="创作步骤">
+          {composerSteps.map(([step, num, label], idx) => (
+            <li key={step} className={`composer-journey-step ${idx === 0 ? "is-current" : ""}`}>
+              <span className="composer-journey-icon">
+                <WorkflowStepIcon step={step} />
+              </span>
+              <span className="composer-journey-num">{num}</span>
+              <span>{label}</span>
+            </li>
+          ))}
+        </ol>
       </div>
-      <EditorialOrnament />
       <form onSubmit={submit}>
         <label className="topic-label" htmlFor="topic">
           <span className="topic-prompt">
@@ -120,7 +125,7 @@ export function CreationComposer({
           />
           <div className="topic-examples">
             <span className="examples-tag">试试灵感</span>
-            {examples.map(([label, text]) => (
+            {examples.map(([iconKey, label, text]) => (
               <button
                 type="button"
                 key={label}
@@ -129,12 +134,12 @@ export function CreationComposer({
                   topicRef.current?.focus();
                 }}
               >
-                {label} ↗
+                <TopicIcon topicKey={iconKey} />
+                <span>{label} ↗</span>
               </button>
             ))}
           </div>
         </div>
-        <EditorialOrnament variant="hem" className="topic-tail" />
 
         <div className="form-columns">
           <div className="studio-card">
@@ -159,7 +164,7 @@ export function CreationComposer({
                   onClick={() => change("creative_mode", value)}
                 >
                   <span className="choice-icon" aria-hidden="true">
-                    {modeIcons[value]}
+                    <NarrativeModeIcon mode={value} />
                   </span>
                   <span>{label}</span>
                 </button>
@@ -168,7 +173,6 @@ export function CreationComposer({
             <p className="mode-caption" aria-live="polite">
               {modeDescriptions[draft.creative_mode]}
             </p>
-            <EditorialOrnament variant="hem" className="mode-ornament" />
             {draft.creative_mode === "custom" && (
               <label className="field custom-field">
                 你的讲述方式
@@ -270,7 +274,6 @@ export function CreationComposer({
             {field("must_include", "想出现的内容", "例如：一个日常生活中的例子")}
             {field("must_avoid", "希望避开的内容", "例如：太复杂的公式和术语")}
           </div>
-          <EditorialOrnament variant="hem" className="preference-ornament" />
         </details>
 
         <div className="form-bottom">
