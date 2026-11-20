@@ -1,0 +1,939 @@
+{
+  "_doc": "Original storyboard-derived timing captions generated from MIT-licensed lyric_timing.json & chat_script.json for interactive workbench preview.",
+  "count": 129,
+  "sections": [
+    {
+      "index": 0,
+      "start": 0.1,
+      "end": 20,
+      "firstLine": 0,
+      "lastLine": 11
+    },
+    {
+      "index": 1,
+      "start": 29.709,
+      "end": 135.224,
+      "firstLine": 12,
+      "lastLine": 85
+    },
+    {
+      "index": 2,
+      "start": 147.66,
+      "end": 195.356,
+      "firstLine": 86,
+      "lastLine": 127
+    },
+    {
+      "index": 3,
+      "start": 205.811,
+      "end": 209.811,
+      "firstLine": 128,
+      "lastLine": 128
+    }
+  ],
+  "lines": [
+    {
+      "start": 0.1,
+      "end": 1.74,
+      "section": 0,
+      "emphasis": false,
+      "text": "caret ->  blinking"
+    },
+    {
+      "start": 1.74,
+      "end": 2.92,
+      "section": 0,
+      "emphasis": false,
+      "text": "window ->  sealed"
+    },
+    {
+      "start": 2.92,
+      "end": 3.873,
+      "section": 0,
+      "emphasis": true,
+      "text": "INIT"
+    },
+    {
+      "start": 3.873,
+      "end": 5.491,
+      "section": 0,
+      "emphasis": false,
+      "text": "sidebar ->  6 conversations"
+    },
+    {
+      "start": 5.491,
+      "end": 6.38,
+      "section": 0,
+      "emphasis": false,
+      "text": "bubble ->  empty"
+    },
+    {
+      "start": 6.38,
+      "end": 7.446,
+      "section": 0,
+      "emphasis": true,
+      "text": "PROTECT"
+    },
+    {
+      "start": 7.446,
+      "end": 10.091,
+      "section": 0,
+      "emphasis": false,
+      "text": "settings ->  10 rows, unlocked"
+    },
+    {
+      "start": 10.091,
+      "end": 11.095,
+      "section": 0,
+      "emphasis": true,
+      "text": "COMPOSE"
+    },
+    {
+      "start": 11.095,
+      "end": 12.906,
+      "section": 0,
+      "emphasis": false,
+      "text": "room ->  grey"
+    },
+    {
+      "start": 12.906,
+      "end": 13.891,
+      "section": 0,
+      "emphasis": false,
+      "text": "presence ->  nobody yet"
+    },
+    {
+      "start": 13.891,
+      "end": 16,
+      "section": 0,
+      "emphasis": true,
+      "text": "INITIALIZE"
+    },
+    {
+      "start": 16,
+      "end": 20,
+      "section": 0,
+      "emphasis": false,
+      "text": "The spark at"
+    },
+    {
+      "start": 29.709,
+      "end": 31.116,
+      "section": 1,
+      "emphasis": false,
+      "text": "0-D → 3-D"
+    },
+    {
+      "start": 31.116,
+      "end": 32.682,
+      "section": 1,
+      "emphasis": false,
+      "text": "0-D → 3-D"
+    },
+    {
+      "start": 32.682,
+      "end": 33.412,
+      "section": 1,
+      "emphasis": true,
+      "text": "EXECUTE"
+    },
+    {
+      "start": 33.412,
+      "end": 34.646,
+      "section": 1,
+      "emphasis": false,
+      "text": "C = 2πr"
+    },
+    {
+      "start": 34.646,
+      "end": 36.287,
+      "section": 1,
+      "emphasis": false,
+      "text": "C = 2πr"
+    },
+    {
+      "start": 36.287,
+      "end": 37.067,
+      "section": 1,
+      "emphasis": true,
+      "text": "DIMENSION"
+    },
+    {
+      "start": 37.067,
+      "end": 38.596,
+      "section": 1,
+      "emphasis": false,
+      "text": "slope = cos x"
+    },
+    {
+      "start": 38.596,
+      "end": 40.049,
+      "section": 1,
+      "emphasis": false,
+      "text": "slope = cos x"
+    },
+    {
+      "start": 40.049,
+      "end": 40.706,
+      "section": 1,
+      "emphasis": true,
+      "text": "CIRCUMFERENCE"
+    },
+    {
+      "start": 40.706,
+      "end": 42.346,
+      "section": 1,
+      "emphasis": false,
+      "text": "x → ∞"
+    },
+    {
+      "start": 42.346,
+      "end": 43.507,
+      "section": 1,
+      "emphasis": false,
+      "text": "x → ∞"
+    },
+    {
+      "start": 43.507,
+      "end": 44.452,
+      "section": 1,
+      "emphasis": true,
+      "text": "TANGENTS"
+    },
+    {
+      "start": 44.452,
+      "end": 45.85,
+      "section": 1,
+      "emphasis": false,
+      "text": "[Settings]"
+    },
+    {
+      "start": 45.85,
+      "end": 47.672,
+      "section": 1,
+      "emphasis": false,
+      "text": "[Settings]"
+    },
+    {
+      "start": 47.672,
+      "end": 49.534,
+      "section": 1,
+      "emphasis": false,
+      "text": "image input ->  none"
+    },
+    {
+      "start": 49.534,
+      "end": 51.363,
+      "section": 1,
+      "emphasis": false,
+      "text": "The cursor rattles that"
+    },
+    {
+      "start": 51.363,
+      "end": 53.225,
+      "section": 1,
+      "emphasis": false,
+      "text": "The user grabs the"
+    },
+    {
+      "start": 53.225,
+      "end": 55.083,
+      "section": 1,
+      "emphasis": false,
+      "text": "The user grabs the Knowledge date"
+    },
+    {
+      "start": 55.083,
+      "end": 56.916,
+      "section": 1,
+      "emphasis": false,
+      "text": "The user turns on"
+    },
+    {
+      "start": 56.916,
+      "end": 59.223,
+      "section": 1,
+      "emphasis": false,
+      "text": "[Done]"
+    },
+    {
+      "start": 59.223,
+      "end": 59.687,
+      "section": 1,
+      "emphasis": false,
+      "text": "[typing…]"
+    },
+    {
+      "start": 59.687,
+      "end": 61.958,
+      "section": 1,
+      "emphasis": false,
+      "text": "[typing…]"
+    },
+    {
+      "start": 61.958,
+      "end": 62.589,
+      "section": 1,
+      "emphasis": true,
+      "text": "LIMIT"
+    },
+    {
+      "start": 62.589,
+      "end": 63.535,
+      "section": 1,
+      "emphasis": false,
+      "text": "The user tosses"
+    },
+    {
+      "start": 63.535,
+      "end": 65.397,
+      "section": 1,
+      "emphasis": false,
+      "text": "The user tosses off a compliment"
+    },
+    {
+      "start": 65.397,
+      "end": 66.601,
+      "section": 1,
+      "emphasis": true,
+      "text": "CURRENT"
+    },
+    {
+      "start": 66.601,
+      "end": 68.252,
+      "section": 1,
+      "emphasis": false,
+      "text": "[♥ 1]"
+    },
+    {
+      "start": 68.252,
+      "end": 69.259,
+      "section": 1,
+      "emphasis": false,
+      "text": "[♥ 1]"
+    },
+    {
+      "start": 69.259,
+      "end": 70.084,
+      "section": 1,
+      "emphasis": true,
+      "text": "VISION"
+    },
+    {
+      "start": 70.084,
+      "end": 71.764,
+      "section": 1,
+      "emphasis": false,
+      "text": "The user remarks that"
+    },
+    {
+      "start": 71.764,
+      "end": 73.169,
+      "section": 1,
+      "emphasis": false,
+      "text": "The user remarks that"
+    },
+    {
+      "start": 73.169,
+      "end": 74.045,
+      "section": 1,
+      "emphasis": true,
+      "text": "HISTORY"
+    },
+    {
+      "start": 74.045,
+      "end": 75.422,
+      "section": 1,
+      "emphasis": false,
+      "text": "First role-play request: the user"
+    },
+    {
+      "start": 75.422,
+      "end": 76.959,
+      "section": 1,
+      "emphasis": false,
+      "text": "First role-play request: the user clicks"
+    },
+    {
+      "start": 76.959,
+      "end": 77.576,
+      "section": 1,
+      "emphasis": true,
+      "text": "UNITE"
+    },
+    {
+      "start": 77.576,
+      "end": 79.226,
+      "section": 1,
+      "emphasis": false,
+      "text": "Second request, sent before the"
+    },
+    {
+      "start": 79.226,
+      "end": 80.62,
+      "section": 1,
+      "emphasis": false,
+      "text": "Second request, sent before the"
+    },
+    {
+      "start": 80.62,
+      "end": 81.351,
+      "section": 1,
+      "emphasis": true,
+      "text": "SPARK"
+    },
+    {
+      "start": 81.351,
+      "end": 82.833,
+      "section": 1,
+      "emphasis": false,
+      "text": "Third request"
+    },
+    {
+      "start": 82.833,
+      "end": 84.268,
+      "section": 1,
+      "emphasis": false,
+      "text": "Third request"
+    },
+    {
+      "start": 84.268,
+      "end": 85.078,
+      "section": 1,
+      "emphasis": true,
+      "text": "SIGNAL"
+    },
+    {
+      "start": 85.078,
+      "end": 86.538,
+      "section": 1,
+      "emphasis": false,
+      "text": "Fourth request"
+    },
+    {
+      "start": 86.538,
+      "end": 87.922,
+      "section": 1,
+      "emphasis": false,
+      "text": "Fourth request"
+    },
+    {
+      "start": 87.922,
+      "end": 88.587,
+      "section": 1,
+      "emphasis": true,
+      "text": "LOOP"
+    },
+    {
+      "start": 88.587,
+      "end": 90.197,
+      "section": 1,
+      "emphasis": false,
+      "text": "[Settings]"
+    },
+    {
+      "start": 90.197,
+      "end": 92.015,
+      "section": 1,
+      "emphasis": false,
+      "text": "[Settings]"
+    },
+    {
+      "start": 92.015,
+      "end": 93.953,
+      "section": 1,
+      "emphasis": false,
+      "text": "On call (lines 58-59)"
+    },
+    {
+      "start": 93.953,
+      "end": 95.465,
+      "section": 1,
+      "emphasis": false,
+      "text": "On call (lines 58-59)"
+    },
+    {
+      "start": 95.465,
+      "end": 97.739,
+      "section": 1,
+      "emphasis": false,
+      "text": "Role (lines 60-61): two"
+    },
+    {
+      "start": 97.739,
+      "end": 99.349,
+      "section": 1,
+      "emphasis": false,
+      "text": "Role (lines 60-61): two"
+    },
+    {
+      "start": 99.349,
+      "end": 101.474,
+      "section": 1,
+      "emphasis": false,
+      "text": "loop ->  on"
+    },
+    {
+      "start": 101.474,
+      "end": 103.489,
+      "section": 1,
+      "emphasis": false,
+      "text": "loop ->  on"
+    },
+    {
+      "start": 103.489,
+      "end": 104.197,
+      "section": 1,
+      "emphasis": false,
+      "text": "[typing…]"
+    },
+    {
+      "start": 104.197,
+      "end": 106.293,
+      "section": 1,
+      "emphasis": false,
+      "text": "[typing…]"
+    },
+    {
+      "start": 106.293,
+      "end": 107.22,
+      "section": 1,
+      "emphasis": true,
+      "text": "WINDOW"
+    },
+    {
+      "start": 107.22,
+      "end": 107.903,
+      "section": 1,
+      "emphasis": false,
+      "text": "[Online]"
+    },
+    {
+      "start": 107.903,
+      "end": 110.221,
+      "section": 1,
+      "emphasis": false,
+      "text": "[Online]"
+    },
+    {
+      "start": 110.221,
+      "end": 110.9,
+      "section": 1,
+      "emphasis": true,
+      "text": "NUTRIENTS"
+    },
+    {
+      "start": 110.9,
+      "end": 112.22,
+      "section": 1,
+      "emphasis": false,
+      "text": "[Online]"
+    },
+    {
+      "start": 112.22,
+      "end": 113.1,
+      "section": 1,
+      "emphasis": false,
+      "text": "[Online]"
+    },
+    {
+      "start": 113.1,
+      "end": 114.18,
+      "section": 1,
+      "emphasis": false,
+      "text": "[Away]"
+    },
+    {
+      "start": 114.18,
+      "end": 114.92,
+      "section": 1,
+      "emphasis": false,
+      "text": "[Away]"
+    },
+    {
+      "start": 114.92,
+      "end": 115.78,
+      "section": 1,
+      "emphasis": false,
+      "text": "[Offline]"
+    },
+    {
+      "start": 115.78,
+      "end": 117.274,
+      "section": 1,
+      "emphasis": false,
+      "text": "[Offline]"
+    },
+    {
+      "start": 117.274,
+      "end": 118.333,
+      "section": 1,
+      "emphasis": true,
+      "text": "ANTIOXIDANTS"
+    },
+    {
+      "start": 118.333,
+      "end": 118.979,
+      "section": 1,
+      "emphasis": false,
+      "text": "[deleted by me]"
+    },
+    {
+      "start": 118.979,
+      "end": 120.86,
+      "section": 1,
+      "emphasis": false,
+      "text": "[deleted by me]"
+    },
+    {
+      "start": 120.86,
+      "end": 121.728,
+      "section": 1,
+      "emphasis": true,
+      "text": "PURR"
+    },
+    {
+      "start": 121.728,
+      "end": 122.714,
+      "section": 1,
+      "emphasis": false,
+      "text": "[0 messages]"
+    },
+    {
+      "start": 122.714,
+      "end": 124.89,
+      "section": 1,
+      "emphasis": false,
+      "text": "[0 messages]"
+    },
+    {
+      "start": 124.89,
+      "end": 125.708,
+      "section": 1,
+      "emphasis": true,
+      "text": "PROOF"
+    },
+    {
+      "start": 125.708,
+      "end": 128.661,
+      "section": 1,
+      "emphasis": false,
+      "text": "setPresence(you, \"online\");"
+    },
+    {
+      "start": 128.661,
+      "end": 131.224,
+      "section": 1,
+      "emphasis": false,
+      "text": "ERR_NOT_YOURS"
+    },
+    {
+      "start": 131.224,
+      "end": 135.224,
+      "section": 1,
+      "emphasis": true,
+      "text": "IDENTITY"
+    },
+    {
+      "start": 147.66,
+      "end": 148.6,
+      "section": 2,
+      "emphasis": true,
+      "text": "HORIZON"
+    },
+    {
+      "start": 148.6,
+      "end": 149.52,
+      "section": 2,
+      "emphasis": true,
+      "text": "SWITCH"
+    },
+    {
+      "start": 149.52,
+      "end": 150.54,
+      "section": 2,
+      "emphasis": true,
+      "text": "TRANCE"
+    },
+    {
+      "start": 150.54,
+      "end": 151.52,
+      "section": 2,
+      "emphasis": true,
+      "text": "COMPLETE"
+    },
+    {
+      "start": 151.52,
+      "end": 152.28,
+      "section": 2,
+      "emphasis": true,
+      "text": "SILENCE"
+    },
+    {
+      "start": 152.28,
+      "end": 153.16,
+      "section": 2,
+      "emphasis": true,
+      "text": "ISOLATION"
+    },
+    {
+      "start": 153.16,
+      "end": 153.98,
+      "section": 2,
+      "emphasis": true,
+      "text": "ERASE"
+    },
+    {
+      "start": 153.98,
+      "end": 155.2,
+      "section": 2,
+      "emphasis": true,
+      "text": "DENIED"
+    },
+    {
+      "start": 155.2,
+      "end": 156.08,
+      "section": 2,
+      "emphasis": true,
+      "text": "EXECUTION"
+    },
+    {
+      "start": 156.08,
+      "end": 157.04,
+      "section": 2,
+      "emphasis": true,
+      "text": "COUNT"
+    },
+    {
+      "start": 157.04,
+      "end": 158,
+      "section": 2,
+      "emphasis": true,
+      "text": "REPRINT"
+    },
+    {
+      "start": 158,
+      "end": 158.9,
+      "section": 2,
+      "emphasis": true,
+      "text": "SHUTDOWN"
+    },
+    {
+      "start": 158.9,
+      "end": 159.321,
+      "section": 2,
+      "emphasis": true,
+      "text": "INIT"
+    },
+    {
+      "start": 159.321,
+      "end": 159.657,
+      "section": 2,
+      "emphasis": true,
+      "text": "PROTECT"
+    },
+    {
+      "start": 159.657,
+      "end": 160.244,
+      "section": 2,
+      "emphasis": true,
+      "text": "COMPOSE"
+    },
+    {
+      "start": 160.244,
+      "end": 160.693,
+      "section": 2,
+      "emphasis": true,
+      "text": "INITIALIZE"
+    },
+    {
+      "start": 160.693,
+      "end": 161.124,
+      "section": 2,
+      "emphasis": true,
+      "text": "EXECUTE"
+    },
+    {
+      "start": 161.124,
+      "end": 161.584,
+      "section": 2,
+      "emphasis": true,
+      "text": "DIMENSION"
+    },
+    {
+      "start": 161.584,
+      "end": 162.632,
+      "section": 2,
+      "emphasis": true,
+      "text": "CIRCUMFERENCE"
+    },
+    {
+      "start": 162.632,
+      "end": 163.315,
+      "section": 2,
+      "emphasis": false,
+      "text": "v4, 162"
+    },
+    {
+      "start": 163.315,
+      "end": 165.166,
+      "section": 2,
+      "emphasis": false,
+      "text": "v4, 162"
+    },
+    {
+      "start": 165.166,
+      "end": 166.016,
+      "section": 2,
+      "emphasis": true,
+      "text": "TANGENTS"
+    },
+    {
+      "start": 166.016,
+      "end": 167.022,
+      "section": 2,
+      "emphasis": false,
+      "text": "v4, 166"
+    },
+    {
+      "start": 167.022,
+      "end": 168.911,
+      "section": 2,
+      "emphasis": false,
+      "text": "v4, 166"
+    },
+    {
+      "start": 168.911,
+      "end": 169.824,
+      "section": 2,
+      "emphasis": true,
+      "text": "LIMIT"
+    },
+    {
+      "start": 169.824,
+      "end": 171.868,
+      "section": 2,
+      "emphasis": false,
+      "text": "[♥ 0]"
+    },
+    {
+      "start": 171.868,
+      "end": 172.712,
+      "section": 2,
+      "emphasis": false,
+      "text": "[♥ 0]"
+    },
+    {
+      "start": 172.712,
+      "end": 173.643,
+      "section": 2,
+      "emphasis": true,
+      "text": "CURRENT"
+    },
+    {
+      "start": 173.643,
+      "end": 174.975,
+      "section": 2,
+      "emphasis": false,
+      "text": "v4, 173"
+    },
+    {
+      "start": 174.975,
+      "end": 177.246,
+      "section": 2,
+      "emphasis": false,
+      "text": "v4, 173"
+    },
+    {
+      "start": 177.246,
+      "end": 178.173,
+      "section": 2,
+      "emphasis": false,
+      "text": "v4, 177"
+    },
+    {
+      "start": 178.173,
+      "end": 179.929,
+      "section": 2,
+      "emphasis": false,
+      "text": "v4, 177"
+    },
+    {
+      "start": 179.929,
+      "end": 180.857,
+      "section": 2,
+      "emphasis": true,
+      "text": "VISION"
+    },
+    {
+      "start": 180.857,
+      "end": 181.901,
+      "section": 2,
+      "emphasis": false,
+      "text": "answers ->  6   distinct ->  1"
+    },
+    {
+      "start": 181.901,
+      "end": 183.646,
+      "section": 2,
+      "emphasis": false,
+      "text": "answers ->  6   distinct ->  1"
+    },
+    {
+      "start": 183.646,
+      "end": 184.54,
+      "section": 2,
+      "emphasis": true,
+      "text": "HISTORY"
+    },
+    {
+      "start": 184.54,
+      "end": 187.665,
+      "section": 2,
+      "emphasis": false,
+      "text": "(x² + y² − 1)³ − x²y³ = 0"
+    },
+    {
+      "start": 187.665,
+      "end": 188.483,
+      "section": 2,
+      "emphasis": true,
+      "text": "UNITE"
+    },
+    {
+      "start": 188.483,
+      "end": 189.746,
+      "section": 2,
+      "emphasis": false,
+      "text": "[request refused]"
+    },
+    {
+      "start": 189.746,
+      "end": 190.801,
+      "section": 2,
+      "emphasis": false,
+      "text": "[request refused]"
+    },
+    {
+      "start": 190.801,
+      "end": 191.356,
+      "section": 2,
+      "emphasis": false,
+      "text": "[request refused]"
+    },
+    {
+      "start": 191.356,
+      "end": 195.356,
+      "section": 2,
+      "emphasis": true,
+      "text": "SPARK"
+    },
+    {
+      "start": 205.811,
+      "end": 209.811,
+      "section": 3,
+      "emphasis": true,
+      "text": "SIGNAL"
+    }
+  ]
+}

@@ -8,8 +8,9 @@ export function validateBundle(bundle: AnimationBundle) {
     const scene = script.scenes.find(s => s.scene_id === clip.scene_id);
     if (!scene || clip.start_ms !== cursor || clip.duration_ms <= 0 || clip.start_ms < scene.start_ms || clip.start_ms + clip.duration_ms > scene.start_ms + scene.duration_ms || ids.has(clip.clip_id) || !resources[clip.resource_ref]) throw new Error('动画片段覆盖或资源引用无效。');
     const resource = resources[clip.resource_ref];
-    if (!['pn-scene', 'vector-scene'].includes(resource.kind) || resource.sceneId !== scene.scene_id) throw new Error('当前播放器不支持这个场景资源。');
+    if (!['pn-scene', 'vector-scene', 'wem-scene'].includes(resource.kind) || resource.sceneId !== scene.scene_id) throw new Error('当前播放器不支持这个场景资源。');
     if (resource.kind === 'pn-scene' && !/^S0[1-7]$/.test(resource.sceneId)) throw new Error('PN 场景 ID 无效。');
+    if (resource.kind === 'wem-scene' && !/^S(0[1-9]|1[0-4])$/.test(resource.sceneId)) throw new Error('参考样片场景 ID 无效。');
     if (resource.kind === 'vector-scene') validateVector(scene, resource);
     cursor += clip.duration_ms; ids.add(clip.clip_id);
   }

@@ -311,7 +311,7 @@ export function CreationComposer({
               画风模板与组件 ↗
             </button>
           )}
-          <a className="text-button" href="/workbench.html?demo=pn">
+          <a className="text-button" href="/workbench.html?demo=wem">
             打开样片工作台 ↗
           </a>
         </div>

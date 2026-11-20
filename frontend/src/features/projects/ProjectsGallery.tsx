@@ -117,7 +117,7 @@ export function ProjectsGallery({
             <button type="button" className="secondary" onClick={onOpenTemplates}>
               查看 1:1 模板 Demo
             </button>
-            <a className="secondary" href="/workbench.html?demo=pn">
+            <a className="secondary" href="/workbench.html?demo=wem">
               体验 PN 结样片工作台
             </a>
           </div>

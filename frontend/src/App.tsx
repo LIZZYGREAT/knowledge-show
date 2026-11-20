@@ -445,7 +445,7 @@ export default function App() {
             >
               我的作品
             </button>
-            <a className="nav-pill" href="/workbench.html?demo=pn">
+            <a className="nav-pill" href="/workbench.html?demo=wem">
               工作台样片 ↗
             </a>
           </nav>

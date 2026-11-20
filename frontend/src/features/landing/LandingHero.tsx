@@ -66,7 +66,7 @@ export function LandingHero({
           ) : (
             <a
               className="secondary hero-sample-link"
-              href="/workbench.html?demo=pn"
+              href="/workbench.html?demo=wem"
             >
               <span className="play-triangle" aria-hidden="true">
                 ▶
