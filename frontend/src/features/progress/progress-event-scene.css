@@ -89,6 +89,9 @@
   z-index: 2;
 }
 
+/* IMPORTANT: Do NOT set vector-effect: non-scaling-stroke on pathLength-driven strokes!
+   In Chromium, non-scaling-stroke switches dasharray/dashoffset into stretched screen pixels,
+   causing dash wrap-around on the far right end and misalignment with the progress orb. */
 .progress-track-base,
 .progress-track-guide,
 .progress-track-aura,
@@ -98,7 +101,6 @@
 .progress-comet-mask {
   fill: none;
   stroke-linecap: round;
-  vector-effect: non-scaling-stroke;
 }
 
 .progress-track-base {
@@ -107,25 +109,24 @@
 }
 
 .progress-track-guide {
-  stroke: rgba(15, 150, 125, 0.2);
-  stroke-width: 1.4;
+  stroke: rgba(15, 150, 125, 0.22);
+  stroke-width: 1.5;
   stroke-dasharray: 4 11;
-  opacity: 0.7;
+  opacity: 0.72;
   animation: progress-guide-flow 22s linear infinite;
 }
 
-/* Fixed: stroke-dasharray: 1000 prevents full-track glow before progress starts */
 .progress-track-aura {
-  stroke-width: 22;
-  stroke-dasharray: 1000;
+  stroke-width: 20;
+  stroke-dasharray: 1000 5000;
   transition:
     stroke-dashoffset 1.15s cubic-bezier(0.22, 0.75, 0.25, 1),
     opacity 0.45s ease;
 }
 
 .progress-track-fill {
-  stroke-width: 6;
-  stroke-dasharray: 1000;
+  stroke-width: 5.5;
+  stroke-dasharray: 1000 5000;
   filter: drop-shadow(0 4px 12px rgba(15, 150, 125, 0.24));
   transition:
     stroke-dashoffset 1.15s cubic-bezier(0.22, 0.75, 0.25, 1),
@@ -134,8 +135,8 @@
 
 .progress-track-shine {
   stroke: rgba(255, 255, 255, 0.88);
-  stroke-width: 1.7;
-  stroke-dasharray: 1000;
+  stroke-width: 1.6;
+  stroke-dasharray: 1000 5000;
   transition:
     stroke-dashoffset 1.15s cubic-bezier(0.22, 0.75, 0.25, 1),
     opacity 0.45s ease;
@@ -143,13 +144,13 @@
 
 .progress-track-shimmer {
   stroke: #ffffff;
-  stroke-width: 2.5;
+  stroke-width: 2.4;
   stroke-dasharray: 18 982;
   animation: progress-shimmer-run 7.5s linear infinite;
 }
 
 .progress-comet-mask {
-  stroke-dasharray: 1000;
+  stroke-dasharray: 1000 5000;
   transition: stroke-dashoffset 1.15s cubic-bezier(0.22, 0.75, 0.25, 1);
 }
 

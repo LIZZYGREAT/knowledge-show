@@ -26,12 +26,30 @@ describe("Knowledge.Show(me) Origami Prism-K overture and showreel motion", () =
       const state = logoOvertureState(cycle);
       expect(state.opacity).toBe(0);
       expect(state.dotOpacity).toBe(0);
-      expect(state.returnAuraOpacity).toBe(0);
+      expect(state.seamStarOpacity).toBe(0);
     }
+  });
 
-    // Soft caustic aura blooms smoothly right before loop wraparound
-    const wrap = logoOvertureState(SHOWREEL_DURATION - 0.1);
-    expect(wrap.returnAuraOpacity).toBeGreaterThan(0.95);
+  it("matches ending frame (35.999s) to opening frame (0.000s) with C1-continuous zero-jump loop seam", () => {
+    const start = logoOvertureState(0);
+    const end = logoOvertureState(SHOWREEL_DURATION - 0.001);
+
+    expect(end.auraOpacity).toBeCloseTo(start.auraOpacity, 2);
+    expect(end.auraOpacity).toBeCloseTo(1, 2);
+    expect(end.seamStarOpacity).toBeCloseTo(start.seamStarOpacity, 2);
+    expect(end.seamStarOpacity).toBeCloseTo(1, 2);
+    expect(end.seamStarX).toBeCloseTo(start.seamStarX, 1);
+    expect(end.seamStarScale).toBeCloseTo(start.seamStarScale, 2);
+    expect(end.emblemOpacity).toBeCloseTo(start.emblemOpacity, 2);
+    expect(end.opacity * end.knowledgeIn).toBe(0);
+    expect(end.opacity * end.showIn).toBe(0);
+    expect(start.opacity * start.knowledgeIn).toBe(0);
+    expect(start.opacity * start.showIn).toBe(0);
+
+    for (let i = 0; i < 36; i++) {
+      expect(sharedBeadState(i, 0).opacity).toBe(0);
+      expect(sharedBeadState(i, SHOWREEL_DURATION - 0.001).opacity).toBe(0);
+    }
   });
 
   it("keeps all PN junction carriers strictly inside the glass chamber and clear of top region badges", () => {

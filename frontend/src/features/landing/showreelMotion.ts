@@ -142,8 +142,10 @@ export type LogoOvertureState = {
   emblemOpacity: number;
   wordmarkExitY: number;
   wordmarkOpacity: number;
-  /** Soft converging caustic bloom at end of Act 3 (34.7..36.0) -> seamlessly restarts t=0 */
-  returnAuraOpacity: number;
+  /** Shared seam Starlight Seed bridging Act 3 end (34.65..36.0) <-> Act 00 start (0.0..1.85) with ZERO jump */
+  seamStarOpacity: number;
+  seamStarX: number;
+  seamStarScale: number;
 };
 
 export function logoOvertureState(cycle: number): LogoOvertureState {
@@ -151,12 +153,25 @@ export function logoOvertureState(cycle: number): LogoOvertureState {
   const emblemExit = smoothstep(cycle, 4.95, 6.15);
   const opacity = 1 - emblemExit;
 
-  const auraOpacity = smoothstep(cycle, 0.0, 0.9) * (1 - emblemExit);
-  const guideDraw = easeOutExpo(smoothstep(cycle, 0.05, 1.1));
-  const guideOpacity =
-    smoothstep(cycle, 0.05, 0.45) * (1 - smoothstep(cycle, 1.85, 2.75)) * (1 - emblemExit);
+  // C1-continuous caustic aura across the 36.0 -> 0.0 loop seam (exact 1.0 on both sides!)
+  const startAura = 1 - emblemExit;
+  const endAura = smoothstep(cycle, 34.45, 35.75);
+  const auraOpacity = Math.max(startAura, endAura);
 
-  const spineIn = easeOutExpo(smoothstep(cycle, 0.22, 1.25));
+  // C1-continuous 4-point Starlight Seed across 36.0 -> 0.0:
+  // Condenses from PN carriers at (400, 204) -> holds across t=0 -> glides to prism heart (410.2, 204) as wings lock!
+  const endStar = smoothstep(cycle, 34.65, 35.72);
+  const startStar = 1 - smoothstep(cycle, 1.32, 1.85);
+  const seamStarOpacity = Math.max(cycle < 6.2 ? startStar : 0, endStar);
+  const starGlide = easeOutExpo(smoothstep(cycle, 0.55, 1.65));
+  const seamStarX = cycle < 6.2 ? lerp(400, 410.2, starGlide) : 400;
+  const seamStarScale = cycle < 6.2 ? lerp(1, 0.96, starGlide) : lerp(0.32, 1, endStar);
+
+  const guideDraw = easeOutExpo(smoothstep(cycle, 0.08, 1.12));
+  const guideOpacity =
+    smoothstep(cycle, 0.08, 0.48) * (1 - smoothstep(cycle, 1.85, 2.75)) * (1 - emblemExit);
+
+  const spineIn = easeOutExpo(smoothstep(cycle, 0.24, 1.25));
   const upperWingIn = easeOutExpo(smoothstep(cycle, 0.52, 1.55));
   const lowerWingIn = easeOutExpo(smoothstep(cycle, 0.78, 1.8));
   const coreIn = easeOutExpo(smoothstep(cycle, 1.28, 2.12));
@@ -179,11 +194,9 @@ export function logoOvertureState(cycle: number): LogoOvertureState {
   const dotRotation = lerp(-45, 0, dotAppear);
 
   const emblemScale = lerp(1, 0.58, easeInOutCubic(emblemExit));
-  const emblemOpacity = (1 - emblemExit) * smoothstep(cycle, 0.15, 0.5);
+  const emblemOpacity = (1 - emblemExit) * smoothstep(cycle, 0.16, 0.5);
   const wordmarkExitY = lerp(0, 30, easeInOutCubic(exitWord));
   const wordmarkOpacity = 1 - exitWord;
-
-  const returnAuraOpacity = smoothstep(cycle, 34.65, 35.85);
 
   return {
     opacity,
@@ -209,7 +222,9 @@ export function logoOvertureState(cycle: number): LogoOvertureState {
     emblemOpacity,
     wordmarkExitY,
     wordmarkOpacity,
-    returnAuraOpacity,
+    seamStarOpacity,
+    seamStarX,
+    seamStarScale,
   };
 }
 

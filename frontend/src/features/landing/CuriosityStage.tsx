@@ -296,15 +296,17 @@ export function CuriosityStage({
             <circle cx="400" cy="300" r="218" fill="none" stroke="#0f967d" strokeOpacity=".055" strokeDasharray="3 8" />
             <circle cx="400" cy="300" r="142" fill="none" stroke="#e08d30" strokeOpacity=".06" strokeDasharray="2 7" />
 
+            {/* Shared C1-continuous caustic halo across Act 3 end (34.45..36) <-> Act 00 (0..6.15) */}
+            {logo.auraOpacity > 0.005 && (
+              <g opacity={logo.auraOpacity}>
+                <ellipse cx="386" cy="204" rx="188" ry="132" fill={`url(#${id}-caustic-mint)`} />
+                <ellipse cx="428" cy="212" rx="154" ry="110" fill={`url(#${id}-caustic-gold)`} />
+              </g>
+            )}
+
             {/* ── ACT 00: LUXURY ORIGAMI PRISM-K & Knowledge.Show(me) OVERTURE ── */}
             {logo.opacity > 0.005 && (
               <g className="stage-logo-overture" opacity={logo.opacity}>
-                {/* Soft gallery daylight caustic halo (no cluttered wireframe circles!) */}
-                <g opacity={logo.auraOpacity}>
-                  <ellipse cx="386" cy="204" rx="188" ry="132" fill={`url(#${id}-caustic-mint)`} />
-                  <ellipse cx="428" cy="212" rx="154" ry="110" fill={`url(#${id}-caustic-gold)`} />
-                </g>
-
                 {/* Whisper-thin Apple-style 45° architectural construction hairlines (fade out cleanly once built) */}
                 {logo.guideOpacity > 0.01 && (
                   <g
@@ -547,15 +549,22 @@ export function CuriosityStage({
               </g>
             )}
 
-            {/* Soft converging caustic light bloom at end of Act 3 (34.65..36.0) -> seamlessly restarts t=0 */}
-            {logo.returnAuraOpacity > 0.01 && (
-              <g opacity={logo.returnAuraOpacity}>
-                <ellipse cx="400" cy="204" rx={lerp(42, 168, logo.returnAuraOpacity)} ry={lerp(32, 118, logo.returnAuraOpacity)} fill={`url(#${id}-caustic-mint)`} />
+            {/* Shared C1-continuous 4-point Starlight Seed across loop seam (34.65..36.0 -> 0.0..1.85) */}
+            {logo.seamStarOpacity > 0.005 && (
+              <g
+                transform={`translate(${logo.seamStarX.toFixed(1)} 204) scale(${logo.seamStarScale.toFixed(3)})`}
+                opacity={logo.seamStarOpacity}
+              >
+                <circle r="30" fill={`url(#${id}-caustic-gold)`} opacity=".6" />
                 <path
-                  d="M400,192 Q400,204 412,204 Q400,204 400,216 Q400,204 388,204 Q400,204 400,192 Z"
-                  fill="#fffaf0"
-                  opacity={logo.returnAuraOpacity}
+                  d="M0,-21 Q0,0 21,0 Q0,0 0,21 Q0,0 -21,0 Q0,0 0,-21 Z"
+                  fill="#ffffff"
+                  stroke="#f0a43b"
+                  strokeOpacity=".35"
+                  strokeWidth="1"
                 />
+                <circle r="4" fill="#f09c38" />
+                <circle cx="-1" cy="-1" r="1.4" fill="#fffaf0" />
               </g>
             )}
 

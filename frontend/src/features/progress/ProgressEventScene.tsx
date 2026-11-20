@@ -56,6 +56,12 @@ function hashSeed(input: string) {
     h ^= input.charCodeAt(i);
     h = Math.imul(h, 16777619);
   }
+  // Murmur3 32-bit avalanche finalizer eliminates sequential-key clustering
+  h ^= h >>> 16;
+  h = Math.imul(h, 0x85ebca6b);
+  h ^= h >>> 13;
+  h = Math.imul(h, 0xc2b2ae35);
+  h ^= h >>> 16;
   return (h >>> 0) / 4294967295;
 }
 
@@ -162,25 +168,68 @@ function StarfieldCanvas({
       depth: number;
     };
 
-    const count = Math.min(72, Math.max(40, Math.round(size.width / 19)));
-    const particles: Particle[] = Array.from({ length: count }, (_, i) => {
-      const s1 = hashSeed(`p-x-${i}`);
-      const s2 = hashSeed(`p-y-${i}`);
-      const s3 = hashSeed(`p-v-${i}`);
-      const depth = 0.45 + hashSeed(`p-d-${i}`) * 0.85;
-      return {
-        x: s1 * size.width,
-        y: s2 * size.height,
-        vx: (s3 - 0.5) * 14 * depth,
-        vy: -(5 + hashSeed(`p-vy-${i}`) * 12) * depth,
-        r: (1.4 + hashSeed(`p-r-${i}`) * 2.8) * depth,
-        phase: hashSeed(`p-ph-${i}`) * Math.PI * 2,
-        speed: 0.9 + hashSeed(`p-sp-${i}`) * 1.6,
-        star: i % 5 === 0,
-        color: palette[i % palette.length],
-        depth,
-      };
-    });
+    // Stratified jittered grid guarantees airy, evenly dispersed stars with zero tight clumps
+    const cols = Math.max(8, Math.min(13, Math.round(size.width / 120)));
+    const rows = 5;
+    const cellW = size.width / cols;
+    const cellH = size.height / rows;
+    const particles: Particle[] = [];
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const i = row * cols + col;
+        const jx = 0.14 + hashSeed(`star-jx-${i}`) * 0.72;
+        const jy = 0.14 + hashSeed(`star-jy-${i}`) * 0.72;
+        const depth = 0.45 + hashSeed(`star-d-${i}`) * 0.85;
+        particles.push({
+          x: (col + jx) * cellW,
+          y: (row + jy) * cellH,
+          vx: (hashSeed(`star-vx-${i}`) - 0.5) * 11 * depth,
+          vy: -(3.5 + hashSeed(`star-vy-${i}`) * 8.5) * depth,
+          r: (1.2 + hashSeed(`star-r-${i}`) * 2.2) * depth,
+          phase: hashSeed(`star-ph-${i}`) * Math.PI * 2,
+          speed: 0.85 + hashSeed(`star-sp-${i}`) * 1.5,
+          star: i % 4 === 0,
+          color: palette[i % palette.length],
+          depth,
+        });
+      }
+    }
+
+    // Periodic graceful daylight shooting comets ("彗星闪过")
+    type ShootingComet = {
+      x0: number;
+      y0: number;
+      vx: number;
+      vy: number;
+      age: number;
+      life: number;
+      tailLen: number;
+      color: readonly [number, number, number];
+    };
+    const comets: ShootingComet[] = [];
+    let cometCooldown = 1.1;
+
+    function spawnComet() {
+      const fromLeft = Math.random() < 0.72;
+      const x0 = fromLeft
+        ? size.width * (0.04 + Math.random() * 0.36)
+        : size.width * (0.58 + Math.random() * 0.34);
+      const y0 = size.height * (0.06 + Math.random() * 0.3);
+      const speed = 420 + Math.random() * 220;
+      const angle = fromLeft
+        ? 0.22 + Math.random() * 0.24
+        : Math.PI - (0.22 + Math.random() * 0.24);
+      comets.push({
+        x0,
+        y0,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        age: 0,
+        life: 0.95 + Math.random() * 0.45,
+        tailLen: 96 + Math.random() * 68,
+        color: palette[Math.floor(Math.random() * palette.length)],
+      });
+    }
 
     type MicroBubble = {
       x: number;
@@ -249,17 +298,23 @@ function StarfieldCanvas({
         if (p.x > size.width + 20) p.x = -18;
       }
 
-      // Soft constellation filaments between nearby stars
-      ctx.lineWidth = 0.85;
+      // Sparse, airy constellation filaments (max 2 links per star -> zero dense spiderwebs!)
+      ctx.lineWidth = 0.75;
+      const linksCount = new Uint8Array(particles.length);
       for (let i = 0; i < particles.length; i++) {
+        if (linksCount[i] >= 2) continue;
         const a = particles[i];
         for (let j = i + 1; j < particles.length; j++) {
+          if (linksCount[i] >= 2) break;
+          if (linksCount[j] >= 2) continue;
           const b = particles[j];
           const dx = a.x - b.x;
           const dy = a.y - b.y;
           const d2 = dx * dx + dy * dy;
-          if (d2 < 108 * 108) {
-            const alpha = (1 - Math.sqrt(d2) / 108) * 0.14;
+          if (d2 > 34 * 34 && d2 < 96 * 96) {
+            linksCount[i] += 1;
+            linksCount[j] += 1;
+            const alpha = (1 - Math.sqrt(d2) / 96) * 0.1;
             ctx.strokeStyle = `rgba(${a.color[0]}, ${a.color[1]}, ${a.color[2]}, ${alpha.toFixed(3)})`;
             ctx.beginPath();
             ctx.moveTo(a.x, a.y);
@@ -267,6 +322,57 @@ function StarfieldCanvas({
             ctx.stroke();
           }
         }
+      }
+
+      // Shooting comets streaking cleanly across the daylight sky
+      cometCooldown -= dt;
+      if (cometCooldown <= 0 && comets.length < 2) {
+        spawnComet();
+        cometCooldown = 2.6 + Math.random() * 2.4;
+      }
+      for (let i = comets.length - 1; i >= 0; i--) {
+        const c = comets[i];
+        c.age += dt;
+        const u = c.age / c.life;
+        if (u >= 1) {
+          comets.splice(i, 1);
+          continue;
+        }
+        const hx = c.x0 + c.vx * c.age;
+        const hy = c.y0 + c.vy * c.age;
+        const speedLen = Math.hypot(c.vx, c.vy) || 1;
+        const ux = c.vx / speedLen;
+        const uy = c.vy / speedLen;
+        const tail = c.tailLen * Math.sin(u * Math.PI);
+        const tx = hx - ux * tail;
+        const ty = hy - uy * tail;
+        const fade = u < 0.18 ? u / 0.18 : 1 - (u - 0.18) / 0.82;
+        const [r, g, b] = c.color;
+
+        const grad = ctx.createLinearGradient(hx, hy, tx, ty);
+        grad.addColorStop(0, `rgba(255, 255, 255, ${(0.95 * fade).toFixed(3)})`);
+        grad.addColorStop(0.22, `rgba(${r}, ${g}, ${b}, ${(0.72 * fade).toFixed(3)})`);
+        grad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+
+        ctx.save();
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 2.4;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(hx, hy);
+        ctx.lineTo(tx, ty);
+        ctx.stroke();
+
+        // Luminous comet head star flare
+        const headGlow = ctx.createRadialGradient(hx, hy, 0, hx, hy, 9);
+        headGlow.addColorStop(0, `rgba(255, 255, 255, ${(0.98 * fade).toFixed(3)})`);
+        headGlow.addColorStop(0.45, `rgba(${r}, ${g}, ${b}, ${(0.45 * fade).toFixed(3)})`);
+        headGlow.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+        ctx.fillStyle = headGlow;
+        ctx.beginPath();
+        ctx.arc(hx, hy, 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
       }
 
       // Draw particles & crisp 4-point twinkling stars
@@ -781,7 +887,7 @@ export function ProgressEventScene({
               stroke="#fff"
               strokeWidth="26"
               strokeLinecap="round"
-              strokeDasharray="1000"
+              strokeDasharray="1000 5000"
               style={{ strokeDashoffset: dashOffset }}
             />
           </mask>
@@ -794,6 +900,7 @@ export function ProgressEventScene({
           pathLength="1000"
           stroke={`url(#${idPrefix}-fill)`}
           filter={`url(#${idPrefix}-glow)`}
+          strokeDasharray="1000 5000"
           style={{ strokeDashoffset: dashOffset, opacity: hasProgress ? 0.3 : 0 }}
         />
         <path
@@ -802,12 +909,14 @@ export function ProgressEventScene({
           d={TRACK_D}
           pathLength="1000"
           stroke={`url(#${idPrefix}-fill)`}
+          strokeDasharray="1000 5000"
           style={{ strokeDashoffset: dashOffset, opacity: hasProgress ? 1 : 0 }}
         />
         <path
           className="progress-track-shine"
           d={TRACK_D}
           pathLength="1000"
+          strokeDasharray="1000 5000"
           style={{ strokeDashoffset: dashOffset, opacity: hasProgress ? 0.85 : 0 }}
         />
         {hasProgress && (
