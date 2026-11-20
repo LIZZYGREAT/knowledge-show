@@ -1,6 +1,6 @@
 # knowledge-show
 
-> 面向普通创作者的 AI 知识短视频制作项目。PR #16 已将主链路交接修复与动画运行时/工作台合入 `main@82c6aaa`：本地知识→脚本任务、动画生成与实际播放检查、真实时间轴工作台、定向修订和同源 MP4 导出均已接通。完整 PN 固定样本已验收；新主题的模型生成仍需逐片审美与知识审核。当前 `fix/user-experience-design-review` 分支按指定方案审查并改进体验。
+> 面向普通创作者的 AI 知识短视频制作项目。提供本地 React 创作页与 API，支持知识→脚本→动画预览、工作台修订和 MP4 导出。新主题生成结果需要逐片检查；配音和音效尚未接入。
 
 ## 项目目标
 
@@ -34,14 +34,46 @@ PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests/knowledge -q
 PYTHONPATH=backend/src .venv/bin/python -m pytest backend/tests/api backend/tests/script backend/tests/integration -q
 ```
 
-本地启动任务 API 和 React 创作页（分别在两个终端运行）：
+## 本地启动
+
+以下命令适用于 Bash（Linux、macOS 或 WSL）。需要 Python 3.11 或更新版本，以及 Node.js/npm。首次准备环境时，在仓库根目录执行：
+
+```bash
+python3.11 -m venv .venv
+.venv/bin/python -m pip install --upgrade pip
+.venv/bin/python -m pip install -r backend/requirements-knowledge.txt
+cd frontend
+npm ci
+cd ..
+```
+
+如果 `.venv` 和前端依赖已经安装，跳过这一步。Windows PowerShell 的环境准备命令见[技术栈与环境指南](docs/work/backend/知识层技术栈路线.md)。
+
+启动时需要两个终端。**终端一：**在仓库根目录运行后端 API：
 
 ```bash
 PYTHONPATH=backend/src .venv/bin/python -m uvicorn api.app:app --host 127.0.0.1 --port 8000
-cd frontend && npm run dev
 ```
 
-API 端点、状态语义和本地安全边界见 [API 对接文档](docs/work/contracts/API.md)。
+Windows PowerShell 在终端一使用：
+
+```powershell
+$env:PYTHONPATH = Join-Path $PWD "backend/src"
+.\.venv\Scripts\python.exe -m uvicorn api.app:app --host 127.0.0.1 --port 8000
+```
+
+**终端二：**启动 React 前端：
+
+```bash
+cd frontend
+npm run dev
+```
+
+打开前端终端显示的地址，默认是 <http://127.0.0.1:5173>。后端存活检查地址是 <http://127.0.0.1:8000/api/health>，正常时返回 `{"status":"ok"}`。前后端都要保持运行；若页面无法连接 API，先检查后端终端并确认 8000 端口可用。
+
+开始模型连接测试或创作时，在网页的 API 设置中填写 DeepSeek API Key。启动本地 React 应用不需要把 Key 放进 `.env`；Key 只保留在当前页面会话中，刷新后需要重新填写。测试连接和生成可能产生模型费用。服务只监听本机地址，不要将端口公开到互联网。
+
+动画 MP4 导出还需要 Playwright Chromium、FFmpeg、ffprobe 和中文字体；安装与检查方法见[动画运行说明](docs/work/frontend/animation/运行时与首幕预览.md)。API 端点、状态语义和本地安全边界见 [API 对接文档](docs/work/contracts/API.md)。
 
 知识层本地检验页在仓库根目录 `.env` 配有密钥时默认使用 Real API，并要求确认本次在线生成可能产生调用费用；没有密钥时只提供明确标注的固定主题离线示例。页面打开不会自动调用模型。开发者诊断可手动切换 Mock 与 Real API。密钥由 `python-dotenv` 自动加载，不提交到版本控制：
 
