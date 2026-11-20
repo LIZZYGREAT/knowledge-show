@@ -1,5 +1,5 @@
 export const SHOWREEL_DURATION = 36;
-export const STATIC_SHOWREEL_TIME = 3.6;
+export const STATIC_SHOWREEL_TIME = 3.7;
 
 export type ShowreelAct = {
   id: "logo" | "dice" | "prism" | "pn";
@@ -17,7 +17,7 @@ export const SHOWREEL_ACTS: readonly ShowreelAct[] = [
     index: "00",
     label: "品牌序幕",
     question: "Knowledge.Show(me)",
-    caption: "从一点好奇出发，把抽象原理折射成看得见的动态直觉。",
+    caption: "折光棱镜与字标合为一体，把抽象原理折射成看得见的动态直觉。",
     prompt: "为什么两个骰子掷出 7 的概率最高？请用直观动画展示 36 种组合如何形成分布规律。",
     seekTo: 0.0,
   },
@@ -64,6 +64,11 @@ export function easeOutCubic(u: number) {
   return 1 - (1 - x) ** 3;
 }
 
+export function easeOutExpo(u: number) {
+  const x = clamp01(u);
+  return x >= 1 ? 1 : 1 - 2 ** (-10 * x);
+}
+
 export function easeInOutCubic(u: number) {
   const x = clamp01(u);
   return x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2;
@@ -104,98 +109,107 @@ export function actOpacities(cycle: number) {
 }
 
 export type LogoOvertureState = {
-  /** Overall visibility of the Act 00 Logo Overture (0 during Acts 1-3!) */
+  /** Overall visibility of the Act 00 Hero Logo Overture (0 during Acts 1-3!) */
   opacity: number;
-  /** Architectural blueprint compass rings draw progress */
-  compassDraw: number;
-  /** Left "K" architectural pillar sweep */
-  kStemDraw: number;
-  /** Play-Prism geometric unfold & fill */
-  prismUnfold: number;
-  prismFill: number;
-  /** 3 spectral refraction rays + optical ")" viewfinder arc */
-  raysDraw: number;
-  lensArcDraw: number;
-  /** Sweeping specular light glint across the prism glass during hold */
+  /** Soft daylight optical caustic halo behind the emblem */
+  auraOpacity: number;
+  /** Whisper-thin architectural prism construction hairlines (fade out cleanly once locked) */
+  guideDraw: number;
+  guideOpacity: number;
+  /** 3 interlocking origami glass planes (easeOutExpo silk settle) */
+  spineIn: number;
+  upperWingIn: number;
+  lowerWingIn: number;
+  /** Overlapping refractive glass core + curved 4-point optical starlight aperture */
+  coreIn: number;
+  starTwist: number;
+  /** Sweeping diagonal specular sheen across the prism glass */
   sheenProgress: number;
-  /** Typographic lockup assembly */
+  /** Subtle weightless floating breath during hold */
+  floatY: number;
+  /** Masked baseline curtain typography assembly */
   knowledgeIn: number;
   showIn: number;
   meIn: number;
   taglineIn: number;
-  /** Golden "." dot traveling from prism hinge (368, 210) -> baseline (400, 354), then disappearing cleanly! */
-  dotX: number;
-  dotY: number;
+  /** Sculpted champagne-gold "." diamond jewel on the baseline (0 during Acts 1-3!) */
   dotScale: number;
   dotOpacity: number;
-  /** Emblem morph-out into Act 1 particles */
+  dotRotation: number;
+  /** Unfold & morph-out into Act 1's 36 knowledge particles */
+  emblemExit: number;
   emblemScale: number;
   emblemOpacity: number;
   wordmarkExitY: number;
   wordmarkOpacity: number;
-  /** Brief return spark condensing at end of Act 3 (34.7..36.0) -> seamlessly restarts t=0 */
-  returnSparkOpacity: number;
+  /** Soft converging caustic bloom at end of Act 3 (34.7..36.0) -> seamlessly restarts t=0 */
+  returnAuraOpacity: number;
 };
 
 export function logoOvertureState(cycle: number): LogoOvertureState {
-  const exitWord = smoothstep(cycle, 4.75, 5.6);
-  const exitEmblem = smoothstep(cycle, 5.0, 6.15);
-  const opacity = 1 - exitEmblem;
+  const exitWord = smoothstep(cycle, 4.75, 5.55);
+  const emblemExit = smoothstep(cycle, 4.95, 6.15);
+  const opacity = 1 - emblemExit;
 
-  const compassDraw = easeOutCubic(smoothstep(cycle, 0.08, 1.15));
-  const kStemDraw = easeOutCubic(smoothstep(cycle, 0.45, 1.25));
-  const prismUnfold = easeOutBack(smoothstep(cycle, 0.72, 1.65));
-  const prismFill = smoothstep(cycle, 1.05, 1.75);
-  const raysDraw = easeOutCubic(smoothstep(cycle, 1.25, 2.2));
-  const lensArcDraw = easeOutCubic(smoothstep(cycle, 1.4, 2.35));
+  const auraOpacity = smoothstep(cycle, 0.0, 0.9) * (1 - emblemExit);
+  const guideDraw = easeOutExpo(smoothstep(cycle, 0.05, 1.1));
+  const guideOpacity =
+    smoothstep(cycle, 0.05, 0.45) * (1 - smoothstep(cycle, 1.85, 2.75)) * (1 - emblemExit);
 
-  const knowledgeIn = easeOutCubic(smoothstep(cycle, 1.55, 2.3));
-  const dotFlight = easeInOutCubic(smoothstep(cycle, 1.75, 2.55));
-  const showIn = easeOutCubic(smoothstep(cycle, 2.1, 2.85));
-  const meIn = easeOutBack(smoothstep(cycle, 2.4, 3.15));
-  const taglineIn = easeOutCubic(smoothstep(cycle, 2.7, 3.35));
+  const spineIn = easeOutExpo(smoothstep(cycle, 0.22, 1.25));
+  const upperWingIn = easeOutExpo(smoothstep(cycle, 0.52, 1.55));
+  const lowerWingIn = easeOutExpo(smoothstep(cycle, 0.78, 1.8));
+  const coreIn = easeOutExpo(smoothstep(cycle, 1.28, 2.12));
+  const starTwist = lerp(45, 0, coreIn);
 
-  const sheenProgress = smoothstep(cycle, 3.25, 4.45);
+  const sheenProgress = smoothstep(cycle, 2.85, 4.35);
+  const floatY = Math.sin(cycle * 1.65) * 2.2 * smoothstep(cycle, 1.8, 2.8) * (1 - emblemExit);
 
-  // Golden "." spark starts at the prism hinge (368, 210), arcs into exact center (400, 354) between Knowledge & Show,
-  // and cleanly vanishes with the wordmark before Act 1 begins (zero floating dot during Acts 1-3!).
-  const ignition = smoothstep(cycle, 0.0, 0.4);
-  const dotX = lerp(368, 400, dotFlight) + Math.sin(dotFlight * Math.PI) * 18;
-  const dotY = lerp(210, 354, dotFlight) - Math.sin(dotFlight * Math.PI) * 26;
-  const landBounce = 1 + Math.sin(smoothstep(cycle, 2.42, 2.85) * Math.PI) * 0.24;
-  const dotScale = lerp(0.5, 1, ignition) * landBounce * (1 - exitWord * 0.6);
-  const dotOpacity = ignition * (1 - exitWord);
+  // Masked baseline curtain reveal (Apple / Pentagram style)
+  const knowledgeIn = easeOutExpo(smoothstep(cycle, 1.5, 2.45));
+  const showIn = easeOutExpo(smoothstep(cycle, 1.72, 2.68));
+  const meIn = easeOutExpo(smoothstep(cycle, 2.05, 2.95));
+  const taglineIn = easeOutCubic(smoothstep(cycle, 2.45, 3.25));
 
-  const emblemScale = lerp(1, 0.46, easeInOutCubic(exitEmblem));
-  const emblemOpacity = (1 - exitEmblem) * smoothstep(cycle, 0.35, 0.85);
-  const wordmarkExitY = lerp(0, 18, easeInOutCubic(exitWord));
+  // Sculpted golden diamond "." blooms right on the baseline between Knowledge & Show,
+  // and cleanly vanishes with the wordmark before Act 1 starts (zero floating dot during Acts 1-3!).
+  const dotAppear = easeOutExpo(smoothstep(cycle, 1.78, 2.52));
+  const dotScale = lerp(0.15, 1, dotAppear) * (1 - exitWord * 0.5);
+  const dotOpacity = smoothstep(cycle, 1.75, 2.15) * (1 - exitWord);
+  const dotRotation = lerp(-45, 0, dotAppear);
+
+  const emblemScale = lerp(1, 0.58, easeInOutCubic(emblemExit));
+  const emblemOpacity = (1 - emblemExit) * smoothstep(cycle, 0.15, 0.5);
+  const wordmarkExitY = lerp(0, 30, easeInOutCubic(exitWord));
   const wordmarkOpacity = 1 - exitWord;
 
-  // Seamless return spark condensing from PN particles at 34.8..36.0 so t=36 matches t=0!
-  const returnSparkOpacity = smoothstep(cycle, 34.85, 35.85);
+  const returnAuraOpacity = smoothstep(cycle, 34.65, 35.85);
 
   return {
     opacity,
-    compassDraw,
-    kStemDraw,
-    prismUnfold,
-    prismFill,
-    raysDraw,
-    lensArcDraw,
+    auraOpacity,
+    guideDraw,
+    guideOpacity,
+    spineIn,
+    upperWingIn,
+    lowerWingIn,
+    coreIn,
+    starTwist,
     sheenProgress,
+    floatY,
     knowledgeIn,
     showIn,
     meIn,
     taglineIn,
-    dotX,
-    dotY,
     dotScale,
     dotOpacity,
+    dotRotation,
+    emblemExit,
     emblemScale,
     emblemOpacity,
     wordmarkExitY,
     wordmarkOpacity,
-    returnSparkOpacity,
+    returnAuraOpacity,
   };
 }
 
@@ -245,23 +259,23 @@ export function sharedBeadState(index: number, cycle: number): SharedBead {
   const sum = row + col + 2;
   const isSeven = sum === 7;
 
-  // Birth directly out of the Hero Logo Prism core (400, 210) -> Act 1 Dice & 6x6 Matrix -> 11-column Histogram
-  const logoBurst = easeInOutCubic((cycle - (5.2 + (row + col) * 0.045)) / 1.15);
+  // Birth directly out of the Origami Prism-K's refractive core (418, 204) -> Act 1 Dice & 6x6 Matrix -> Histogram
+  const logoBurst = easeInOutCubic((cycle - (5.15 + (row + col) * 0.045)) / 1.15);
   const drop = easeInOutCubic((cycle - (10.1 + row * 0.09)) / 1.15);
-  const coreX = 400;
-  const coreY = 210;
+  const coreX = 418;
+  const coreY = 204;
   const gridX = 432 + col * 42;
   const gridY = 204 + row * 34;
   const rank = row - Math.max(0, sum - 7);
   const histX = 398 + (sum - 2) * 30;
   const histY = 474 - rank * 22;
 
-  const arc1 = Math.sin(logoBurst * Math.PI) * 38;
+  const arc1 = Math.sin(logoBurst * Math.PI) * 36;
   const gx = lerp(coreX, gridX, logoBurst);
   const gy = lerp(coreY, gridY, logoBurst) - arc1;
   const a1x = lerp(gx, histX, drop) + Math.sin(drop * Math.PI) * (row - 2.5) * 6;
   const a1y = lerp(gy, histY, drop) - Math.sin(drop * Math.PI) * 18;
-  const a1r = lerp(4.2, isSeven ? 8.2 : 6.6, logoBurst) * lerp(1, 0.96, drop);
+  const a1r = lerp(4.0, isSeven ? 8.2 : 6.6, logoBurst) * lerp(1, 0.96, drop);
 
   // Bridge 1->2 & Act 2 (16.0..25.4): Photons entering left beam -> surfing spectral waves
   const toBeam = smoothstep(cycle, 14.9, 16.3);
@@ -302,27 +316,27 @@ export function sharedBeadState(index: number, cycle: number): SharedBead {
     Math.min(346, laneY + Math.sin(cycle * 2.6 + index * 1.7) * (4.5 * (1 - reverse * 0.45))),
   );
 
-  // Bridge 3->0 (34.2..35.85): Carriers converge smoothly back into the Logo's core spark (368, 210)
+  // Bridge 3->0 (34.2..35.85): Carriers sweep smoothly back to the Origami Prism-K center (400, 204)
   const toOrigin = smoothstep(cycle, 34.2, 35.75);
 
   let x = lerp(a1x, wx, toBeam);
   let y = lerp(a1y, wy, toBeam);
   x = lerp(x, pnX, toPn);
   y = lerp(y, pnY, toPn);
-  x = lerp(x, 368, toOrigin);
-  y = lerp(y, 210, toOrigin);
+  x = lerp(x, 400, toOrigin);
+  y = lerp(y, 204, toOrigin);
 
   let r = lerp(a1r, inBeam ? 4.4 : 4.8, toBeam);
   r = lerp(r, isHole ? 7.2 : 6.2, toPn);
-  r = lerp(r, 3.2, toOrigin);
+  r = lerp(r, 2.8, toOrigin);
 
   let fill = isSeven && logoBurst > 0.45 ? "#f0a43b" : "#89d6c6";
   let stroke = isSeven && logoBurst > 0.45 ? "#c97a16" : "#2e8b7a";
   let kind: SharedBead["kind"] = "dot";
 
   if (toOrigin > 0.55) {
-    fill = "#f0a43b";
-    stroke = "#fff4d4";
+    fill = "#18b89a";
+    stroke = "#fff7e2";
     kind = "dot";
   } else if (toBeam > 0.5 && toPn <= 0.5) {
     fill = inBeam ? "#f6b95b" : band.color;
@@ -336,12 +350,10 @@ export function sharedBeadState(index: number, cycle: number): SharedBead {
 
   const pnDensityFade = index >= 22 ? 1 - toPn * (1 - toOrigin) : 1;
 
-  // Completely hidden during the Hero Logo Overture (0..5.1), burst seamlessly from Logo core at 5.2,
-  // and fade smoothly into the converging ignition spark at 35.6..36.0.
   const opacity =
-    cycle < 5.15
+    cycle < 5.1
       ? 0
-      : clamp01(logoBurst * 1.6) * (1 - smoothstep(cycle, 35.3, 35.95)) * pnDensityFade;
+      : clamp01(logoBurst * 1.6) * (1 - smoothstep(cycle, 35.25, 35.95)) * pnDensityFade;
 
   return {
     x,

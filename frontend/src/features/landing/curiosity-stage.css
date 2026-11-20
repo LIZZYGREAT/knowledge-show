@@ -185,33 +185,40 @@
 
 .curiosity-artwork .logo-word-knowledge {
   font-family: Georgia, "Noto Serif SC", "Times New Roman", serif;
-  font-size: 42px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  fill: #122926;
+  font-size: 44px;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  fill: #0e2421;
 }
 
 .curiosity-artwork .logo-word-show {
   font-family: Georgia, "Noto Serif SC", "Times New Roman", serif;
-  font-size: 42px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  fill: #0d8e77;
+  font-size: 44px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.curiosity-artwork .logo-word-paren {
+  font-family: var(--ks-font-sans);
+  font-size: 38px;
+  font-weight: 300;
+  fill: #84a7a0;
 }
 
 .curiosity-artwork .logo-word-me {
-  font-family: var(--ks-font-mono);
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  fill: #b86714;
+  font-family: Georgia, "Noto Serif SC", "Times New Roman", serif;
+  font-style: italic;
+  font-size: 40px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  fill: #c8791c;
 }
 
 .curiosity-artwork .logo-tagline {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
-  letter-spacing: 0.14em;
-  fill: #516f6b;
+  letter-spacing: 0.16em;
+  fill: #5a7874;
 }
 
 .curiosity-footer-bar {

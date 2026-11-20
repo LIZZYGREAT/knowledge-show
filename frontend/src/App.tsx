@@ -410,7 +410,9 @@ export default function App() {
             <span className="brand-wordmark">
               Knowledge<span className="brand-dot">.</span>
               <span className="brand-show">Show</span>
-              <span className="brand-me">(me)</span>
+              <span className="brand-paren">(</span>
+              <em className="brand-me">me</em>
+              <span className="brand-paren">)</span>
             </span>
           </button>
 

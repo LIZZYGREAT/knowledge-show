@@ -9,7 +9,6 @@ import {
   SPECTRAL_BANDS,
   actOpacities,
   activeActAt,
-  clamp01,
   easeOutBack,
   easeOutCubic,
   lerp,
@@ -136,9 +135,9 @@ export function CuriosityStage({
   const needleAngle = lerp(-62, 62, currentLevel);
   const wireDashOffset = -pnLocal * 38;
 
-  // Optical "(me)" bracket spread in Act 00
-  const bracketSpread = lerp(14, 46, logo.meIn);
-  const sheenX = lerp(-96, 116, logo.sheenProgress);
+  // Optical sheen position & subtle 3-plane unfold separation during exit
+  const sheenX = lerp(-40, 145, logo.sheenProgress);
+  const exitSpread = lerp(0, 16, logo.emblemExit);
 
   return (
     <figure
@@ -148,7 +147,7 @@ export function CuriosityStage({
       data-paused={pose !== undefined || motion.paused}
       data-pose={(cycle / SHOWREEL_DURATION).toFixed(3)}
       data-act={act.id}
-      aria-label="Knowledge.Show(me) 品牌序幕与知识机制动态演示：从品牌标识丝滑构图展开，无缝衔接骰子概率钟形分布、白光三棱镜色散波动，以及 PN 结正反向单向导电机制。"
+      aria-label="Knowledge.Show(me) 折光棱镜品牌序幕与知识机制动态演示：从三面折光玻璃棱镜与字标丝滑构图展开，无缝衔接骰子概率钟形分布、白光三棱镜色散波动，以及 PN 结正反向单向导电机制。"
     >
       <div className="curiosity-viewport">
         <div className="curiosity-chrome">
@@ -196,24 +195,56 @@ export function CuriosityStage({
                 <stop offset="68%" stopColor="#f4faf7" />
                 <stop offset="100%" stopColor="#ebf4f1" />
               </radialGradient>
-              <linearGradient id={`${id}-logo-prism`} x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#18bd9c" />
-                <stop offset="52%" stopColor="#0e937b" />
-                <stop offset="100%" stopColor="#267bd4" />
+              {/* Soft gallery daylight caustic aura behind the Origami Prism-K */}
+              <radialGradient id={`${id}-caustic-mint`} cx="45%" cy="44%" r="52%">
+                <stop offset="0%" stopColor="#26d1b0" stopOpacity=".22" />
+                <stop offset="52%" stopColor="#3c9ae8" stopOpacity=".1" />
+                <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+              </radialGradient>
+              <radialGradient id={`${id}-caustic-gold`} cx="58%" cy="54%" r="46%">
+                <stop offset="0%" stopColor="#f5bc5e" stopOpacity=".24" />
+                <stop offset="60%" stopColor="#fce2b4" stopOpacity=".08" />
+                <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+              </radialGradient>
+              {/* Origami Prism-K high-craft gradients */}
+              <linearGradient id={`${id}-k-spine`} x1="18" y1="14" x2="35" y2="86" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#082420" />
+                <stop offset="55%" stopColor="#0f3d36" />
+                <stop offset="100%" stopColor="#186055" />
               </linearGradient>
-              <linearGradient id={`${id}-logo-facet`} x1="0" y1="0" x2="0.8" y2="1">
-                <stop offset="0%" stopColor="#ffffff" stopOpacity=".66" />
-                <stop offset="100%" stopColor="#8ef3df" stopOpacity=".08" />
+              <linearGradient id={`${id}-k-upper`} x1="38" y1="15" x2="86" y2="52" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#23d6b4" />
+                <stop offset="55%" stopColor="#0ea088" />
+                <stop offset="100%" stopColor="#0b7c74" />
+              </linearGradient>
+              <linearGradient id={`${id}-k-lower`} x1="38" y1="50" x2="84" y2="84" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#0f9888" />
+                <stop offset="48%" stopColor="#1c7fd6" />
+                <stop offset="100%" stopColor="#245ec0" />
+              </linearGradient>
+              <linearGradient id={`${id}-k-core`} x1="38" y1="34" x2="84" y2="66" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity=".74" />
+                <stop offset="46%" stopColor="#ffe8b8" stopOpacity=".62" />
+                <stop offset="100%" stopColor="#94f5e4" stopOpacity=".24" />
+              </linearGradient>
+              <linearGradient id={`${id}-word-show`} x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#0c8c75" />
+                <stop offset="100%" stopColor="#1f79d1" />
               </linearGradient>
               <linearGradient id={`${id}-logo-rule`} x1="0" y1="0" x2="1" y2="0">
                 <stop offset="0%" stopColor="#0f967d" stopOpacity="0" />
-                <stop offset="32%" stopColor="#0f967d" stopOpacity=".45" />
-                <stop offset="50%" stopColor="#e59a38" stopOpacity=".8" />
-                <stop offset="68%" stopColor="#267bd4" stopOpacity=".45" />
-                <stop offset="100%" stopColor="#267bd4" stopOpacity="0" />
+                <stop offset="28%" stopColor="#0f967d" stopOpacity=".36" />
+                <stop offset="50%" stopColor="#e5942d" stopOpacity=".78" />
+                <stop offset="72%" stopColor="#1f79d1" stopOpacity=".36" />
+                <stop offset="100%" stopColor="#1f79d1" stopOpacity="0" />
               </linearGradient>
-              <clipPath id={`${id}-logo-prism-clip`}>
-                <path d="M-32,-50 C-32,-60 -21,-66 -12,-60 L54,-12 C62,-6 62,6 54,12 L-12,60 C-21,66 -32,60 -32,50 Z" />
+              {/* Exact clip silhouette of the two origami glass wings for silky diagonal sheen */}
+              <clipPath id={`${id}-wings-clip`}>
+                <path d="M39.5 47.5 L51.5 19 C53.2 15.2 58.2 14.3 61.2 17.2 L85.5 43.2 C88.2 46.1 86.2 49.5 82.2 49.5 L41.5 49.5 C39.7 49.5 38.8 49 39.5 47.5 Z M39.5 52.5 L51.5 81 C53.2 84.8 58.2 85.7 61.2 82.8 L85.5 56.8 C88.2 53.9 86.2 50.5 82.2 50.5 L41.5 50.5 C39.7 50.5 38.8 51 39.5 52.5 Z" />
+              </clipPath>
+              {/* Baseline curtain clip mask for Apple/Pentagram editorial wordmark reveal */}
+              <clipPath id={`${id}-word-curtain`}>
+                <rect x="80" y="308" width="640" height="72" />
               </clipPath>
               <linearGradient id={`${id}-prism`} x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0%" stopColor="#ffffff" stopOpacity=".95" />
@@ -257,215 +288,220 @@ export function CuriosityStage({
             <circle cx="400" cy="300" r="218" fill="none" stroke="#0f967d" strokeOpacity=".055" strokeDasharray="3 8" />
             <circle cx="400" cy="300" r="142" fill="none" stroke="#e08d30" strokeOpacity=".06" strokeDasharray="2 7" />
 
-            {/* ── ACT 00: HERO Knowledge.Show(me) LOGO OVERTURE ────────── */}
+            {/* ── ACT 00: LUXURY ORIGAMI PRISM-K & Knowledge.Show(me) OVERTURE ── */}
             {logo.opacity > 0.005 && (
               <g className="stage-logo-overture" opacity={logo.opacity}>
-                {/* Precision compass blueprint circles drawing around emblem */}
-                <g transform="translate(400 210)" opacity={logo.wordmarkOpacity}>
-                  <circle
-                    r="102"
-                    fill="none"
-                    stroke="#0f967d"
-                    strokeOpacity=".22"
-                    strokeWidth="1.3"
-                    strokeDasharray="4 6"
-                    pathLength="1"
-                    strokeDashoffset={1 - logo.compassDraw}
-                  />
-                  <circle
-                    r="82"
-                    fill="none"
-                    stroke="#e59a38"
-                    strokeOpacity=".26"
-                    strokeWidth="1.2"
-                    pathLength="1"
-                    strokeDasharray="1"
-                    strokeDashoffset={1 - logo.compassDraw}
-                  />
-                  {/* Cardinal precision ticks */}
-                  <g stroke="#8fb5ab" strokeWidth="1.4" strokeLinecap="round" opacity={logo.compassDraw * 0.7}>
-                    <line x1="0" y1="-112" x2="0" y2="-104" />
-                    <line x1="0" y1="104" x2="0" y2="112" />
-                    <line x1="-112" y1="0" x2="-104" y2="0" />
-                    <line x1="104" y1="0" x2="112" y2="0" />
-                  </g>
+                {/* Soft gallery daylight caustic halo (no cluttered wireframe circles!) */}
+                <g opacity={logo.auraOpacity}>
+                  <ellipse cx="386" cy="204" rx="188" ry="132" fill={`url(#${id}-caustic-mint)`} />
+                  <ellipse cx="428" cy="212" rx="154" ry="110" fill={`url(#${id}-caustic-gold)`} />
                 </g>
 
-                {/* Sculpted Hero K-Prism Emblem (morphs smoothly into Act 1 particles!) */}
+                {/* Whisper-thin Apple-style 45° architectural construction hairlines (fade out cleanly once built) */}
+                {logo.guideOpacity > 0.01 && (
+                  <g
+                    transform="translate(400 204)"
+                    opacity={logo.guideOpacity}
+                    stroke="#0f967d"
+                    strokeWidth="0.75"
+                    fill="none"
+                  >
+                    <line
+                      x1="-120"
+                      y1="0"
+                      x2="120"
+                      y2="0"
+                      pathLength="1"
+                      strokeDasharray="1"
+                      strokeDashoffset={1 - logo.guideDraw}
+                    />
+                    <line
+                      x1="-44"
+                      y1="-96"
+                      x2="-44"
+                      y2="96"
+                      pathLength="1"
+                      strokeDasharray="1"
+                      strokeDashoffset={1 - logo.guideDraw}
+                    />
+                    <path
+                      d="M-24,0 L4,-68 L74,0 L4,68 Z"
+                      stroke="#d99438"
+                      pathLength="1"
+                      strokeDasharray="1"
+                      strokeDashoffset={1 - logo.guideDraw}
+                    />
+                  </g>
+                )}
+
+                {/* Sculpted Hero Origami Prism-K Monogram (100x100 grid scaled 1.85x, centered at 400, 204) */}
                 <g
-                  transform={`translate(400 210) scale(${logo.emblemScale.toFixed(3)})`}
+                  transform={`translate(400 ${(204 + logo.floatY).toFixed(2)}) scale(${(1.85 * logo.emblemScale).toFixed(3)}) translate(-52 -50)`}
                   opacity={logo.emblemOpacity}
                 >
-                  {/* Soft floor shadow */}
-                  <ellipse cy="78" rx="68" ry="10" fill="#0f473e" opacity={0.09 * logo.prismFill} />
+                  {/* Soft porcelain plinth contact shadow */}
+                  <ellipse
+                    cx="53"
+                    cy="92"
+                    rx="36"
+                    ry="5.2"
+                    fill="#0c3b34"
+                    opacity={0.1 * logo.lowerWingIn}
+                  />
 
-                  {/* 3 vibrant spectral refraction rays sweeping out of the right face */}
-                  <g opacity={logo.wordmarkOpacity}>
+                  {/* Plane 1: Left Architectural Obsidian-Teal "K" Pillar */}
+                  <g
+                    transform={`translate(${(-exitSpread * 0.7).toFixed(2)} ${lerp(18, 0, logo.spineIn).toFixed(2)})`}
+                    opacity={logo.spineIn}
+                  >
                     <path
-                      d="M44,-14 L138,-40"
-                      stroke="#e35d52"
-                      strokeWidth="4.2"
-                      strokeLinecap="round"
-                      pathLength="1"
-                      strokeDasharray="1"
-                      strokeDashoffset={1 - logo.raysDraw}
+                      d="M19 25 C19 19.5 23 16 28.5 16 C32 16 34.5 18.4 34.5 22 L34.5 78 C34.5 81.6 32 84 28.5 84 C23 84 19 80.5 19 75 Z"
+                      fill={`url(#${id}-k-spine)`}
                     />
                     <path
-                      d="M52,0 L150,0"
-                      stroke="#ee9a38"
-                      strokeWidth="4.2"
+                      d="M23.5 23 L23.5 77"
+                      stroke="#4ce0c4"
+                      strokeOpacity="0.34"
+                      strokeWidth="1.9"
                       strokeLinecap="round"
-                      pathLength="1"
-                      strokeDasharray="1"
-                      strokeDashoffset={1 - logo.raysDraw}
-                    />
-                    <path
-                      d="M44,14 L138,40"
-                      stroke="#348ce3"
-                      strokeWidth="4.2"
-                      strokeLinecap="round"
-                      pathLength="1"
-                      strokeDasharray="1"
-                      strokeDashoffset={1 - logo.raysDraw}
-                    />
-                    {/* Optical ")" viewfinder arc framing the emerging rays */}
-                    <path
-                      d="M72,-54 C104,-24 104,24 72,54"
-                      fill="none"
-                      stroke="#e08d30"
-                      strokeWidth="3.4"
-                      strokeLinecap="round"
-                      pathLength="1"
-                      strokeDasharray="1"
-                      strokeDashoffset={1 - logo.lensArcDraw}
                     />
                   </g>
 
-                  {/* Left architectural "K" stem */}
-                  <rect
-                    x="-62"
-                    y="-56"
-                    width="20"
-                    height={Math.max(0.1, 112 * logo.kStemDraw)}
-                    rx="10"
-                    fill="#122926"
-                  />
-                  <rect
-                    x="-58"
-                    y="-50"
-                    width="4"
-                    height={Math.max(0, 100 * logo.kStemDraw)}
-                    rx="2"
-                    fill="#34bfa5"
-                    opacity=".36"
-                  />
-
-                  {/* Sculpted Emerald-Sapphire Play-Prism emerging from K */}
-                  <g transform={`translate(-32 0) scale(${Math.max(0.01, logo.prismUnfold)} 1) translate(32 0)`}>
+                  {/* Plane 2: Upper Origami Jade Glass Wing */}
+                  <g
+                    transform={`translate(${(lerp(-14, 0, logo.upperWingIn) + exitSpread * 0.45).toFixed(2)} ${(lerp(12, 0, logo.upperWingIn) - exitSpread * 0.55).toFixed(2)})`}
+                    opacity={logo.upperWingIn}
+                  >
                     <path
-                      d="M-32,-50 C-32,-60 -21,-66 -12,-60 L54,-12 C62,-6 62,6 54,12 L-12,60 C-21,66 -32,60 -32,50 Z"
-                      fill={`url(#${id}-logo-prism)`}
-                      opacity={0.18 + 0.82 * logo.prismFill}
-                      stroke="#0d856f"
-                      strokeWidth="2.2"
+                      d="M39.5 47.5 L51.5 19 C53.2 15.2 58.2 14.3 61.2 17.2 L85.5 43.2 C88.2 46.1 86.2 49.5 82.2 49.5 L41.5 49.5 C39.7 49.5 38.8 49 39.5 47.5 Z"
+                      fill={`url(#${id}-k-upper)`}
                     />
-                    {/* Crisp optical upper glass facet */}
+                    {/* Crisp specular upper edge highlight */}
                     <path
-                      d="M-28,-48 C-28,-54 -21,-57 -15,-54 L46,-9 L-28,0 Z"
-                      fill={`url(#${id}-logo-facet)`}
-                      opacity={logo.prismFill}
+                      d="M54 19.2 L82.5 46.2"
+                      stroke="#ffffff"
+                      strokeOpacity="0.52"
+                      strokeWidth="1.3"
+                      strokeLinecap="round"
                     />
-                    {/* Sweeping specular glass sheen during hero hold */}
-                    {logo.sheenProgress > 0.01 && logo.sheenProgress < 0.99 && (
-                      <g clipPath={`url(#${id}-logo-prism-clip)`}>
-                        <polygon
-                          points={`${sheenX - 24},-72 ${sheenX + 6},-72 ${sheenX - 26},72 ${sheenX - 56},72`}
-                          fill="#ffffff"
-                          opacity=".42"
-                        />
-                      </g>
-                    )}
-                    {/* Subtle golden optical pin at prism hinge */}
-                    <circle cx="-32" cy="0" r="8" fill="#fff8e6" opacity={logo.prismFill} />
-                    <circle cx="-32" cy="0" r="5" fill="#ee9a38" opacity={logo.prismFill} />
                   </g>
+
+                  {/* Plane 3: Lower Sapphire-Teal Optical Wing */}
+                  <g
+                    transform={`translate(${(lerp(-14, 0, logo.lowerWingIn) + exitSpread * 0.45).toFixed(2)} ${(lerp(-12, 0, logo.lowerWingIn) + exitSpread * 0.55).toFixed(2)})`}
+                    opacity={logo.lowerWingIn}
+                  >
+                    <path
+                      d="M39.5 52.5 L51.5 81 C53.2 84.8 58.2 85.7 61.2 82.8 L85.5 56.8 C88.2 53.9 86.2 50.5 82.2 50.5 L41.5 50.5 C39.7 50.5 38.8 51 39.5 52.5 Z"
+                      fill={`url(#${id}-k-lower)`}
+                    />
+                    <path
+                      d="M54 80.8 L82.5 53.8"
+                      stroke="#9cd2ff"
+                      strokeOpacity="0.42"
+                      strokeWidth="1.2"
+                      strokeLinecap="round"
+                    />
+                  </g>
+
+                  {/* Overlapping Optical Glass Refraction Diamond + Horizon Ridge */}
+                  <g opacity={logo.coreIn * (1 - logo.emblemExit)}>
+                    <path
+                      d="M40.5 50 L60.5 32.5 L84.5 50 L60.5 67.5 Z"
+                      fill={`url(#${id}-k-core)`}
+                    />
+                    <path
+                      d="M41.5 50 L83.5 50"
+                      stroke="#ffffff"
+                      strokeOpacity="0.86"
+                      strokeWidth="1.3"
+                      strokeLinecap="round"
+                    />
+                    {/* Curved 4-point Optical Starlight Aperture at refractive heart */}
+                    <g
+                      transform={`translate(60.5 50) rotate(${logo.starTwist.toFixed(1)}) scale(${lerp(0.25, 1, logo.coreIn).toFixed(3)})`}
+                    >
+                      <path
+                        d="M0,-10.5 Q0,0 10.5,0 Q0,0 0,10.5 Q0,0 -10.5,0 Q0,0 0,-10.5 Z"
+                        fill="#fffcf5"
+                      />
+                      <circle r="2.2" fill="#ee9a38" />
+                    </g>
+                  </g>
+
+                  {/* Silky diagonal glass specular sheen sweeping across the two wings during hold */}
+                  {logo.sheenProgress > 0.01 && logo.sheenProgress < 0.99 && (
+                    <g clipPath={`url(#${id}-wings-clip)`}>
+                      <polygon
+                        points={`${sheenX - 18},8 ${sheenX + 4},8 ${sheenX - 20},92 ${sheenX - 42},92`}
+                        fill="#ffffff"
+                        opacity=".46"
+                      />
+                    </g>
+                  )}
                 </g>
 
-                {/* Signature Typographic Lockup: Knowledge . Show (me) */}
-                <g
-                  transform={`translate(0 ${logo.wordmarkExitY.toFixed(1)})`}
-                  opacity={logo.wordmarkOpacity}
-                >
-                  {/* "Knowledge" */}
-                  <text
-                    x="382"
-                    y={lerp(382, 366, logo.knowledgeIn)}
-                    textAnchor="end"
-                    className="logo-word-knowledge"
-                    opacity={logo.knowledgeIn}
-                  >
-                    Knowledge
-                  </text>
+                {/* Masked Baseline Curtain Editorial Lockup: Knowledge . Show(me) */}
+                <g opacity={logo.wordmarkOpacity}>
+                  <g clipPath={`url(#${id}-word-curtain)`}>
+                    <g transform={`translate(0 ${logo.wordmarkExitY.toFixed(1)})`}>
+                      {/* "Knowledge" rising seamlessly out of baseline curtain */}
+                      <text
+                        x="384"
+                        y={lerp(408, 364, logo.knowledgeIn)}
+                        textAnchor="end"
+                        className="logo-word-knowledge"
+                        opacity={logo.knowledgeIn}
+                      >
+                        Knowledge
+                      </text>
 
-                  {/* "Show" */}
-                  <text
-                    x="418"
-                    y={lerp(382, 366, logo.showIn)}
-                    textAnchor="start"
-                    className="logo-word-show"
-                    opacity={logo.showIn}
-                  >
-                    Show
-                  </text>
+                      {/* "Show(me)" with native SVG <tspan> kerning (zero overlap on any OS!) */}
+                      <text
+                        x="412"
+                        y={lerp(408, 364, logo.showIn)}
+                        textAnchor="start"
+                        opacity={logo.showIn}
+                      >
+                        <tspan className="logo-word-show" fill={`url(#${id}-word-show)`}>
+                          Show
+                        </tspan>
+                        <tspan className="logo-word-paren" dx="5" fillOpacity={logo.meIn}>
+                          (
+                        </tspan>
+                        <tspan className="logo-word-me" dx="1" fillOpacity={logo.meIn}>
+                          me
+                        </tspan>
+                        <tspan className="logo-word-paren" dx="1" fillOpacity={logo.meIn}>
+                          )
+                        </tspan>
+                      </text>
 
-                  {/* Optical "(me)" interactive call pill */}
-                  <g transform="translate(594 353)" opacity={clamp01(logo.meIn)}>
-                    {/* Left "(" optical bracket */}
-                    <path
-                      d={`M${(-bracketSpread + 8).toFixed(1)},-22 C${(-bracketSpread - 2).toFixed(1)},-10 ${(-bracketSpread - 2).toFixed(1)},10 ${(-bracketSpread + 8).toFixed(1)},22`}
-                      fill="none"
-                      stroke="#0f967d"
-                      strokeWidth="2.8"
-                      strokeLinecap="round"
-                    />
-                    {/* Right ")" optical bracket */}
-                    <path
-                      d={`M${(bracketSpread - 8).toFixed(1)},-22 C${(bracketSpread + 2).toFixed(1)},-10 ${(bracketSpread + 2).toFixed(1)},10 ${(bracketSpread - 8).toFixed(1)},22`}
-                      fill="none"
-                      stroke="#0f967d"
-                      strokeWidth="2.8"
-                      strokeLinecap="round"
-                    />
-                    <rect
-                      x="-36"
-                      y="-20"
-                      width="72"
-                      height="40"
-                      rx="20"
-                      fill="#fff4e0"
-                      stroke="#e59a38"
-                      strokeWidth="1.8"
-                      transform={`scale(${Math.max(0.2, logo.meIn).toFixed(3)})`}
-                    />
-                    <text
-                      y="7"
-                      textAnchor="middle"
-                      className="logo-word-me"
-                      opacity={smoothstep(logo.meIn, 0.35, 0.9)}
-                    >
-                      me
-                    </text>
+                      {/* Sculpted Champagne-Gold "." Diamond Jewel on exact baseline (vanishes cleanly before Act 1!) */}
+                      {logo.dotOpacity > 0.01 && (
+                        <g
+                          transform={`translate(398 356) rotate(${(45 + logo.dotRotation).toFixed(1)}) scale(${logo.dotScale.toFixed(3)})`}
+                          opacity={logo.dotOpacity}
+                        >
+                          <rect x="-4.5" y="-4.5" width="9" height="9" rx="1.8" fill="#e5942d" />
+                          <rect x="-1.8" y="-1.8" width="3.6" height="3.6" rx="0.8" fill="#fff7e2" />
+                        </g>
+                      )}
+                    </g>
                   </g>
 
-                  {/* Crisp gradient divider & subtitle */}
-                  <g opacity={logo.taglineIn}>
+                  {/* Delicate editorial rule & manifesto */}
+                  <g
+                    transform={`translate(0 ${(logo.wordmarkExitY * 0.6).toFixed(1)})`}
+                    opacity={logo.taglineIn}
+                  >
                     <line
-                      x1="274"
-                      y1="398"
-                      x2="526"
-                      y2="398"
+                      x1="268"
+                      y1="396"
+                      x2="532"
+                      y2="396"
                       stroke={`url(#${id}-logo-rule)`}
-                      strokeWidth="1.6"
+                      strokeWidth="1.2"
                     />
                     <text
                       x="400"
@@ -473,31 +509,22 @@ export function CuriosityStage({
                       textAnchor="middle"
                       className="logo-tagline"
                     >
-                      让抽象知识，变成看得见的动态直觉
+                      让 抽 象 知 识 ， 成 为 看 得 见 的 直 觉
                     </text>
                   </g>
                 </g>
-
-                {/* Golden "." spark: drops from K-Prism hinge -> becomes the "." in Knowledge.Show(me) -> vanishes cleanly before Act 1! */}
-                {logo.dotOpacity > 0.01 && (
-                  <g
-                    transform={`translate(${logo.dotX.toFixed(1)} ${logo.dotY.toFixed(1)}) scale(${logo.dotScale.toFixed(3)})`}
-                    opacity={logo.dotOpacity}
-                  >
-                    <circle r="13" fill="#f0a43b" opacity=".18" />
-                    <circle r="7.2" fill="#ee9a38" stroke="#ffffff" strokeWidth="1.8" />
-                    <circle cx="-1.8" cy="-1.8" r="2.1" fill="#fff7e2" />
-                  </g>
-                )}
               </g>
             )}
 
-            {/* Seamless return spark at end of Act 3 (34.85..36.0) -> seamlessly restarts t=0 */}
-            {logo.returnSparkOpacity > 0.01 && (
-              <g transform="translate(368 210)" opacity={logo.returnSparkOpacity}>
-                <circle r={lerp(18, 12, logo.returnSparkOpacity)} fill="#f0a43b" opacity=".2" />
-                <circle r="6.8" fill="#ee9a38" stroke="#ffffff" strokeWidth="1.8" />
-                <circle cx="-1.6" cy="-1.6" r="2" fill="#fff7e2" />
+            {/* Soft converging caustic light bloom at end of Act 3 (34.65..36.0) -> seamlessly restarts t=0 */}
+            {logo.returnAuraOpacity > 0.01 && (
+              <g opacity={logo.returnAuraOpacity}>
+                <ellipse cx="400" cy="204" rx={lerp(42, 168, logo.returnAuraOpacity)} ry={lerp(32, 118, logo.returnAuraOpacity)} fill={`url(#${id}-caustic-mint)`} />
+                <path
+                  d="M400,192 Q400,204 412,204 Q400,204 400,216 Q400,204 388,204 Q400,204 400,192 Z"
+                  fill="#fffaf0"
+                  opacity={logo.returnAuraOpacity}
+                />
               </g>
             )}
 
