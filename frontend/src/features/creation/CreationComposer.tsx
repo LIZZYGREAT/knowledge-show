@@ -104,6 +104,12 @@ export function CreationComposer({
               e.target.style.height = "auto";
               e.target.style.height = `${Math.max(96, e.target.scrollHeight)}px`;
             }}
+            onKeyDown={(e) => {
+              if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                e.preventDefault();
+                onSubmit();
+              }
+            }}
             placeholder="例如：为什么越睡越困？或：两个骰子为什么最容易掷出 7？"
             rows={3}
             required

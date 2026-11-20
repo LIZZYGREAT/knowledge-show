@@ -18,6 +18,12 @@ import {
   stageCycle,
 } from "./curiosityMotion";
 
+const acts = [
+  { id: "silk", index: "01", label: "思想流纹", seekTo: 1.2 },
+  { id: "dice", index: "02", label: "概率直觉", seekTo: 10.6 },
+  { id: "pn", index: "03", label: "PN 结导电", seekTo: 22.8 },
+] as const;
+
 export function CuriosityStage({ pose }: { pose?: number }) {
   const ref = useRef<HTMLElement>(null);
   const motion = useFlowMotion(ref, pose === undefined, STATIC_STAGE_TIME);
@@ -45,12 +51,8 @@ export function CuriosityStage({ pose }: { pose?: number }) {
   const seedTop = motion.compact ? (seedY - 65) / 4.8 : seedY / 6.4;
   const id = useId().replace(/:/g, "");
 
-  const currentAct =
-    pn.opacity > 0.35
-      ? { index: "03", title: "物理机制 · PN 结单向导电" }
-      : ink.bloom > 0.35
-        ? { index: "02", title: "概率直觉 · 为什么 7 最常见" }
-        : { index: "01", title: "思想流纹 · 好奇心成形" };
+  const activeActId =
+    pn.opacity > 0.35 ? "pn" : ink.bloom > 0.35 ? "dice" : "silk";
 
   return (
     <figure
@@ -63,15 +65,36 @@ export function CuriosityStage({ pose }: { pose?: number }) {
       aria-label="知识动画演示：两个公平六面骰子共有36种等可能的有序组合，其中6种点数和为7，比其他点数和的组合都多。随后演示同一个PN结在两种接法下的红蓝粒子与仪表变化，最终回到流纹丝带。"
     >
       <div className="curiosity-viewport">
-        <div className="curiosity-chrome" aria-hidden="true">
-          <span className="curiosity-live-pill">
+        <div className="curiosity-chrome">
+          <span className="curiosity-live-pill" aria-hidden="true">
             <i />
             LIVE SHOWCASE
           </span>
-          <span className="curiosity-act-label">
-            <em>{currentAct.index}</em>
-            {currentAct.title}
-          </span>
+          <div className="curiosity-chapters" role="group" aria-label="切换演示章节">
+            {acts.map((act) => (
+              <button
+                key={act.id}
+                type="button"
+                className={`curiosity-chapter-btn ${activeActId === act.id ? "is-active" : ""}`}
+                disabled={pose !== undefined}
+                onClick={() => motion.seek(act.seekTo)}
+              >
+                <em>{act.index}</em>
+                <span>{act.label}</span>
+              </button>
+            ))}
+            {pose === undefined && (
+              <button
+                type="button"
+                className="curiosity-pause-btn"
+                aria-label={motion.userPaused ? "继续播放演示" : "暂停演示"}
+                title={motion.userPaused ? "继续播放" : "暂停"}
+                onClick={motion.togglePause}
+              >
+                {motion.userPaused ? "▶" : "❚❚"}
+              </button>
+            )}
+          </div>
         </div>
         <div className="curiosity-theatre">
           <svg

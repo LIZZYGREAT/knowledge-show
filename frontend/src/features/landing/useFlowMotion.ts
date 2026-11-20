@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 
 const INTRO_DURATION = 5500;
 const FRAME_INTERVAL = 1000 / 30;
@@ -14,8 +14,23 @@ export function useFlowMotion(
       : 0,
   );
   const [paused, setPaused] = useState(true);
+  const [userPaused, setUserPaused] = useState(false);
   const [compact, setCompact] = useState(() => window.innerWidth < 768);
   const elapsed = useRef(0);
+  const userPausedRef = useRef(false);
+  const syncRef = useRef<() => void>(() => {});
+
+  const seek = useCallback((seconds: number) => {
+    const next = Math.max(0, seconds);
+    elapsed.current = next * 1000;
+    setTime(next);
+  }, []);
+
+  const togglePause = useCallback(() => {
+    userPausedRef.current = !userPausedRef.current;
+    setUserPaused(userPausedRef.current);
+    syncRef.current();
+  }, []);
 
   useEffect(() => {
     if (!animate) return;
@@ -44,7 +59,12 @@ export function useFlowMotion(
     function sync() {
       cancelAnimationFrame(frame);
       last = 0;
-      const stop = media.matches || document.hidden || !visible || !focused;
+      const stop =
+        media.matches ||
+        document.hidden ||
+        !visible ||
+        !focused ||
+        userPausedRef.current;
       setPaused(stop);
       if (media.matches) {
         elapsed.current = staticTime * 1000;
@@ -53,6 +73,7 @@ export function useFlowMotion(
         frame = requestAnimationFrame(tick);
       }
     }
+    syncRef.current = sync;
     function handleFocus() {
       focused = true;
       sync();
@@ -73,6 +94,7 @@ export function useFlowMotion(
     sync();
     return () => {
       disposed = true;
+      syncRef.current = () => {};
       cancelAnimationFrame(frame);
       observer.disconnect();
       size.removeEventListener("change", resize);
@@ -83,5 +105,5 @@ export function useFlowMotion(
     };
   }, [target, animate, staticTime]);
 
-  return { time, paused, compact };
+  return { time, paused, userPaused, compact, seek, togglePause };
 }

@@ -40,7 +40,7 @@
 .creation-flourish {
   width: 100%;
   height: auto;
-  margin: -6px auto 18px;
+  margin: 4px auto 18px;
   pointer-events: none;
 }
 
@@ -89,7 +89,7 @@
 }
 
 .topic-tail {
-  margin: 10px 10px -8px auto;
+  margin: 10px 10px 4px auto;
   width: 190px;
   height: 18px;
 }

@@ -2,17 +2,16 @@
   margin: 0;
   min-width: 0;
   position: relative;
-  pointer-events: none;
   view-transition-name: flow-scene;
 }
 
 .curiosity-viewport {
   position: relative;
-  border-radius: 26px;
+  border-radius: 24px;
   overflow: hidden;
   border: 1px solid rgba(214, 228, 245, 0.14);
   background:
-    radial-gradient(ellipse 68% 60% at 50% 48%, rgba(28, 72, 92, 0.34), rgba(10, 15, 25, 0.92) 74%),
+    radial-gradient(ellipse 68% 60% at 50% 54%, rgba(28, 72, 92, 0.34), rgba(10, 15, 25, 0.92) 74%),
     linear-gradient(155deg, rgba(18, 27, 42, 0.96), rgba(9, 13, 21, 0.98));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
@@ -28,36 +27,37 @@
     linear-gradient(rgba(214, 228, 245, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(214, 228, 245, 0.03) 1px, transparent 1px);
   background-size: 36px 36px;
-  mask-image: radial-gradient(ellipse at 50% 50%, #000 35%, transparent 86%);
-  -webkit-mask-image: radial-gradient(ellipse at 50% 50%, #000 35%, transparent 86%);
+  mask-image: radial-gradient(ellipse at 50% 54%, #000 35%, transparent 86%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 54%, #000 35%, transparent 86%);
   pointer-events: none;
 }
 
 .curiosity-chrome {
-  position: absolute;
-  top: 14px;
-  left: 16px;
-  right: 16px;
+  position: relative;
   z-index: 3;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(214, 228, 245, 0.08);
+  background: rgba(7, 11, 18, 0.62);
+  backdrop-filter: blur(10px);
 }
 
 .curiosity-live-pill {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 5px 11px;
+  padding: 4px 10px;
   border-radius: 999px;
-  background: rgba(8, 13, 22, 0.72);
-  border: 1px solid rgba(56, 217, 192, 0.3);
+  background: rgba(56, 217, 192, 0.09);
+  border: 1px solid rgba(56, 217, 192, 0.28);
   font-family: var(--ks-font-mono);
   font-size: 10px;
   letter-spacing: 0.14em;
   color: #a6f8ea;
-  backdrop-filter: blur(8px);
+  white-space: nowrap;
 }
 
 .curiosity-live-pill i {
@@ -70,24 +70,68 @@
   animation: live-pulse 2.2s ease-in-out infinite;
 }
 
-.curiosity-act-label {
+.curiosity-chapters {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: rgba(8, 13, 22, 0.72);
-  border: 1px solid rgba(214, 228, 245, 0.12);
-  font-size: 11.5px;
-  color: var(--ks-ink-body);
-  backdrop-filter: blur(8px);
+  gap: 5px;
+  flex-wrap: nowrap;
+  min-width: 0;
 }
 
-.curiosity-act-label em {
+.curiosity-chapter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--ks-muted);
+  font-size: 11px;
+  white-space: nowrap;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.curiosity-chapter-btn em {
   font-style: normal;
   font-family: var(--ks-font-mono);
-  font-size: 10.5px;
+  font-size: 10px;
+  color: var(--ks-muted-dim);
+}
+
+.curiosity-chapter-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--ks-ink);
+}
+
+.curiosity-chapter-btn.is-active {
+  background: rgba(240, 185, 107, 0.14);
+  border-color: rgba(240, 185, 107, 0.36);
+  color: var(--ks-warm-bright);
+}
+
+.curiosity-chapter-btn.is-active em {
   color: var(--ks-warm);
+}
+
+.curiosity-pause-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--ks-line);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ks-muted);
+  font-size: 9px;
+  margin-left: 2px;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.curiosity-pause-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--ks-line-strong);
+  color: var(--ks-ink);
 }
 
 .curiosity-theatre {
@@ -95,6 +139,7 @@
   width: 100%;
   aspect-ratio: 800 / 640;
   margin-inline: auto;
+  pointer-events: none;
 }
 
 .curiosity-artwork {
@@ -180,7 +225,8 @@
   font-size: 12.5px;
   letter-spacing: 0.06em;
   color: var(--ks-muted);
-  margin-top: 10px;
+  margin-top: 9px;
+  pointer-events: none;
 }
 
 .curiosity-stage figcaption > span {
@@ -196,7 +242,16 @@
 
 @media (min-width: 1001px) {
   .curiosity-theatre {
-    max-width: calc((100svh - 210px) * 1.25);
+    max-width: calc((100svh - 248px) * 1.25);
+  }
+}
+
+@media (max-width: 1120px) {
+  .curiosity-chapter-btn span {
+    display: none;
+  }
+  .curiosity-chapter-btn {
+    padding: 4px 8px;
   }
 }
 
@@ -221,17 +276,11 @@
     border-radius: 18px;
   }
   .curiosity-chrome {
-    top: 10px;
-    left: 10px;
-    right: 10px;
+    padding: 8px 10px;
   }
   .curiosity-live-pill {
     font-size: 9px;
-    padding: 4px 8px;
-  }
-  .curiosity-act-label {
-    font-size: 10.5px;
-    padding: 4px 9px;
+    padding: 3px 8px;
   }
   .curiosity-theatre {
     aspect-ratio: 560 / 480;
