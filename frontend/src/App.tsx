@@ -315,45 +315,54 @@ export default function App() {
         跳到主要内容
       </a>
       <header className="site-header">
-        <button
-          className="brand"
-          aria-label="knowledge.show 首页"
-          onClick={() => {
-            navigate("landing");
-            setError("");
-          }}
-        >
-          <span className="brand-mark">
-            k<span>·</span>
-          </span>
-          <span className="brand-wordmark">
-            knowledge<span className="brand-dot">.</span>show
-          </span>
-        </button>
-        <div className="header-right">
-          <span
-            className={`api-indicator ${connection.connected ? "connected" : ""}`}
-            aria-label={connection.connected ? "API 已连接" : "API 未配置"}
-          />
+        <div className="site-header-inner">
           <button
-            className="settings-button"
-            title="API 设置"
-            onClick={() => setSettings(true)}
+            className="brand"
+            aria-label="knowledge.show 首页"
+            onClick={() => {
+              navigate("landing");
+              setError("");
+            }}
           >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.4"
-              aria-hidden="true"
-            >
-              <path d="m9 3-1 3-3 1-2 4 2 2 1 4 4 3 3-1 4-1 3-4-1-3-1-4-4-3z" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
-            设置
+            <span className="brand-mark">
+              k<span>·</span>
+            </span>
+            <span className="brand-wordmark">
+              knowledge<span className="brand-dot">.</span>show
+            </span>
           </button>
+          <div className="header-right">
+            <span
+              className={`header-status-pill ${connection.connected ? "is-connected" : ""}`}
+            >
+              <span
+                className={`api-indicator ${connection.connected ? "connected" : ""}`}
+                aria-label={connection.connected ? "API 已连接" : "API 未配置"}
+              />
+              <span>{connection.connected ? "模型已就绪" : "未连接模型"}</span>
+            </span>
+            <button
+              className="settings-button"
+              title="API 设置"
+              onClick={() => setSettings(true)}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="3.2" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.08a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.08a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" />
+              </svg>
+              设置
+            </button>
+          </div>
         </div>
       </header>
       <div
