@@ -195,39 +195,88 @@ function StarfieldCanvas({
       }
     }
 
-    // Periodic graceful daylight shooting comets ("彗星闪过")
+    // Periodic graceful curved daylight shooting comets ("多样曲线轨迹彗星")
     type ShootingComet = {
-      x0: number;
-      y0: number;
-      vx: number;
-      vy: number;
+      p0: Point;
+      p1: Point;
+      p2: Point;
+      p3: Point;
       age: number;
       life: number;
-      tailLen: number;
+      tailSpan: number;
       color: readonly [number, number, number];
+      sparkPhase: number;
     };
     const comets: ShootingComet[] = [];
-    let cometCooldown = 1.1;
+    let cometCooldown = 0.85;
+
+    function cubicPoint(c: ShootingComet, t: number): Point {
+      const m = 1 - t;
+      const m2 = m * m;
+      const t2 = t * t;
+      return {
+        x: m2 * m * c.p0.x + 3 * m2 * t * c.p1.x + 3 * m * t2 * c.p2.x + t2 * t * c.p3.x,
+        y: m2 * m * c.p0.y + 3 * m2 * t * c.p1.y + 3 * m * t2 * c.p2.y + t2 * t * c.p3.y,
+      };
+    }
 
     function spawnComet() {
-      const fromLeft = Math.random() < 0.72;
-      const x0 = fromLeft
-        ? size.width * (0.04 + Math.random() * 0.36)
-        : size.width * (0.58 + Math.random() * 0.34);
-      const y0 = size.height * (0.06 + Math.random() * 0.3);
-      const speed = 420 + Math.random() * 220;
-      const angle = fromLeft
-        ? 0.22 + Math.random() * 0.24
-        : Math.PI - (0.22 + Math.random() * 0.24);
+      const W = size.width;
+      const H = size.height;
+      const dir = Math.random() < 0.56 ? 1 : -1;
+      const archetype = Math.floor(Math.random() * 4);
+      const startX = dir > 0 ? W * (0.02 + Math.random() * 0.24) : W * (0.74 + Math.random() * 0.24);
+      const spanX = W * (0.36 + Math.random() * 0.34) * dir;
+      const endX = startX + spanX;
+      let p0: Point;
+      let p1: Point;
+      let p2: Point;
+      let p3: Point;
+
+      if (archetype === 0) {
+        // High celestial arch
+        const yBase = H * (0.24 + Math.random() * 0.24);
+        const arch = H * (0.2 + Math.random() * 0.16);
+        p0 = { x: startX, y: yBase };
+        p1 = { x: startX + spanX * 0.32, y: yBase - arch };
+        p2 = { x: startX + spanX * 0.68, y: yBase - arch * 0.9 };
+        p3 = { x: endX, y: yBase + H * 0.08 };
+      } else if (archetype === 1) {
+        // Swooping meteor dive that levels out smoothly
+        const yTop = H * (0.05 + Math.random() * 0.14);
+        const yBot = H * (0.44 + Math.random() * 0.28);
+        p0 = { x: startX, y: yTop };
+        p1 = { x: startX + spanX * 0.26, y: yTop + (yBot - yTop) * 0.72 };
+        p2 = { x: startX + spanX * 0.66, y: yBot + H * 0.04 };
+        p3 = { x: endX, y: yBot - H * 0.06 };
+      } else if (archetype === 2) {
+        // S-wave celestial ribbon glide
+        const yMid = H * (0.28 + Math.random() * 0.3);
+        const amp = H * (0.14 + Math.random() * 0.12) * (Math.random() < 0.5 ? 1 : -1);
+        p0 = { x: startX, y: yMid };
+        p1 = { x: startX + spanX * 0.33, y: yMid - amp };
+        p2 = { x: startX + spanX * 0.67, y: yMid + amp };
+        p3 = { x: endX, y: yMid - amp * 0.25 };
+      } else {
+        // Rising horizon glide sweeping gently upward
+        const yLow = H * (0.64 + Math.random() * 0.22);
+        const yHigh = H * (0.1 + Math.random() * 0.2);
+        p0 = { x: startX, y: yLow };
+        p1 = { x: startX + spanX * 0.38, y: yLow - (yLow - yHigh) * 0.22 };
+        p2 = { x: startX + spanX * 0.72, y: yHigh + (yLow - yHigh) * 0.18 };
+        p3 = { x: endX, y: yHigh };
+      }
+
       comets.push({
-        x0,
-        y0,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
+        p0,
+        p1,
+        p2,
+        p3,
         age: 0,
-        life: 0.95 + Math.random() * 0.45,
-        tailLen: 96 + Math.random() * 68,
+        life: 1.25 + Math.random() * 0.65,
+        tailSpan: 0.22 + Math.random() * 0.12,
         color: palette[Math.floor(Math.random() * palette.length)],
+        sparkPhase: Math.random() * Math.PI * 2,
       });
     }
 
@@ -324,11 +373,11 @@ function StarfieldCanvas({
         }
       }
 
-      // Shooting comets streaking cleanly across the daylight sky
+      // Curved multi-archetype shooting comets with tapered tails hugging exact Bezier paths
       cometCooldown -= dt;
       if (cometCooldown <= 0 && comets.length < 2) {
         spawnComet();
-        cometCooldown = 2.6 + Math.random() * 2.4;
+        cometCooldown = 2.0 + Math.random() * 2.2;
       }
       for (let i = comets.length - 1; i >= 0; i--) {
         const c = comets[i];
@@ -338,39 +387,53 @@ function StarfieldCanvas({
           comets.splice(i, 1);
           continue;
         }
-        const hx = c.x0 + c.vx * c.age;
-        const hy = c.y0 + c.vy * c.age;
-        const speedLen = Math.hypot(c.vx, c.vy) || 1;
-        const ux = c.vx / speedLen;
-        const uy = c.vy / speedLen;
-        const tail = c.tailLen * Math.sin(u * Math.PI);
-        const tx = hx - ux * tail;
-        const ty = hy - uy * tail;
-        const fade = u < 0.18 ? u / 0.18 : 1 - (u - 0.18) / 0.82;
+        // Silky ease-in-out acceleration along the curved path
+        const headT = u < 0.5 ? 2 * u * u : 1 - (-2 * u + 2) ** 2 / 2;
+        const fade = u < 0.16 ? u / 0.16 : u > 0.74 ? (1 - u) / 0.26 : 1;
+        const span = c.tailSpan * Math.sin(Math.min(1, u * 1.1) * Math.PI * 0.92);
+        const tailStartT = Math.max(0, headT - span);
         const [r, g, b] = c.color;
 
-        const grad = ctx.createLinearGradient(hx, hy, tx, ty);
-        grad.addColorStop(0, `rgba(255, 255, 255, ${(0.95 * fade).toFixed(3)})`);
-        grad.addColorStop(0.22, `rgba(${r}, ${g}, ${b}, ${(0.72 * fade).toFixed(3)})`);
-        grad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
-
+        const segments = 16;
         ctx.save();
-        ctx.strokeStyle = grad;
-        ctx.lineWidth = 2.4;
         ctx.lineCap = "round";
-        ctx.beginPath();
-        ctx.moveTo(hx, hy);
-        ctx.lineTo(tx, ty);
-        ctx.stroke();
+        let prev = cubicPoint(c, tailStartT);
+        for (let s = 1; s <= segments; s++) {
+          const frac = s / segments;
+          const t = tailStartT + (headT - tailStartT) * frac;
+          const pt = cubicPoint(c, t);
+          ctx.beginPath();
+          ctx.moveTo(prev.x, prev.y);
+          ctx.lineTo(pt.x, pt.y);
+          ctx.lineWidth = 0.5 + frac * frac * 2.6;
+          ctx.strokeStyle =
+            frac > 0.84
+              ? `rgba(255, 255, 255, ${(0.9 * fade).toFixed(3)})`
+              : `rgba(${r}, ${g}, ${b}, ${(frac * frac * 0.74 * fade).toFixed(3)})`;
+          ctx.stroke();
+          prev = pt;
+        }
 
-        // Luminous comet head star flare
-        const headGlow = ctx.createRadialGradient(hx, hy, 0, hx, hy, 9);
+        // Tiny trailing sparkle motes drifting off the curved wake
+        for (let sp = 1; sp <= 3; sp++) {
+          const st = Math.max(0, headT - span * (0.25 * sp));
+          const spPt = cubicPoint(c, st);
+          const jitter = Math.sin(c.age * 16 + c.sparkPhase + sp * 2.1) * (3 + sp * 1.5);
+          ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${((1 - sp * 0.24) * 0.55 * fade).toFixed(3)})`;
+          ctx.beginPath();
+          ctx.arc(spPt.x + jitter * 0.5, spPt.y + jitter, Math.max(0.8, 1.9 - sp * 0.35), 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Luminous 4-point comet head flare
+        const head = cubicPoint(c, headT);
+        const headGlow = ctx.createRadialGradient(head.x, head.y, 0, head.x, head.y, 10);
         headGlow.addColorStop(0, `rgba(255, 255, 255, ${(0.98 * fade).toFixed(3)})`);
-        headGlow.addColorStop(0.45, `rgba(${r}, ${g}, ${b}, ${(0.45 * fade).toFixed(3)})`);
+        headGlow.addColorStop(0.42, `rgba(${r}, ${g}, ${b}, ${(0.5 * fade).toFixed(3)})`);
         headGlow.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
         ctx.fillStyle = headGlow;
         ctx.beginPath();
-        ctx.arc(hx, hy, 9, 0, Math.PI * 2);
+        ctx.arc(head.x, head.y, 10, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       }
