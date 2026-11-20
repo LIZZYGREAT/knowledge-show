@@ -1,6 +1,5 @@
 import { useId, useRef } from "react";
 import { BrandLogo } from "../../components/BrandLogo";
-import { IdeaSeed } from "./LivingFlowScene";
 import "./curiosity-stage.css";
 import { useFlowMotion } from "./useFlowMotion";
 import {
@@ -10,10 +9,11 @@ import {
   SPECTRAL_BANDS,
   actOpacities,
   activeActAt,
+  clamp01,
   easeOutBack,
   easeOutCubic,
   lerp,
-  seedPositionAt,
+  logoOvertureState,
   sharedBeadState,
   showreelCycle,
   smoothstep,
@@ -113,28 +113,32 @@ export function CuriosityStage({
   const cycle = showreelCycle(time);
   const act = activeActAt(cycle);
   const opacity = actOpacities(cycle);
-  const [seedX, seedY] = seedPositionAt(cycle);
+  const logo = logoOvertureState(cycle);
   const id = useId().replace(/:/g, "");
 
-  // Act 1 sub-timings
-  const dieEnterA = smoothstep(cycle, 0.05, 1.15);
-  const dieEnterB = smoothstep(cycle, 0.25, 1.35);
-  const histReveal = smoothstep(cycle, 5.2, 6.4);
+  // Act 1 sub-timings (6.4..16.0)
+  const dieEnterA = smoothstep(cycle, 6.1, 7.2);
+  const dieEnterB = smoothstep(cycle, 6.3, 7.4);
+  const histReveal = smoothstep(cycle, 10.6, 11.9);
   const gridOpacity =
-    smoothstep(cycle, 1.5, 2.3) * (1 - smoothstep(cycle, 4.9, 5.8));
+    smoothstep(cycle, 6.7, 7.6) * (1 - smoothstep(cycle, 10.2, 11.2));
 
-  // Act 2 sub-timings
-  const prismReveal = smoothstep(cycle, 9.7, 11.1);
-  const beamReveal = smoothstep(cycle, 10.1, 11.4);
-  const spectrumReveal = smoothstep(cycle, 11.0, 12.6);
+  // Act 2 sub-timings (16.0..25.4)
+  const prismReveal = smoothstep(cycle, 15.7, 17.1);
+  const beamReveal = smoothstep(cycle, 16.1, 17.4);
+  const spectrumReveal = smoothstep(cycle, 17.0, 18.6);
 
-  // Act 3 sub-timings
-  const pnLocal = Math.max(0, cycle - 20);
-  const reverse = smoothstep(pnLocal, 4.4, 5.5);
+  // Act 3 sub-timings (25.4..34.4)
+  const pnLocal = Math.max(0, cycle - 25.4);
+  const reverse = smoothstep(pnLocal, 4.2, 5.3);
   const currentLevel = smoothstep(pnLocal, 0.3, 1.5) * (1 - reverse * 0.94);
   const barrierWidth = lerp(34, 124, reverse);
   const needleAngle = lerp(-62, 62, currentLevel);
   const wireDashOffset = -pnLocal * 38;
+
+  // Optical "(me)" bracket spread in Act 00
+  const bracketSpread = lerp(14, 46, logo.meIn);
+  const sheenX = lerp(-96, 116, logo.sheenProgress);
 
   return (
     <figure
@@ -144,13 +148,13 @@ export function CuriosityStage({
       data-paused={pose !== undefined || motion.paused}
       data-pose={(cycle / SHOWREEL_DURATION).toFixed(3)}
       data-act={act.id}
-      aria-label="知识机制动态演示：依次无缝呈现骰子概率钟形分布、白光三棱镜色散波动，以及 PN 结正反向单向导电机制。"
+      aria-label="Knowledge.Show(me) 品牌序幕与知识机制动态演示：从品牌标识丝滑构图展开，无缝衔接骰子概率钟形分布、白光三棱镜色散波动，以及 PN 结正反向单向导电机制。"
     >
       <div className="curiosity-viewport">
         <div className="curiosity-chrome">
           <span className="curiosity-live-pill" aria-hidden="true">
             <BrandLogo size={16} />
-            <span>KNOWLEDGE.SHOW · LIVE</span>
+            <span>LIVE</span>
           </span>
           <div className="curiosity-chapters" role="group" aria-label="切换知识演示章节">
             {SHOWREEL_ACTS.map((item) => (
@@ -192,6 +196,25 @@ export function CuriosityStage({
                 <stop offset="68%" stopColor="#f4faf7" />
                 <stop offset="100%" stopColor="#ebf4f1" />
               </radialGradient>
+              <linearGradient id={`${id}-logo-prism`} x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#18bd9c" />
+                <stop offset="52%" stopColor="#0e937b" />
+                <stop offset="100%" stopColor="#267bd4" />
+              </linearGradient>
+              <linearGradient id={`${id}-logo-facet`} x1="0" y1="0" x2="0.8" y2="1">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity=".66" />
+                <stop offset="100%" stopColor="#8ef3df" stopOpacity=".08" />
+              </linearGradient>
+              <linearGradient id={`${id}-logo-rule`} x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#0f967d" stopOpacity="0" />
+                <stop offset="32%" stopColor="#0f967d" stopOpacity=".45" />
+                <stop offset="50%" stopColor="#e59a38" stopOpacity=".8" />
+                <stop offset="68%" stopColor="#267bd4" stopOpacity=".45" />
+                <stop offset="100%" stopColor="#267bd4" stopOpacity="0" />
+              </linearGradient>
+              <clipPath id={`${id}-logo-prism-clip`}>
+                <path d="M-32,-50 C-32,-60 -21,-66 -12,-60 L54,-12 C62,-6 62,6 54,12 L-12,60 C-21,66 -32,60 -32,50 Z" />
+              </clipPath>
               <linearGradient id={`${id}-prism`} x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0%" stopColor="#ffffff" stopOpacity=".95" />
                 <stop offset="48%" stopColor="#d9f4ef" stopOpacity=".74" />
@@ -231,19 +254,263 @@ export function CuriosityStage({
             <rect width="800" height="560" fill={`url(#${id}-sunwash)`} />
 
             {/* Subtle architectural reference guide circles */}
-            <circle cx="400" cy="300" r="218" fill="none" stroke="#0f967d" strokeOpacity=".06" strokeDasharray="3 8" />
-            <circle cx="400" cy="300" r="142" fill="none" stroke="#e08d30" strokeOpacity=".07" strokeDasharray="2 7" />
+            <circle cx="400" cy="300" r="218" fill="none" stroke="#0f967d" strokeOpacity=".055" strokeDasharray="3 8" />
+            <circle cx="400" cy="300" r="142" fill="none" stroke="#e08d30" strokeOpacity=".06" strokeDasharray="2 7" />
 
-            {/* ── ACT 01: DICE PROBABILITY ──────────────────────────────── */}
+            {/* ── ACT 00: HERO Knowledge.Show(me) LOGO OVERTURE ────────── */}
+            {logo.opacity > 0.005 && (
+              <g className="stage-logo-overture" opacity={logo.opacity}>
+                {/* Precision compass blueprint circles drawing around emblem */}
+                <g transform="translate(400 210)" opacity={logo.wordmarkOpacity}>
+                  <circle
+                    r="102"
+                    fill="none"
+                    stroke="#0f967d"
+                    strokeOpacity=".22"
+                    strokeWidth="1.3"
+                    strokeDasharray="4 6"
+                    pathLength="1"
+                    strokeDashoffset={1 - logo.compassDraw}
+                  />
+                  <circle
+                    r="82"
+                    fill="none"
+                    stroke="#e59a38"
+                    strokeOpacity=".26"
+                    strokeWidth="1.2"
+                    pathLength="1"
+                    strokeDasharray="1"
+                    strokeDashoffset={1 - logo.compassDraw}
+                  />
+                  {/* Cardinal precision ticks */}
+                  <g stroke="#8fb5ab" strokeWidth="1.4" strokeLinecap="round" opacity={logo.compassDraw * 0.7}>
+                    <line x1="0" y1="-112" x2="0" y2="-104" />
+                    <line x1="0" y1="104" x2="0" y2="112" />
+                    <line x1="-112" y1="0" x2="-104" y2="0" />
+                    <line x1="104" y1="0" x2="112" y2="0" />
+                  </g>
+                </g>
+
+                {/* Sculpted Hero K-Prism Emblem (morphs smoothly into Act 1 particles!) */}
+                <g
+                  transform={`translate(400 210) scale(${logo.emblemScale.toFixed(3)})`}
+                  opacity={logo.emblemOpacity}
+                >
+                  {/* Soft floor shadow */}
+                  <ellipse cy="78" rx="68" ry="10" fill="#0f473e" opacity={0.09 * logo.prismFill} />
+
+                  {/* 3 vibrant spectral refraction rays sweeping out of the right face */}
+                  <g opacity={logo.wordmarkOpacity}>
+                    <path
+                      d="M44,-14 L138,-40"
+                      stroke="#e35d52"
+                      strokeWidth="4.2"
+                      strokeLinecap="round"
+                      pathLength="1"
+                      strokeDasharray="1"
+                      strokeDashoffset={1 - logo.raysDraw}
+                    />
+                    <path
+                      d="M52,0 L150,0"
+                      stroke="#ee9a38"
+                      strokeWidth="4.2"
+                      strokeLinecap="round"
+                      pathLength="1"
+                      strokeDasharray="1"
+                      strokeDashoffset={1 - logo.raysDraw}
+                    />
+                    <path
+                      d="M44,14 L138,40"
+                      stroke="#348ce3"
+                      strokeWidth="4.2"
+                      strokeLinecap="round"
+                      pathLength="1"
+                      strokeDasharray="1"
+                      strokeDashoffset={1 - logo.raysDraw}
+                    />
+                    {/* Optical ")" viewfinder arc framing the emerging rays */}
+                    <path
+                      d="M72,-54 C104,-24 104,24 72,54"
+                      fill="none"
+                      stroke="#e08d30"
+                      strokeWidth="3.4"
+                      strokeLinecap="round"
+                      pathLength="1"
+                      strokeDasharray="1"
+                      strokeDashoffset={1 - logo.lensArcDraw}
+                    />
+                  </g>
+
+                  {/* Left architectural "K" stem */}
+                  <rect
+                    x="-62"
+                    y="-56"
+                    width="20"
+                    height={Math.max(0.1, 112 * logo.kStemDraw)}
+                    rx="10"
+                    fill="#122926"
+                  />
+                  <rect
+                    x="-58"
+                    y="-50"
+                    width="4"
+                    height={Math.max(0, 100 * logo.kStemDraw)}
+                    rx="2"
+                    fill="#34bfa5"
+                    opacity=".36"
+                  />
+
+                  {/* Sculpted Emerald-Sapphire Play-Prism emerging from K */}
+                  <g transform={`translate(-32 0) scale(${Math.max(0.01, logo.prismUnfold)} 1) translate(32 0)`}>
+                    <path
+                      d="M-32,-50 C-32,-60 -21,-66 -12,-60 L54,-12 C62,-6 62,6 54,12 L-12,60 C-21,66 -32,60 -32,50 Z"
+                      fill={`url(#${id}-logo-prism)`}
+                      opacity={0.18 + 0.82 * logo.prismFill}
+                      stroke="#0d856f"
+                      strokeWidth="2.2"
+                    />
+                    {/* Crisp optical upper glass facet */}
+                    <path
+                      d="M-28,-48 C-28,-54 -21,-57 -15,-54 L46,-9 L-28,0 Z"
+                      fill={`url(#${id}-logo-facet)`}
+                      opacity={logo.prismFill}
+                    />
+                    {/* Sweeping specular glass sheen during hero hold */}
+                    {logo.sheenProgress > 0.01 && logo.sheenProgress < 0.99 && (
+                      <g clipPath={`url(#${id}-logo-prism-clip)`}>
+                        <polygon
+                          points={`${sheenX - 24},-72 ${sheenX + 6},-72 ${sheenX - 26},72 ${sheenX - 56},72`}
+                          fill="#ffffff"
+                          opacity=".42"
+                        />
+                      </g>
+                    )}
+                    {/* Subtle golden optical pin at prism hinge */}
+                    <circle cx="-32" cy="0" r="8" fill="#fff8e6" opacity={logo.prismFill} />
+                    <circle cx="-32" cy="0" r="5" fill="#ee9a38" opacity={logo.prismFill} />
+                  </g>
+                </g>
+
+                {/* Signature Typographic Lockup: Knowledge . Show (me) */}
+                <g
+                  transform={`translate(0 ${logo.wordmarkExitY.toFixed(1)})`}
+                  opacity={logo.wordmarkOpacity}
+                >
+                  {/* "Knowledge" */}
+                  <text
+                    x="382"
+                    y={lerp(382, 366, logo.knowledgeIn)}
+                    textAnchor="end"
+                    className="logo-word-knowledge"
+                    opacity={logo.knowledgeIn}
+                  >
+                    Knowledge
+                  </text>
+
+                  {/* "Show" */}
+                  <text
+                    x="418"
+                    y={lerp(382, 366, logo.showIn)}
+                    textAnchor="start"
+                    className="logo-word-show"
+                    opacity={logo.showIn}
+                  >
+                    Show
+                  </text>
+
+                  {/* Optical "(me)" interactive call pill */}
+                  <g transform="translate(594 353)" opacity={clamp01(logo.meIn)}>
+                    {/* Left "(" optical bracket */}
+                    <path
+                      d={`M${(-bracketSpread + 8).toFixed(1)},-22 C${(-bracketSpread - 2).toFixed(1)},-10 ${(-bracketSpread - 2).toFixed(1)},10 ${(-bracketSpread + 8).toFixed(1)},22`}
+                      fill="none"
+                      stroke="#0f967d"
+                      strokeWidth="2.8"
+                      strokeLinecap="round"
+                    />
+                    {/* Right ")" optical bracket */}
+                    <path
+                      d={`M${(bracketSpread - 8).toFixed(1)},-22 C${(bracketSpread + 2).toFixed(1)},-10 ${(bracketSpread + 2).toFixed(1)},10 ${(bracketSpread - 8).toFixed(1)},22`}
+                      fill="none"
+                      stroke="#0f967d"
+                      strokeWidth="2.8"
+                      strokeLinecap="round"
+                    />
+                    <rect
+                      x="-36"
+                      y="-20"
+                      width="72"
+                      height="40"
+                      rx="20"
+                      fill="#fff4e0"
+                      stroke="#e59a38"
+                      strokeWidth="1.8"
+                      transform={`scale(${Math.max(0.2, logo.meIn).toFixed(3)})`}
+                    />
+                    <text
+                      y="7"
+                      textAnchor="middle"
+                      className="logo-word-me"
+                      opacity={smoothstep(logo.meIn, 0.35, 0.9)}
+                    >
+                      me
+                    </text>
+                  </g>
+
+                  {/* Crisp gradient divider & subtitle */}
+                  <g opacity={logo.taglineIn}>
+                    <line
+                      x1="274"
+                      y1="398"
+                      x2="526"
+                      y2="398"
+                      stroke={`url(#${id}-logo-rule)`}
+                      strokeWidth="1.6"
+                    />
+                    <text
+                      x="400"
+                      y={lerp(432, 424, logo.taglineIn)}
+                      textAnchor="middle"
+                      className="logo-tagline"
+                    >
+                      让抽象知识，变成看得见的动态直觉
+                    </text>
+                  </g>
+                </g>
+
+                {/* Golden "." spark: drops from K-Prism hinge -> becomes the "." in Knowledge.Show(me) -> vanishes cleanly before Act 1! */}
+                {logo.dotOpacity > 0.01 && (
+                  <g
+                    transform={`translate(${logo.dotX.toFixed(1)} ${logo.dotY.toFixed(1)}) scale(${logo.dotScale.toFixed(3)})`}
+                    opacity={logo.dotOpacity}
+                  >
+                    <circle r="13" fill="#f0a43b" opacity=".18" />
+                    <circle r="7.2" fill="#ee9a38" stroke="#ffffff" strokeWidth="1.8" />
+                    <circle cx="-1.8" cy="-1.8" r="2.1" fill="#fff7e2" />
+                  </g>
+                )}
+              </g>
+            )}
+
+            {/* Seamless return spark at end of Act 3 (34.85..36.0) -> seamlessly restarts t=0 */}
+            {logo.returnSparkOpacity > 0.01 && (
+              <g transform="translate(368 210)" opacity={logo.returnSparkOpacity}>
+                <circle r={lerp(18, 12, logo.returnSparkOpacity)} fill="#f0a43b" opacity=".2" />
+                <circle r="6.8" fill="#ee9a38" stroke="#ffffff" strokeWidth="1.8" />
+                <circle cx="-1.6" cy="-1.6" r="2" fill="#fff7e2" />
+              </g>
+            )}
+
+            {/* ── ACT 01: DICE PROBABILITY (ZERO FLOATING DOT) ──────────── */}
             <g opacity={opacity.dice}>
               <text x="400" y="76" textAnchor="middle" className="stage-question">
-                {SHOWREEL_ACTS[0].question}
+                {SHOWREEL_ACTS[1].question}
               </text>
 
               <DaylightDie x={182} y={268} value={3} enter={dieEnterA} tilt={-8} />
               <DaylightDie x={288} y={294} value={4} mint enter={dieEnterB} tilt={7} />
 
-              <g opacity={smoothstep(cycle, 1.0, 1.7) * (1 - smoothstep(cycle, 8.6, 9.2))}>
+              <g opacity={smoothstep(cycle, 7.0, 7.7) * (1 - smoothstep(cycle, 14.6, 15.2))}>
                 <rect x="160" y="366" width="148" height="36" rx="18" fill="#ffffff" stroke="#d5e5df" />
                 <text x="234" y="390" textAnchor="middle" className="stage-equation">
                   3 + 4 = 7
@@ -276,7 +543,7 @@ export function CuriosityStage({
                 })}
               </g>
 
-              {/* Histogram baseline, axes & golden 7 peak callout */}
+              {/* Histogram baseline, axes & clean golden 7 peak callout */}
               <g opacity={histReveal}>
                 <line x1="378" y1="494" x2="722" y2="494" stroke="#bdd3cc" strokeWidth="1.4" />
                 {Array.from({ length: 11 }, (_, i) => {
@@ -306,9 +573,7 @@ export function CuriosityStage({
                     </g>
                   );
                 })}
-                {/* Subtle golden stem linking the crowning IdeaSeed to the 7 badge */}
-                <line x1="548" y1="292" x2="548" y2="306" stroke="#e59a38" strokeWidth="1.4" strokeDasharray="2 3" />
-                <g transform={`translate(548 ${lerp(334, 318, histReveal)})`}>
+                <g transform={`translate(548 ${lerp(334, 316, histReveal)})`}>
                   <rect x="-46" y="-15" width="92" height="28" rx="14" fill="#e69238" />
                   <text y="3" textAnchor="middle" className="stage-pill-text">
                     7 · 占 6/36
@@ -317,10 +582,10 @@ export function CuriosityStage({
               </g>
             </g>
 
-            {/* ── ACT 02: PRISM REFRACTION & BRAND LOGO FUSION ──────────── */}
+            {/* ── ACT 02: PRISM REFRACTION (ECHOING BRAND LOGO PRISM) ──── */}
             <g opacity={opacity.prism}>
               <text x="400" y="76" textAnchor="middle" className="stage-question">
-                {SHOWREEL_ACTS[1].question}
+                {SHOWREEL_ACTS[2].question}
               </text>
 
               {/* Incoming sunlight beam */}
@@ -384,7 +649,7 @@ export function CuriosityStage({
                 </g>
               ))}
 
-              {/* Frosted crystal prism echoing our knowledge.show BrandLogo */}
+              {/* Frosted crystal prism */}
               <g
                 transform={`translate(400 ${lerp(340, 314, easeOutBack(prismReveal))}) scale(${lerp(0.86, 1, easeOutCubic(prismReveal))})`}
               >
@@ -396,7 +661,6 @@ export function CuriosityStage({
                   strokeWidth="2.2"
                   strokeLinejoin="round"
                 />
-                {/* Optical inner facet highlight */}
                 <polygon
                   points="0,-108 -96,86 0,14"
                   fill="#ffffff"
@@ -409,23 +673,13 @@ export function CuriosityStage({
                   strokeOpacity=".88"
                   strokeLinecap="round"
                 />
-                {/* Living Brand Logo signature: golden 4-point curiosity spark glowing at prism heart */}
-                <g opacity={0.45 + 0.55 * spectrumReveal}>
-                  <path
-                    d="M0,-24 L4.6,-4.6 L24,0 L4.6,4.6 L0,24 L-4.6,4.6 L-24,0 L-4.6,-4.6 Z"
-                    fill="#fff7e2"
-                    stroke="#e59a38"
-                    strokeWidth="1.2"
-                  />
-                  <circle r="4.5" fill="#f0a43b" />
-                </g>
               </g>
             </g>
 
             {/* ── ACT 03: HIGH-CRAFT PN JUNCTION APPARATUS ──────────────── */}
             <g opacity={opacity.pn}>
               <text x="400" y="76" textAnchor="middle" className="stage-question">
-                {reverse > 0.5 ? "反向接通：耗尽层加宽，电流截止" : SHOWREEL_ACTS[2].question}
+                {reverse > 0.5 ? "反向接通：耗尽层加宽，电流截止" : SHOWREEL_ACTS[3].question}
               </text>
 
               {/* Floating P / N region badges cleanly ABOVE the chamber (zero overlap!) */}
@@ -440,7 +694,7 @@ export function CuriosityStage({
                 </text>
               </g>
 
-              {/* Copper/silver lead wires + live current-flow pulse dashes */}
+              {/* Lead wires + live current-flow pulse dashes */}
               <path
                 d="M54,286 H116 M536,286 H600"
                 stroke="#9fbcb4"
@@ -501,7 +755,7 @@ export function CuriosityStage({
               <rect x="114" y="228" width="22" height="116" rx="8" fill="#dfe9e6" stroke="#9eb8b1" strokeWidth="1.5" />
               <rect x="516" y="228" width="22" height="116" rx="8" fill="#dfe9e6" stroke="#9eb8b1" strokeWidth="1.5" />
 
-              {/* Layered glass chamber shadow + outer frame + inner crystal well */}
+              {/* Layered glass chamber */}
               <rect x="132" y="214" width="390" height="164" rx="28" fill="#13423b" opacity=".08" />
               <rect
                 x="128"
@@ -513,7 +767,6 @@ export function CuriosityStage({
                 stroke={`url(#${id}-pn-frame)`}
                 strokeWidth="2.4"
               />
-              {/* Top specular glass highlight */}
               <path
                 d="M154,212 H498"
                 stroke="#ffffff"
@@ -535,7 +788,6 @@ export function CuriosityStage({
                   strokeDasharray="4 4"
                   strokeWidth="1.3"
                 />
-                {/* Etched fixed ion lattice sites (visible especially as depletion widens) */}
                 {[-1, 1].map((side) =>
                   [0, 1, 2].map((row) => {
                     const ix = 326 + side * Math.max(10, barrierWidth * 0.25);
@@ -574,12 +826,11 @@ export function CuriosityStage({
                 </text>
               </g>
 
-              {/* High-Craft Precision Ammeter Gauge (pivot matches IdeaSeed at 674, 286!) */}
+              {/* High-Craft Precision Ammeter Gauge with integrated hub */}
               <g transform="translate(674 286)">
                 <circle r="76" fill="#13423b" opacity=".06" cy="5" />
                 <circle r="74" fill={`url(#${id}-dial-face)`} stroke="#bfd6cf" strokeWidth="2.2" />
                 <circle r="66" fill="none" stroke="#ffffff" strokeWidth="1.5" />
-                {/* 17 fine radial graduation ticks */}
                 {Array.from({ length: 17 }, (_, i) => {
                   const deg = -115 + (i * 230) / 16;
                   const rad = ((deg - 90) * Math.PI) / 180;
@@ -598,7 +849,6 @@ export function CuriosityStage({
                     />
                   );
                 })}
-                {/* Background & live progress arc */}
                 <path
                   d="M-43,20 A47,47 0 1,1 43,20"
                   fill="none"
@@ -616,20 +866,18 @@ export function CuriosityStage({
                   strokeDasharray="1"
                   strokeDashoffset={1 - currentLevel}
                 />
-                {/* Tapered precision needle */}
                 <g transform={`rotate(${needleAngle})`}>
-                  <path
-                    d="M-2.2,10 L0,-44 L2.2,10 Z"
-                    fill="#122926"
-                  />
+                  <path d="M-2.2,10 L0,-44 L2.2,10 Z" fill="#122926" />
                 </g>
+                <circle r="7.2" fill="#122926" stroke="#f0a43b" strokeWidth="2.4" />
+                <circle r="2.2" fill="#fff7e2" />
                 <text y="44" textAnchor="middle" className="stage-micro" fill={currentLevel > 0.25 ? "#0d856f" : "#b86c1c"}>
                   {currentLevel > 0.25 ? "导通 · 电流强" : "截止 · 电流 ≈ 0"}
                 </text>
               </g>
             </g>
 
-            {/* ── SHARED CONTINUOUS KNOWLEDGE ACTORS ACROSS ALL 3 ACTS ─── */}
+            {/* ── SHARED CONTINUOUS KNOWLEDGE ACTORS (LOGO -> DICE -> PRISM -> PN -> LOGO) ── */}
             <g className="stage-shared-beads">
               {Array.from({ length: 36 }, (_, i) => {
                 const b = sharedBeadState(i, cycle);
@@ -683,12 +931,6 @@ export function CuriosityStage({
               })}
             </g>
           </svg>
-          <IdeaSeed
-            style={{
-              left: `${(seedX / 800) * 100}%`,
-              top: `${(seedY / 560) * 100}%`,
-            }}
-          />
         </div>
 
         <div className="curiosity-footer-bar">

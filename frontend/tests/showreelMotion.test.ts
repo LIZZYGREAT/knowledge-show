@@ -1,24 +1,40 @@
 import { describe, expect, it } from "vitest";
-import { seedPositionAt, sharedBeadState } from "../src/features/landing/showreelMotion";
+import {
+  SHOWREEL_DURATION,
+  activeActAt,
+  logoOvertureState,
+  sharedBeadState,
+} from "../src/features/landing/showreelMotion";
 
-describe("homepage showreel motion geometry", () => {
-  it("anchors the curiosity spark into each act's focal visual object instead of floating in empty space", () => {
-    const [a1x, a1y] = seedPositionAt(7.2);
-    expect(a1x).toBeCloseTo(548, 0);
-    expect(a1y).toBeCloseTo(276, 0);
+describe("Knowledge.Show(me) hero logo overture and showreel motion", () => {
+  it("constructs the Knowledge.Show(me) hero logo cleanly and removes the golden dot completely during Acts 1-3", () => {
+    expect(activeActAt(0.2).id).toBe("logo");
+    const hold = logoOvertureState(3.6);
+    expect(hold.opacity).toBe(1);
+    expect(hold.kStemDraw).toBeCloseTo(1, 3);
+    expect(hold.prismFill).toBeCloseTo(1, 3);
+    expect(hold.knowledgeIn).toBeCloseTo(1, 3);
+    expect(hold.showIn).toBeCloseTo(1, 3);
+    expect(hold.dotX).toBeCloseTo(400, 0);
+    expect(hold.dotY).toBeCloseTo(354, 0);
+    expect(hold.dotOpacity).toBe(1);
 
-    const [a2x, a2y] = seedPositionAt(14.5);
-    expect(a2x).toBeCloseTo(400, 0);
-    expect(a2y).toBeCloseTo(314, 0);
+    // Zero floating golden dot during Act 1 (Dice), Act 2 (Prism), and Act 3 (PN)
+    for (const cycle of [7.5, 12.0, 18.0, 22.0, 27.5, 32.0]) {
+      const state = logoOvertureState(cycle);
+      expect(state.opacity).toBe(0);
+      expect(state.dotOpacity).toBe(0);
+      expect(state.returnSparkOpacity).toBe(0);
+    }
 
-    const [a3x, a3y] = seedPositionAt(24.0);
-    expect(a3x).toBeCloseTo(674, 0);
-    expect(a3y).toBeCloseTo(286, 0);
+    // Smooth return spark condenses right before loop wraparound
+    const wrap = logoOvertureState(SHOWREEL_DURATION - 0.1);
+    expect(wrap.returnSparkOpacity).toBeGreaterThan(0.95);
   });
 
   it("keeps all PN junction carriers strictly inside the glass chamber and clear of top region badges", () => {
     const badgeBottomY = 186;
-    for (const cycle of [21.2, 23.0, 25.5, 27.5]) {
+    for (const cycle of [26.5, 28.0, 30.8, 33.0]) {
       let visibleCount = 0;
       for (let i = 0; i < 36; i++) {
         const bead = sharedBeadState(i, cycle);

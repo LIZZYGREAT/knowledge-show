@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 
 const INTRO_DURATION = 5500;
-const FRAME_INTERVAL = 1000 / 30;
+const FRAME_INTERVAL = 1000 / 60;
 
 export function useFlowMotion(
   target: RefObject<HTMLElement | null>,

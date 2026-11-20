@@ -1,8 +1,8 @@
-export const SHOWREEL_DURATION = 30;
-export const STATIC_SHOWREEL_TIME = 6.8;
+export const SHOWREEL_DURATION = 36;
+export const STATIC_SHOWREEL_TIME = 3.6;
 
 export type ShowreelAct = {
-  id: "dice" | "prism" | "pn";
+  id: "logo" | "dice" | "prism" | "pn";
   index: string;
   label: string;
   question: string;
@@ -13,13 +13,22 @@ export type ShowreelAct = {
 
 export const SHOWREEL_ACTS: readonly ShowreelAct[] = [
   {
+    id: "logo",
+    index: "00",
+    label: "品牌序幕",
+    question: "Knowledge.Show(me)",
+    caption: "从一点好奇出发，把抽象原理折射成看得见的动态直觉。",
+    prompt: "为什么两个骰子掷出 7 的概率最高？请用直观动画展示 36 种组合如何形成分布规律。",
+    seekTo: 0.0,
+  },
+  {
     id: "dice",
     index: "01",
     label: "概率直觉",
     question: "为什么两个骰子最容易掷出 7？",
     caption: "36 种等可能组合落成钟形分布，和为 7 独占 6 种。",
     prompt: "为什么两个骰子掷出 7 的概率最高？请用直观动画展示 36 种组合如何形成分布规律。",
-    seekTo: 2.2,
+    seekTo: 7.4,
   },
   {
     id: "prism",
@@ -28,7 +37,7 @@ export const SHOWREEL_ACTS: readonly ShowreelAct[] = [
     question: "白光穿过棱镜，为何散出彩虹？",
     caption: "不同波长的光在玻璃中速度不同，红光偏折小、紫光偏折大。",
     prompt: "一束白光穿过三棱镜后为什么会散开成七色彩虹？请直观演示不同波长的折射差异。",
-    seekTo: 12.6,
+    seekTo: 18.2,
   },
   {
     id: "pn",
@@ -37,7 +46,7 @@ export const SHOWREEL_ACTS: readonly ShowreelAct[] = [
     question: "同一个 PN 结，为何只让电流单向通过？",
     caption: "正接时耗尽层变窄载流子畅行，反接时耗尽层加宽电流截止。",
     prompt: "同一个 PN 结，为什么正向接通能导电、反向接通就会截止？请展示空穴、电子与耗尽层的变化。",
-    seekTo: 22.0,
+    seekTo: 27.2,
   },
 ] as const;
 
@@ -77,52 +86,117 @@ export function showreelCycle(time: number) {
 }
 
 export function activeActAt(cycle: number): ShowreelAct {
-  if (cycle < 10) return SHOWREEL_ACTS[0];
-  if (cycle < 20) return SHOWREEL_ACTS[1];
-  return SHOWREEL_ACTS[2];
+  if (cycle < 6.4) return SHOWREEL_ACTS[0];
+  if (cycle < 16.0) return SHOWREEL_ACTS[1];
+  if (cycle < 25.4) return SHOWREEL_ACTS[2];
+  return SHOWREEL_ACTS[3];
 }
 
 export function actOpacities(cycle: number) {
+  const logo = 1 - smoothstep(cycle, 5.1, 6.25);
   const dice =
-    smoothstep(cycle, 0, 0.7) * (1 - smoothstep(cycle, 9.1, 10.1));
+    smoothstep(cycle, 6.0, 6.9) * (1 - smoothstep(cycle, 15.1, 16.1));
   const prism =
-    smoothstep(cycle, 9.6, 10.7) * (1 - smoothstep(cycle, 19.1, 20.1));
+    smoothstep(cycle, 15.6, 16.7) * (1 - smoothstep(cycle, 24.5, 25.5));
   const pn =
-    smoothstep(cycle, 19.6, 20.7) * (1 - smoothstep(cycle, 28.9, 29.85));
-  return { dice, prism, pn };
+    smoothstep(cycle, 25.0, 26.0) * (1 - smoothstep(cycle, 33.9, 34.85));
+  return { logo, dice, prism, pn };
 }
 
-/**
- * The golden curiosity spark (echoing our Prism-Spark brand logo) is never detached:
- * - Act 1: bridges the two dice -> glides to crown the golden "7" histogram peak
- * - Act 2: anchors at the optical refraction core inside the crystal prism
- * - Act 3: serves as the exact golden center jewel pivot of the live ammeter needle
- */
-export function seedPositionAt(cycle: number): [number, number] {
-  const toCrown = smoothstep(cycle, 4.8, 6.4);
-  const p1 = smoothstep(cycle, 9.2, 10.7);
-  const p2 = smoothstep(cycle, 19.2, 20.7);
-  const p3 = smoothstep(cycle, 28.8, 30);
+export type LogoOvertureState = {
+  /** Overall visibility of the Act 00 Logo Overture (0 during Acts 1-3!) */
+  opacity: number;
+  /** Architectural blueprint compass rings draw progress */
+  compassDraw: number;
+  /** Left "K" architectural pillar sweep */
+  kStemDraw: number;
+  /** Play-Prism geometric unfold & fill */
+  prismUnfold: number;
+  prismFill: number;
+  /** 3 spectral refraction rays + optical ")" viewfinder arc */
+  raysDraw: number;
+  lensArcDraw: number;
+  /** Sweeping specular light glint across the prism glass during hold */
+  sheenProgress: number;
+  /** Typographic lockup assembly */
+  knowledgeIn: number;
+  showIn: number;
+  meIn: number;
+  taglineIn: number;
+  /** Golden "." dot traveling from prism hinge (368, 210) -> baseline (400, 354), then disappearing cleanly! */
+  dotX: number;
+  dotY: number;
+  dotScale: number;
+  dotOpacity: number;
+  /** Emblem morph-out into Act 1 particles */
+  emblemScale: number;
+  emblemOpacity: number;
+  wordmarkExitY: number;
+  wordmarkOpacity: number;
+  /** Brief return spark condensing at end of Act 3 (34.7..36.0) -> seamlessly restarts t=0 */
+  returnSparkOpacity: number;
+};
 
-  // Act 1: between the two dice -> directly crowning the "7 · 占 6/36" badge
-  const a1x = lerp(235, 548, toCrown);
-  const a1y = lerp(280, 276, toCrown) - Math.sin(toCrown * Math.PI) * 34;
+export function logoOvertureState(cycle: number): LogoOvertureState {
+  const exitWord = smoothstep(cycle, 4.75, 5.6);
+  const exitEmblem = smoothstep(cycle, 5.0, 6.15);
+  const opacity = 1 - exitEmblem;
 
-  // Act 2: inside the heart of the crystal prism (echoing our BrandLogo!)
-  const a2x = 400;
-  const a2y = 314;
+  const compassDraw = easeOutCubic(smoothstep(cycle, 0.08, 1.15));
+  const kStemDraw = easeOutCubic(smoothstep(cycle, 0.45, 1.25));
+  const prismUnfold = easeOutBack(smoothstep(cycle, 0.72, 1.65));
+  const prismFill = smoothstep(cycle, 1.05, 1.75);
+  const raysDraw = easeOutCubic(smoothstep(cycle, 1.25, 2.2));
+  const lensArcDraw = easeOutCubic(smoothstep(cycle, 1.4, 2.35));
 
-  // Act 3: exact center pivot of the live ammeter gauge (674, 286)
-  const a3x = 674;
-  const a3y = 286;
+  const knowledgeIn = easeOutCubic(smoothstep(cycle, 1.55, 2.3));
+  const dotFlight = easeInOutCubic(smoothstep(cycle, 1.75, 2.55));
+  const showIn = easeOutCubic(smoothstep(cycle, 2.1, 2.85));
+  const meIn = easeOutBack(smoothstep(cycle, 2.4, 3.15));
+  const taglineIn = easeOutCubic(smoothstep(cycle, 2.7, 3.35));
 
-  let x = lerp(a1x, a2x, p1);
-  let y = lerp(a1y, a2y, p1);
-  x = lerp(x, a3x, p2);
-  y = lerp(y, a3y, p2);
-  x = lerp(x, 235, p3);
-  y = lerp(y, 280, p3);
-  return [x, y];
+  const sheenProgress = smoothstep(cycle, 3.25, 4.45);
+
+  // Golden "." spark starts at the prism hinge (368, 210), arcs into exact center (400, 354) between Knowledge & Show,
+  // and cleanly vanishes with the wordmark before Act 1 begins (zero floating dot during Acts 1-3!).
+  const ignition = smoothstep(cycle, 0.0, 0.4);
+  const dotX = lerp(368, 400, dotFlight) + Math.sin(dotFlight * Math.PI) * 18;
+  const dotY = lerp(210, 354, dotFlight) - Math.sin(dotFlight * Math.PI) * 26;
+  const landBounce = 1 + Math.sin(smoothstep(cycle, 2.42, 2.85) * Math.PI) * 0.24;
+  const dotScale = lerp(0.5, 1, ignition) * landBounce * (1 - exitWord * 0.6);
+  const dotOpacity = ignition * (1 - exitWord);
+
+  const emblemScale = lerp(1, 0.46, easeInOutCubic(exitEmblem));
+  const emblemOpacity = (1 - exitEmblem) * smoothstep(cycle, 0.35, 0.85);
+  const wordmarkExitY = lerp(0, 18, easeInOutCubic(exitWord));
+  const wordmarkOpacity = 1 - exitWord;
+
+  // Seamless return spark condensing from PN particles at 34.8..36.0 so t=36 matches t=0!
+  const returnSparkOpacity = smoothstep(cycle, 34.85, 35.85);
+
+  return {
+    opacity,
+    compassDraw,
+    kStemDraw,
+    prismUnfold,
+    prismFill,
+    raysDraw,
+    lensArcDraw,
+    sheenProgress,
+    knowledgeIn,
+    showIn,
+    meIn,
+    taglineIn,
+    dotX,
+    dotY,
+    dotScale,
+    dotOpacity,
+    emblemScale,
+    emblemOpacity,
+    wordmarkExitY,
+    wordmarkOpacity,
+    returnSparkOpacity,
+  };
 }
 
 export const SPECTRAL_BANDS = [
@@ -171,29 +245,29 @@ export function sharedBeadState(index: number, cycle: number): SharedBead {
   const sum = row + col + 2;
   const isSeven = sum === 7;
 
-  // Act 1: Dice -> 6x6 Grid -> 11-column histogram
-  const launch = easeInOutCubic((cycle - (1.4 + (row + col) * 0.055)) / 1.15);
-  const drop = easeInOutCubic((cycle - (4.6 + row * 0.09)) / 1.1);
-  const srcX = index % 2 === 0 ? 196 : 284;
-  const srcY = 278;
+  // Birth directly out of the Hero Logo Prism core (400, 210) -> Act 1 Dice & 6x6 Matrix -> 11-column Histogram
+  const logoBurst = easeInOutCubic((cycle - (5.2 + (row + col) * 0.045)) / 1.15);
+  const drop = easeInOutCubic((cycle - (10.1 + row * 0.09)) / 1.15);
+  const coreX = 400;
+  const coreY = 210;
   const gridX = 432 + col * 42;
   const gridY = 204 + row * 34;
   const rank = row - Math.max(0, sum - 7);
   const histX = 398 + (sum - 2) * 30;
   const histY = 474 - rank * 22;
 
-  const arc1 = Math.sin(launch * Math.PI) * 34;
-  const gx = lerp(srcX, gridX, launch);
-  const gy = lerp(srcY, gridY, launch) - arc1;
+  const arc1 = Math.sin(logoBurst * Math.PI) * 38;
+  const gx = lerp(coreX, gridX, logoBurst);
+  const gy = lerp(coreY, gridY, logoBurst) - arc1;
   const a1x = lerp(gx, histX, drop) + Math.sin(drop * Math.PI) * (row - 2.5) * 6;
   const a1y = lerp(gy, histY, drop) - Math.sin(drop * Math.PI) * 18;
-  const a1r = lerp(5.5, isSeven ? 8.2 : 6.6, launch) * lerp(1, 0.96, drop);
+  const a1r = lerp(4.2, isSeven ? 8.2 : 6.6, logoBurst) * lerp(1, 0.96, drop);
 
-  // Bridge 1->2 & Act 2: Photons entering left beam -> surfing spectral waves
-  const toBeam = smoothstep(cycle, 8.9, 10.3);
+  // Bridge 1->2 & Act 2 (16.0..25.4): Photons entering left beam -> surfing spectral waves
+  const toBeam = smoothstep(cycle, 14.9, 16.3);
   const bandIndex = index % 5;
   const band = SPECTRAL_BANDS[bandIndex];
-  const travel = ((cycle - 10.2) * 0.44 + index * 0.137) % 1;
+  const travel = ((cycle - 16.2) * 0.44 + index * 0.137) % 1;
   const u = travel < 0 ? travel + 1 : travel;
   const inBeam = u < 0.34;
   const beamU = u / 0.34;
@@ -208,12 +282,11 @@ export function sharedBeadState(index: number, cycle: number): SharedBead {
         7.5 *
         Math.sin(waveU * Math.PI * 0.85);
 
-  // Bridge 2->3 & Act 3: Organic golden-ratio staggered carriers strictly inside chamber (y: 232..342)
-  const toPn = smoothstep(cycle, 19.0, 20.5);
-  const pnLocal = Math.max(0, cycle - 20);
-  const reverse = smoothstep(pnLocal, 4.4, 5.5);
+  // Bridge 2->3 & Act 3 (25.4..34.4): 22 spacious carriers strictly inside glass chamber (y: 228..346)
+  const toPn = smoothstep(cycle, 24.4, 25.85);
+  const pnLocal = Math.max(0, cycle - 25.4);
+  const reverse = smoothstep(pnLocal, 4.2, 5.3);
   const isHole = index % 2 === 0;
-  // Golden-ratio phase eliminates stiff vertical columns
   const phaseOffset = (index * 0.6180339887) % 1;
   const laneSlot = index % 4;
   const laneY = 236 + laneSlot * 34 + ((index % 3) - 1) * 5;
@@ -221,7 +294,6 @@ export function sharedBeadState(index: number, cycle: number): SharedBead {
   const forwardX = isHole
     ? lerp(154, 498, forwardFlow)
     : lerp(498, 154, forwardFlow);
-  // Under reverse bias, holes pull left (154..252) and electrons pull right (402..500)
   const pullLeft = 156 + ((phaseOffset * 94) % 94) + Math.sin(cycle * 2.1 + index) * 4;
   const pullRight = 402 + ((phaseOffset * 94) % 94) + Math.cos(cycle * 2.1 + index) * 4;
   const pnX = lerp(forwardX, isHole ? pullLeft : pullRight, reverse);
@@ -230,25 +302,29 @@ export function sharedBeadState(index: number, cycle: number): SharedBead {
     Math.min(346, laneY + Math.sin(cycle * 2.6 + index * 1.7) * (4.5 * (1 - reverse * 0.45))),
   );
 
-  // Seamless Bridge 3->1
-  const toStart = smoothstep(cycle, 28.8, 29.95);
+  // Bridge 3->0 (34.2..35.85): Carriers converge smoothly back into the Logo's core spark (368, 210)
+  const toOrigin = smoothstep(cycle, 34.2, 35.75);
 
   let x = lerp(a1x, wx, toBeam);
   let y = lerp(a1y, wy, toBeam);
   x = lerp(x, pnX, toPn);
   y = lerp(y, pnY, toPn);
-  x = lerp(x, srcX, toStart);
-  y = lerp(y, srcY, toStart);
+  x = lerp(x, 368, toOrigin);
+  y = lerp(y, 210, toOrigin);
 
   let r = lerp(a1r, inBeam ? 4.4 : 4.8, toBeam);
   r = lerp(r, isHole ? 7.2 : 6.2, toPn);
-  r = lerp(r, 4.5, toStart);
+  r = lerp(r, 3.2, toOrigin);
 
-  let fill = isSeven && launch > 0.45 ? "#f0a43b" : "#89d6c6";
-  let stroke = isSeven && launch > 0.45 ? "#c97a16" : "#2e8b7a";
+  let fill = isSeven && logoBurst > 0.45 ? "#f0a43b" : "#89d6c6";
+  let stroke = isSeven && logoBurst > 0.45 ? "#c97a16" : "#2e8b7a";
   let kind: SharedBead["kind"] = "dot";
 
-  if (toBeam > 0.5 && toPn <= 0.5) {
+  if (toOrigin > 0.55) {
+    fill = "#f0a43b";
+    stroke = "#fff4d4";
+    kind = "dot";
+  } else if (toBeam > 0.5 && toPn <= 0.5) {
     fill = inBeam ? "#f6b95b" : band.color;
     stroke = "#ffffff";
     kind = "photon";
@@ -258,14 +334,14 @@ export function sharedBeadState(index: number, cycle: number): SharedBead {
     kind = isHole ? "hole" : "electron";
   }
 
-  // Keep only 22 clean, readable carriers during PN act (fade out extra 14 smoothly so chamber feels spacious & refined!)
-  const pnDensityFade = index >= 22 ? 1 - toPn * (1 - toStart) : 1;
+  const pnDensityFade = index >= 22 ? 1 - toPn * (1 - toOrigin) : 1;
 
+  // Completely hidden during the Hero Logo Overture (0..5.1), burst seamlessly from Logo core at 5.2,
+  // and fade smoothly into the converging ignition spark at 35.6..36.0.
   const opacity =
-    cycle < 1.3
+    cycle < 5.15
       ? 0
-      : (cycle < 9.5 ? clamp01(launch * 1.5) : 1 - toStart * 0.9) *
-        pnDensityFade;
+      : clamp01(logoBurst * 1.6) * (1 - smoothstep(cycle, 35.3, 35.95)) * pnDensityFade;
 
   return {
     x,
@@ -274,7 +350,7 @@ export function sharedBeadState(index: number, cycle: number): SharedBead {
     fill,
     stroke,
     opacity,
-    highlight: isSeven && cycle >= 2.6 && cycle <= 9.2,
+    highlight: isSeven && cycle >= 6.8 && cycle <= 15.2,
     kind,
   };
 }

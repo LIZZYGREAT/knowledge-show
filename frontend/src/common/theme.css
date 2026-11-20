@@ -236,11 +236,34 @@ input::placeholder {
 
 .brand-wordmark {
   font: inherit;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5px;
 }
 
 .brand-dot {
-  color: var(--ks-accent);
+  color: var(--ks-warm);
+  font-weight: 700;
   padding: 0 1px;
+}
+
+.brand-show {
+  color: var(--ks-accent-strong);
+  font-weight: 600;
+}
+
+.brand-me {
+  margin-left: 3px;
+  padding: 1px 6px 2px;
+  border-radius: 999px;
+  background: var(--ks-warm-soft);
+  border: 1px solid rgba(224, 141, 48, 0.34);
+  font-family: var(--ks-font-mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--ks-warm-deep);
+  transform: translateY(-1px);
 }
 
 .header-nav {

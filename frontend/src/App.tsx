@@ -408,7 +408,9 @@ export default function App() {
           >
             <BrandLogo size={36} />
             <span className="brand-wordmark">
-              knowledge<span className="brand-dot">.</span>show
+              Knowledge<span className="brand-dot">.</span>
+              <span className="brand-show">Show</span>
+              <span className="brand-me">(me)</span>
             </span>
           </button>
 
