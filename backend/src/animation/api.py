@@ -13,6 +13,7 @@ from typing import Any, Callable
 from jsonschema import Draft202012Validator
 from fastapi import FastAPI
 from fastapi.responses import FileResponse, JSONResponse
+from api.errors import public_error
 from .director import PROFILES, is_pn_script, preferred_profile_id, resolve_profile
 from .service import AnimationService, encoded, ROOT, ID
 from workflow.service import read_knowledge_package, read_production_script, WorkflowError
@@ -70,8 +71,14 @@ def install_animation_routes(app: FastAPI, *, projects, candidates, revisions, s
             write_job(path,{**result,'job_id':job_id,'status':'completed','message':'动画已通过实际播放检查并发布。'})
         except asyncio.CancelledError:
             write_job(path,{'job_id':job_id,'status':'interrupted','message':'服务停止，未完成的动画没有替换当前成果。'}); raise
-        except Exception:
-            write_job(path,{'job_id':job_id,'status':'failed','message':'动画制作未完成；请检查创作要求、模型连接或本地渲染环境后重试。旧成果已保留。'})
+        except Exception as exc:
+            code, reason = public_error(exc)
+            message = (
+                f'{reason}（旧成果已保留）'
+                if code in {'invalid_key', 'insufficient_balance', 'rate_limited', 'missing_key'}
+                else '动画制作未完成；请检查创作要求、模型连接或本地渲染环境后重试。旧成果已保留。'
+            )
+            write_job(path,{'job_id':job_id,'status':'failed','error_code':code,'message':message})
         finally:
             active.discard(project_id)
             if clients is not None: await clients.close()

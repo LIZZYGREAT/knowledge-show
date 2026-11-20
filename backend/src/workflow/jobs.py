@@ -110,6 +110,24 @@ class JobStore:
                 return job
         return None
 
+    def latest_for_project(self, project_id: str) -> dict[str, Any] | None:
+        if not self.root_dir.is_dir():
+            return None
+        latest_job: dict[str, Any] | None = None
+        latest_mtime = -1.0
+        for path in self.root_dir.glob("JOB_*.json"):
+            try:
+                mtime = path.stat().st_mtime
+                if mtime < latest_mtime:
+                    continue
+                job = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                continue
+            if job.get("project_id") == project_id:
+                latest_job = job
+                latest_mtime = mtime
+        return latest_job
+
     def mark_interrupted(self) -> None:
         for path in self.root_dir.glob("JOB_*.json"):
             try:

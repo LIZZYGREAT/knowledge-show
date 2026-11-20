@@ -76,6 +76,24 @@ class ProjectStateStore:
         with lock:
             return self._load_unlocked(project_id, folder)
 
+    def list_projects(self, limit: int = 50) -> list[tuple[dict[str, Any], float]]:
+        """Return valid latest project snapshots sorted newest-first by revision mtime."""
+        if not self.root_dir.is_dir():
+            return []
+        entries: list[tuple[float, dict[str, Any]]] = []
+        for folder in self.root_dir.iterdir():
+            if not folder.is_dir() or not _PROJECT_ID.fullmatch(folder.name):
+                continue
+            try:
+                project = self.load(folder.name)
+                latest_path = folder / f"project-r{project['revision']}.json"
+                mtime = latest_path.stat().st_mtime
+            except (ProjectNotFoundError, ProjectStateError, OSError):
+                continue
+            entries.append((mtime, project))
+        entries.sort(key=lambda item: item[0], reverse=True)
+        return [(project, mtime) for mtime, project in entries[: max(1, limit)]]
+
     def load_revision(self, project_id: str, revision: int) -> dict[str, Any]:
         if revision < 1:
             raise ProjectNotFoundError(f"ProjectState revision {revision} does not exist")

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { resolveStyleIdFromPreference } from "../../common/api";
 
 type Preview = {
   status: string;
@@ -117,7 +118,7 @@ export function AnimationHandoff({
       const handoff = await call(`/api/projects/${projectId}/handoff/animation`);
       const started = await call(`/api/projects/${projectId}/animations`, {
         expected_project_revision: handoff.project_revision,
-        style_id: "auto",
+        style_id: resolveStyleIdFromPreference(artPreference),
         api_key: apiKey,
         ...(artPreference !== undefined ? { art_preference: artPreference } : {}),
       });

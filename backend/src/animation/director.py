@@ -38,6 +38,8 @@ def preferred_profile_id(preference: str, script: dict[str, Any]) -> str:
     normalized=preference.strip().lower()
     exact=next((profile['id'] for profile in PROFILES if normalized in {profile['id'].lower(),profile['name'].lower()}),None)
     if exact: return exact
+    prefixed=next((profile['id'] for profile in PROFILES if profile['id'].lower() in normalized or profile['name'].lower() in normalized),None)
+    if prefixed: return prefixed
     if re.search(r'纸|纸艺|纸张|编辑|剪贴|拼贴|手作',preference):
         return 'narrative-collage' if re.search(r'剪贴|拼贴|手作|复古',preference) else 'paper-editorial'
     if re.search(r'现代|图形|扁平|几何|鲜艳|海报',preference): return 'modern-graphic'
