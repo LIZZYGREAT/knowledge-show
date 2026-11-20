@@ -1,10 +1,14 @@
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type RefObject } from "react";
-import { gsap } from "gsap";
-import { useGSAP } from "@gsap/react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
 import { stageNames, type Stage } from "../../common/progress";
 import "./progress-event-scene.css";
-
-gsap.registerPlugin(useGSAP);
 
 export type ProgressSceneEvent = {
   id: string;
@@ -15,97 +19,44 @@ export type ProgressSceneEvent = {
 
 export type ProgressSceneStatus = "pending" | "running" | "completed" | "failed";
 
-type Flight = ProgressSceneEvent & { stage: Stage; slot: number };
+type Flight = ProgressSceneEvent & {
+  stage: Stage;
+  launchProgress: number;
+  seed: number;
+  slot: number;
+};
 type Point = { x: number; y: number };
 type SceneSize = { width: number; height: number };
 
-const VIEW = { width: 1000, height: 340 };
-// One calm left-to-right track: the task climbs, settles, then opens toward the finish.
-const TRACK_D = "M 82 250 C 216 250 244 128 460 122 C 676 130 712 282 920 168";
-const MILESTONES = [0.34, 0.66, 1] as const;
-const MAX_FLIGHTS = 1;
+const VIEW = { width: 1200, height: 420 };
+// Graceful full-bleed horizon wave spanning edge to edge
+const TRACK_D = "M 76 312 C 268 312 330 162 590 168 C 845 174 912 316 1124 198";
+const MILESTONES = [0.333, 0.666, 1] as const;
+const MAX_FLIGHTS = 3;
 
 const progressByStage: Record<Stage, Record<ProgressSceneStatus, number>> = {
-  knowledge: { pending: 0.02, running: 0.16, completed: 0.34, failed: 0.16 },
-  script: { pending: 0.32, running: 0.5, completed: 0.66, failed: 0.5 },
-  animation: { pending: 0.64, running: 0.85, completed: 1, failed: 0.85 },
+  knowledge: { pending: 0, running: 0.16, completed: 0.333, failed: 0.16 },
+  script: { pending: 0.333, running: 0.5, completed: 0.666, failed: 0.5 },
+  animation: { pending: 0.666, running: 0.85, completed: 1, failed: 0.85 },
 };
+
 const eventAnchor: Record<Stage, number> = {
   knowledge: 0.2,
-  script: 0.54,
-  animation: 0.86,
+  script: 0.52,
+  animation: 0.84,
 };
-
-const ambientComets = [
-  { size: 2.8, duration: "15s", begin: "-2s", tone: "mint" },
-  { size: 2.2, duration: "22s", begin: "-8s", tone: "gold" },
-  { size: 3.2, duration: "18s", begin: "-13s", tone: "teal" },
-  { size: 2, duration: "26s", begin: "-5s", tone: "gold" },
-  { size: 2.6, duration: "12s", begin: "-10s", tone: "mint" },
-] as const;
-
-const progressComets = [
-  { size: 4.4, duration: "16s", begin: "-3s", tone: "teal" },
-  { size: 3.4, duration: "21s", begin: "-9s", tone: "mint" },
-  { size: 2.8, duration: "13s", begin: "-6s", tone: "gold" },
-  { size: 4, duration: "24s", begin: "-15s", tone: "mint" },
-] as const;
-
-const dust = [
-  { x: 7, y: 18, size: 6, delay: -1.4, tone: "mint" },
-  { x: 14, y: 72, size: 7, delay: -4.4, tone: "gold" },
-  { x: 21, y: 34, size: 4, delay: -2.2, tone: "teal" },
-  { x: 28, y: 86, size: 5, delay: -5.1, tone: "mint" },
-  { x: 36, y: 12, size: 4, delay: -0.7, tone: "mint" },
-  { x: 43, y: 52, size: 3, delay: -3.6, tone: "gold" },
-  { x: 51, y: 8, size: 5, delay: -6.2, tone: "teal" },
-  { x: 58, y: 88, size: 4, delay: -1.9, tone: "gold" },
-  { x: 65, y: 24, size: 6, delay: -4.8, tone: "mint" },
-  { x: 72, y: 60, size: 3, delay: -2.8, tone: "teal" },
-  { x: 79, y: 13, size: 5, delay: -5.7, tone: "gold" },
-  { x: 84, y: 78, size: 8, delay: -3.3, tone: "mint" },
-  { x: 91, y: 36, size: 4, delay: -0.9, tone: "teal" },
-  { x: 96, y: 66, size: 6, delay: -6.6, tone: "gold" },
-  { x: 33, y: 64, size: 9, delay: -7.4, tone: "mint", soft: true },
-  { x: 70, y: 80, size: 10, delay: -8.1, tone: "teal", soft: true },
-  { x: 4, y: 48, size: 4, delay: -3.1, tone: "teal" },
-  { x: 18, y: 91, size: 5, delay: -6.9, tone: "gold" },
-  { x: 31, y: 22, size: 8, delay: -1.2, tone: "mint" },
-  { x: 48, y: 74, size: 9, delay: -5.4, tone: "gold", soft: true },
-  { x: 62, y: 44, size: 5, delay: -0.4, tone: "mint" },
-  { x: 87, y: 52, size: 7, delay: -4.1, tone: "teal" },
-  { x: 95, y: 20, size: 5, delay: -7.7, tone: "mint" },
-  { x: 3, y: 34, size: 8, delay: -2.6, tone: "gold", soft: true },
-  { x: 6, y: 84, size: 12, delay: -6.3, tone: "mint", soft: true },
-  { x: 94, y: 34, size: 13, delay: -7.9, tone: "gold", soft: true },
-] as const;
-
-const twinkles = [
-  { x: 22, y: 12, delay: -0.5 },
-  { x: 46, y: 88, delay: -1.8 },
-  { x: 68, y: 14, delay: -3.1 },
-  { x: 89, y: 84, delay: -2.4 },
-  { x: 12, y: 55, delay: -4 },
-] as const;
-
-const diamonds = [
-  { x: 9, y: 26, size: 5, delay: -1.2, tone: "gold" },
-  { x: 27, y: 79, size: 4, delay: -3.8, tone: "mint" },
-  { x: 74, y: 17, size: 6, delay: -2.1, tone: "gold" },
-  { x: 93, y: 58, size: 4, delay: -4.6, tone: "teal" },
-  { x: 56, y: 91, size: 5, delay: -0.6, tone: "mint" },
-] as const;
-
-const plusMarks = [
-  { x: 16, y: 14, size: 10, delay: -1.5 },
-  { x: 82, y: 22, size: 8, delay: -3.2 },
-  { x: 8, y: 62, size: 7, delay: -4.1 },
-  { x: 90, y: 74, size: 9, delay: -2.3 },
-  { x: 58, y: 6, size: 7, delay: -5.3 },
-] as const;
 
 function clamp01(value: number) {
   return Math.max(0, Math.min(1, value));
+}
+
+function hashSeed(input: string) {
+  let h = 2166136261;
+  for (let i = 0; i < input.length; i++) {
+    h ^= input.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0) / 4294967295;
 }
 
 function pointAt(path: SVGPathElement, progress: number): Point {
@@ -115,7 +66,7 @@ function pointAt(path: SVGPathElement, progress: number): Point {
 
 function pixelPointAt(path: SVGPathElement | null, progress: number, size: SceneSize): Point {
   if (!path || size.width <= 0 || size.height <= 0) {
-    return { x: size.width / 2, y: size.height / 2 };
+    return { x: size.width / 2, y: size.height * 0.66 };
   }
   const point = pointAt(path, progress);
   return {
@@ -151,140 +102,450 @@ function useMotionEnvironment(sceneRef: RefObject<HTMLDivElement | null>) {
     };
   }, [sceneRef]);
 
-  return { pageVisible, inView, reducedMotion, motionAllowed: pageVisible && inView && !reducedMotion };
+  return {
+    pageVisible,
+    inView,
+    reducedMotion,
+    motionAllowed: pageVisible && inView && !reducedMotion,
+  };
 }
 
+/**
+ * 60fps Living Daylight Starfield, Drifting Cosmic Particles & Rising Micro-Bubbles.
+ * Full-bleed across the entire progress view with subtle constellations and zero container walls.
+ */
+function StarfieldCanvas({
+  size,
+  active,
+  headPoint,
+  stage,
+}: {
+  size: SceneSize;
+  active: boolean;
+  headPoint: { left: number; top: number };
+  stage: Stage;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const headRef = useRef(headPoint);
+  const stageRef = useRef(stage);
+  headRef.current = headPoint;
+  stageRef.current = stage;
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || size.width <= 0 || size.height <= 0) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(size.width * dpr);
+    canvas.height = Math.round(size.height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const palette = [
+      [20, 184, 154],  // emerald-mint
+      [48, 146, 232],  // sky-cerulean
+      [120, 102, 230], // luminous lavender
+      [238, 162, 58],  // champagne gold
+    ] as const;
+
+    type Particle = {
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      r: number;
+      phase: number;
+      speed: number;
+      star: boolean;
+      color: readonly [number, number, number];
+      depth: number;
+    };
+
+    const count = Math.min(72, Math.max(40, Math.round(size.width / 19)));
+    const particles: Particle[] = Array.from({ length: count }, (_, i) => {
+      const s1 = hashSeed(`p-x-${i}`);
+      const s2 = hashSeed(`p-y-${i}`);
+      const s3 = hashSeed(`p-v-${i}`);
+      const depth = 0.45 + hashSeed(`p-d-${i}`) * 0.85;
+      return {
+        x: s1 * size.width,
+        y: s2 * size.height,
+        vx: (s3 - 0.5) * 14 * depth,
+        vy: -(5 + hashSeed(`p-vy-${i}`) * 12) * depth,
+        r: (1.4 + hashSeed(`p-r-${i}`) * 2.8) * depth,
+        phase: hashSeed(`p-ph-${i}`) * Math.PI * 2,
+        speed: 0.9 + hashSeed(`p-sp-${i}`) * 1.6,
+        star: i % 5 === 0,
+        color: palette[i % palette.length],
+        depth,
+      };
+    });
+
+    type MicroBubble = {
+      x: number;
+      y: number;
+      age: number;
+      life: number;
+      r: number;
+      swayAmp: number;
+      swayFreq: number;
+      phase: number;
+      driftX: number;
+      color: readonly [number, number, number];
+    };
+
+    const microBubbles: MicroBubble[] = [];
+    let spawnTimer = 0;
+
+    function spawnBubble(originX: number, originY: number) {
+      const stageColor =
+        stageRef.current === "script"
+          ? palette[1]
+          : stageRef.current === "animation"
+            ? palette[3]
+            : palette[0];
+      const useAccent = Math.random() < 0.65;
+      microBubbles.push({
+        x: originX + (Math.random() - 0.5) * 36,
+        y: originY + (Math.random() - 0.5) * 20,
+        age: 0,
+        life: 3.2 + Math.random() * 2.8,
+        r: 2.6 + Math.random() * 5.2,
+        swayAmp: 12 + Math.random() * 26,
+        swayFreq: 1.4 + Math.random() * 1.4,
+        phase: Math.random() * Math.PI * 2,
+        driftX: (Math.random() - 0.5) * 22,
+        color: useAccent ? stageColor : palette[Math.floor(Math.random() * palette.length)],
+      });
+    }
+
+    // Seed a few gentle rising bubbles immediately so the scene feels alive on frame 1
+    for (let i = 0; i < 10; i++) {
+      spawnBubble(Math.random() * size.width, size.height * (0.42 + Math.random() * 0.45));
+      microBubbles[microBubbles.length - 1].age = Math.random() * 2.2;
+    }
+
+    let raf = 0;
+    let last = performance.now();
+    let elapsed = 0;
+
+    function drawFrame(dt: number) {
+      if (!ctx) return;
+      elapsed += dt;
+      ctx.clearRect(0, 0, size.width, size.height);
+
+      // Update & draw ambient starfield particles
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.x += (p.vx + Math.sin(elapsed * 0.65 + p.phase) * 7 * p.depth) * dt;
+        p.y += p.vy * dt;
+
+        if (p.y < -18) {
+          p.y = size.height + 16;
+          p.x = ((p.x % size.width) + size.width) % size.width;
+        }
+        if (p.x < -20) p.x = size.width + 18;
+        if (p.x > size.width + 20) p.x = -18;
+      }
+
+      // Soft constellation filaments between nearby stars
+      ctx.lineWidth = 0.85;
+      for (let i = 0; i < particles.length; i++) {
+        const a = particles[i];
+        for (let j = i + 1; j < particles.length; j++) {
+          const b = particles[j];
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < 108 * 108) {
+            const alpha = (1 - Math.sqrt(d2) / 108) * 0.14;
+            ctx.strokeStyle = `rgba(${a.color[0]}, ${a.color[1]}, ${a.color[2]}, ${alpha.toFixed(3)})`;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Draw particles & crisp 4-point twinkling stars
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        const twinkle = 0.42 + 0.58 * (0.5 + 0.5 * Math.sin(elapsed * p.speed + p.phase));
+        const [r, g, b] = p.color;
+
+        if (p.star) {
+          const arm = p.r * (2.1 + twinkle * 1.1);
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${(0.28 + twinkle * 0.48).toFixed(3)})`;
+          ctx.beginPath();
+          ctx.moveTo(0, -arm);
+          ctx.quadraticCurveTo(0, 0, arm, 0);
+          ctx.quadraticCurveTo(0, 0, 0, arm);
+          ctx.quadraticCurveTo(0, 0, -arm, 0);
+          ctx.quadraticCurveTo(0, 0, 0, -arm);
+          ctx.fill();
+          ctx.fillStyle = `rgba(255, 255, 255, ${(0.55 + twinkle * 0.4).toFixed(3)})`;
+          ctx.beginPath();
+          ctx.arc(0, 0, Math.max(0.9, p.r * 0.42), 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        } else {
+          ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${(0.22 + twinkle * 0.34).toFixed(3)})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Spawn & animate glossy rising micro-bubbles from near the progress head & horizon
+      spawnTimer += dt;
+      if (spawnTimer > 0.34 && microBubbles.length < 22) {
+        spawnTimer = 0;
+        const hx = (headRef.current.left / 100) * size.width;
+        const hy = (headRef.current.top / 100) * size.height;
+        if (Math.random() < 0.6) {
+          spawnBubble(hx, hy);
+        } else {
+          spawnBubble(size.width * (0.1 + Math.random() * 0.8), size.height * (0.55 + Math.random() * 0.32));
+        }
+      }
+
+      for (let i = microBubbles.length - 1; i >= 0; i--) {
+        const mb = microBubbles[i];
+        mb.age += dt;
+        const u = mb.age / mb.life;
+        if (u >= 1) {
+          microBubbles.splice(i, 1);
+          continue;
+        }
+        const bx = mb.x + mb.driftX * u + Math.sin(mb.age * mb.swayFreq + mb.phase) * mb.swayAmp;
+        const by = mb.y - u * (110 + mb.r * 12);
+        const fade = u < 0.16 ? u / 0.16 : u > 0.72 ? (1 - u) / 0.28 : 1;
+        const radius = mb.r * (0.6 + 0.45 * Math.min(1, u * 3)) * (1 + Math.max(0, u - 0.72) * 0.45);
+        const [r, g, b] = mb.color;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(bx, by, radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${(0.14 * fade).toFixed(3)})`;
+        ctx.fill();
+        ctx.lineWidth = 1.1;
+        ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${(0.44 * fade).toFixed(3)})`;
+        ctx.stroke();
+
+        // Glossy specular bubble highlight crescent
+        ctx.beginPath();
+        ctx.arc(bx - radius * 0.32, by - radius * 0.32, Math.max(0.8, radius * 0.28), 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${(0.88 * fade).toFixed(3)})`;
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    drawFrame(0.016);
+    if (!active) return;
+
+    function tick(now: number) {
+      const dt = Math.min(0.05, Math.max(0.004, (now - last) / 1000));
+      last = now;
+      drawFrame(dt);
+      raf = requestAnimationFrame(tick);
+    }
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [size.width, size.height, active]);
+
+  return <canvas ref={canvasRef} className="progress-starfield-canvas" aria-hidden="true" />;
+}
+
+/**
+ * Silky Organic Drifting Event Bubble ("冒泡泡" trajectory):
+ * Pops right out of the active progress head with a ripple & 6 glossy mini-bubbles,
+ * floats upward along an irregular-yet-buttery dual-harmonic S-curve, stays effortlessly readable,
+ * then gently expands and dissolves into the starry sky.
+ */
 function FlightBubble({
   event,
-  slot,
   trackRef,
-  sceneRef,
   sceneSize,
   paused,
   onFinish,
 }: {
   event: Flight;
-  slot: number;
   trackRef: RefObject<SVGPathElement | null>;
-  sceneRef: RefObject<HTMLDivElement | null>;
   sceneSize: SceneSize;
   paused: boolean;
   onFinish: (id: string) => void;
 }) {
   const bubbleRef = useRef<HTMLDivElement | null>(null);
   const rippleRef = useRef<HTMLSpanElement | null>(null);
-  const sparkRefs = useRef<(HTMLSpanElement | null)[]>([]);
-  const timelineRef = useRef<gsap.core.Timeline | null>(null);
+  const miniRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const pausedRef = useRef(paused);
+  const finishRef = useRef(onFinish);
   pausedRef.current = paused;
-  const stage = event.stage;
-  const spreads = [
-    { x: -40, y: -22 },
-    { x: 30, y: -32 },
-    { x: 5, y: 28 },
-    { x: -24, y: 21 },
-    { x: 44, y: -9 },
-  ];
+  finishRef.current = onFinish;
 
-  useGSAP((_, contextSafe) => {
+  useEffect(() => {
     const bubble = bubbleRef.current;
     const path = trackRef.current;
     if (!bubble || !path || sceneSize.width <= 0 || sceneSize.height <= 0) return;
 
-    const anchor = pixelPointAt(path, eventAnchor[stage], sceneSize);
-    const maxWidth = Math.min(408, sceneSize.width * (sceneSize.width < 620 ? 0.7 : 0.41));
-    const halfWidth = maxWidth / 2 + 10;
-    const laneOffset = slot === 0
-      ? Math.min(128, sceneSize.height * 0.3)
-      : Math.min(92, sceneSize.height * 0.24);
-    const dock = {
-      x: Math.max(halfWidth, Math.min(sceneSize.width - halfWidth, anchor.x + (slot === 0 ? 22 : -16))),
-      y: Math.max(58, Math.min(sceneSize.height - 58, anchor.y + (slot === 0 ? -laneOffset : laneOffset))),
-    };
-    const sparks = sparkRefs.current.filter((node): node is HTMLSpanElement => Boolean(node));
+    const anchor = pixelPointAt(path, event.launchProgress, sceneSize);
+    const s1 = event.seed;
+    const s2 = hashSeed(`${event.id}:sway`);
+    const s3 = hashSeed(`${event.id}:rise`);
+    const s4 = hashSeed(`${event.id}:phase`);
 
-    gsap.set(bubble, {
-      x: anchor.x,
-      y: anchor.y,
-      xPercent: -50,
-      yPercent: -50,
-      scale: 0.42,
-      autoAlpha: 0,
-    });
-    gsap.set(rippleRef.current, {
-      x: anchor.x,
-      y: anchor.y,
-      xPercent: -50,
-      yPercent: -50,
-      scale: 0.35,
-      autoAlpha: 0.55,
-    });
-    gsap.set(sparks, {
-      x: anchor.x,
-      y: anchor.y,
-      xPercent: -50,
-      yPercent: -50,
-      scale: 0.4,
-      autoAlpha: 0,
+    const safeMargin = Math.min(220, sceneSize.width * 0.24);
+    const slotBias = (event.slot - 1) * 96; // -96, 0, +96 spread when multiple bubbles float together
+    const rawDriftX = (s1 - 0.5) * 180 + slotBias;
+    const targetMidX = Math.max(safeMargin, Math.min(sceneSize.width - safeMargin, anchor.x + rawDriftX));
+    const driftX = targetMidX - anchor.x;
+
+    const riseY = Math.min(anchor.y - 54, Math.max(115, 132 + s3 * 78));
+    const amp1 = 22 + s2 * 24;
+    const amp2 = 8 + (1 - s2) * 11;
+    const freq1 = 2.0 + s1 * 1.1;
+    const freq2 = 3.6 + s3 * 1.2;
+    const phase = s4 * Math.PI * 2;
+    const duration = 5.4;
+
+    const miniSpecs = Array.from({ length: 6 }, (_, i) => {
+      const ms = hashSeed(`${event.id}:mini:${i}`);
+      const angle = -Math.PI * 0.88 + (i / 5) * Math.PI * 0.76 + (ms - 0.5) * 0.24;
+      return {
+        dx: Math.cos(angle) * (46 + ms * 44),
+        dy: Math.sin(angle) * (54 + ms * 56) - 24,
+        sway: (ms - 0.5) * 28,
+        delay: i * 0.035,
+      };
     });
 
-    const finish = contextSafe?.(() => onFinish(event.id)) ?? (() => onFinish(event.id));
-    const timeline = gsap.timeline({ paused: true, onComplete: finish });
-    timeline
-      .to(rippleRef.current, { scale: 2.5, autoAlpha: 0, duration: 1.05, ease: "power2.out" }, 0)
-      .to(bubble, { autoAlpha: 1, scale: 0.6, duration: 0.24, ease: "power2.out" }, 0.02)
-      .to(bubble, { x: dock.x, y: dock.y, scale: 1, duration: 0.92, ease: "power3.out" }, 0.12)
-      .to(sparks, { autoAlpha: 0.92, scale: 1, duration: 0.16, stagger: 0.05, ease: "power1.out" }, 0.3)
-      .to(sparks, {
-        x: (index: number) => anchor.x + spreads[index].x,
-        y: (index: number) => anchor.y + spreads[index].y,
-        autoAlpha: 0,
-        scale: 0.3,
-        duration: 0.72,
-        stagger: 0.07,
-        ease: "power1.out",
-      }, 0.34)
-      .to(bubble, { scale: 1.025, duration: 0.24, ease: "sine.out" }, 1.05)
-      .to(bubble, { scale: 1, duration: 0.3, ease: "sine.inOut" }, 1.29)
-      .to(bubble, { autoAlpha: 0, y: dock.y - 14, scale: 0.97, duration: 0.7, ease: "power1.in" }, 3.55);
-    timelineRef.current = timeline;
-    if (pausedRef.current) timeline.pause();
-    else timeline.play();
+    let raf = 0;
+    let elapsed = 0;
+    let last = performance.now();
+    let done = false;
 
+    function render(tSec: number) {
+      if (!bubble) return;
+      const u = clamp01(tSec / duration);
+
+      // Smooth buoyant vertical lift + gentle continued float while dissolving
+      const riseEase = 1 - (1 - Math.min(1, u / 0.74)) ** 2.6;
+      const tailLift = u > 0.7 ? ((u - 0.7) / 0.3) ** 1.4 * 52 : 0;
+      const y = anchor.y - riseY * riseEase - tailLift;
+
+      // Irregular yet silky dual-harmonic S-curve sway
+      const swayEnvelope = Math.sin(Math.min(1, u * 1.15) * Math.PI * 0.85);
+      const sway =
+        (Math.sin(u * Math.PI * freq1 + phase) * amp1 +
+          Math.cos(u * Math.PI * freq2 - phase) * amp2) *
+        swayEnvelope;
+      const xRaw = anchor.x + driftX * (1 - (1 - u) ** 2.1) + sway;
+      const x = Math.max(safeMargin * 0.72, Math.min(sceneSize.width - safeMargin * 0.72, xRaw));
+
+      // Pop-in elastic bloom -> calm buoyant breath -> soft dissolve into stardust
+      let scale = 1;
+      let opacity = 1;
+      let blurPx = 0;
+      if (u < 0.13) {
+        const k = u / 0.13;
+        scale = 0.34 + 0.7 * (1 - (1 - k) ** 3);
+        opacity = Math.min(1, k * 1.5);
+      } else if (u < 0.76) {
+        const breath = Math.sin((u - 0.13) * Math.PI * 4) * 0.016;
+        scale = 1 + breath;
+        opacity = 1;
+      } else {
+        const fadeU = (u - 0.76) / 0.24;
+        scale = 1 + fadeU * 0.085;
+        opacity = Math.max(0, 1 - fadeU ** 1.35);
+        blurPx = fadeU * 3.5;
+      }
+
+      const tilt = Math.cos(u * Math.PI * freq1 + phase) * 2.2 * swayEnvelope;
+      bubble.style.visibility = "visible";
+      bubble.style.opacity = opacity.toFixed(3);
+      bubble.style.filter = blurPx > 0.08 ? `blur(${blurPx.toFixed(2)}px)` : "none";
+      bubble.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) translate(-50%, -50%) rotate(${tilt.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+
+      // Expanding birth water-ripple at anchor
+      const ripple = rippleRef.current;
+      if (ripple) {
+        const ru = clamp01(tSec / 1.15);
+        ripple.style.visibility = ru < 1 ? "visible" : "hidden";
+        ripple.style.opacity = ((1 - ru) * 0.62).toFixed(3);
+        ripple.style.transform = `translate3d(${anchor.x.toFixed(1)}px, ${anchor.y.toFixed(1)}px, 0) translate(-50%, -50%) scale(${(0.35 + ru * 2.4).toFixed(3)})`;
+      }
+
+      // 6 tiny glossy mini-bubbles popping off on curved trails
+      for (let i = 0; i < miniSpecs.length; i++) {
+        const node = miniRefs.current[i];
+        if (!node) continue;
+        const spec = miniSpecs[i];
+        const mu = clamp01((tSec - spec.delay) / 1.45);
+        if (mu <= 0 || mu >= 1) {
+          node.style.visibility = "hidden";
+          continue;
+        }
+        const mEase = 1 - (1 - mu) ** 2.2;
+        const mx = anchor.x + spec.dx * mEase + Math.sin(mu * Math.PI * 2) * spec.sway;
+        const my = anchor.y + spec.dy * mEase - mu * 22;
+        const mAlpha = mu < 0.2 ? mu / 0.2 : 1 - (mu - 0.2) / 0.8;
+        const mScale = 0.55 + Math.sin(mu * Math.PI) * 0.65;
+        node.style.visibility = "visible";
+        node.style.opacity = (mAlpha * 0.85).toFixed(3);
+        node.style.transform = `translate3d(${mx.toFixed(1)}px, ${my.toFixed(1)}px, 0) translate(-50%, -50%) scale(${mScale.toFixed(3)})`;
+      }
+    }
+
+    render(0);
+
+    function tick(now: number) {
+      if (done) return;
+      const dt = Math.min(0.05, Math.max(0.004, (now - last) / 1000));
+      last = now;
+      if (!pausedRef.current) {
+        elapsed += dt;
+        render(elapsed);
+        if (elapsed >= duration) {
+          done = true;
+          finishRef.current(event.id);
+          return;
+        }
+      }
+      raf = requestAnimationFrame(tick);
+    }
+
+    raf = requestAnimationFrame(tick);
     return () => {
-      timeline.kill();
-      timelineRef.current = null;
+      done = true;
+      cancelAnimationFrame(raf);
     };
-  }, {
-    scope: sceneRef,
-    dependencies: [event.id, slot, sceneSize.width, sceneSize.height],
-    revertOnUpdate: true,
-  });
-
-  useEffect(() => {
-    const timeline = timelineRef.current;
-    if (!timeline) return;
-    if (paused) timeline.pause();
-    else timeline.play();
-  }, [paused]);
+  }, [event.id, event.launchProgress, event.seed, event.slot, trackRef, sceneSize.width, sceneSize.height]);
 
   return (
     <>
-      <span ref={rippleRef} className="progress-anchor-ripple" aria-hidden="true" />
-      {[0, 1, 2, 3, 4].map((index) => (
+      <span ref={rippleRef} className={`progress-anchor-ripple stage-${event.stage}`} aria-hidden="true" />
+      {[0, 1, 2, 3, 4, 5].map((index) => (
         <span
           key={index}
-          ref={(node) => { sparkRefs.current[index] = node; }}
-          className={`progress-flight-spark spark-${index}`}
+          ref={(node) => {
+            miniRefs.current[index] = node;
+          }}
+          className={`progress-mini-bubble mini-${index} stage-${event.stage}`}
           aria-hidden="true"
         />
       ))}
       <div
         ref={bubbleRef}
-        className={`progress-flight-label lane-${slot} stage-${stage}`}
+        className={`progress-bubble-orb stage-${event.stage}`}
         aria-hidden="true"
       >
-        <span className="progress-flight-mark" />
+        <span className="bubble-orb-sphere" />
         <span className="progress-flight-text">{event.text}</span>
       </div>
     </>
@@ -295,12 +556,14 @@ export function ProgressEventScene({
   stage,
   status,
   streamKey,
+  fineProgress,
   recentEvents = [],
   incomingEvents = [],
 }: {
   stage: Stage;
   status: ProgressSceneStatus;
   streamKey: string;
+  fineProgress?: number;
   recentEvents?: ProgressSceneEvent[];
   incomingEvents?: ProgressSceneEvent[];
 }) {
@@ -310,21 +573,30 @@ export function ProgressEventScene({
   const [sceneSize, setSceneSize] = useState<SceneSize>({ width: 0, height: 0 });
   const [flights, setFlights] = useState<Flight[]>([]);
   const [displayProgress, setDisplayProgress] = useState(0);
-  const [headPoint, setHeadPoint] = useState({ left: (82 / VIEW.width) * 100, top: (250 / VIEW.height) * 100 });
+  const [headPoint, setHeadPoint] = useState({
+    left: (76 / VIEW.width) * 100,
+    top: (312 / VIEW.height) * 100,
+  });
   const [markerPoints, setMarkerPoints] = useState<{ left: number; top: number }[]>([]);
   const flightsRef = useRef(new Map<string, Flight>());
   const queueRef = useRef<ProgressSceneEvent[]>([]);
   const seenRef = useRef(new Set<string>());
+  const slotCounterRef = useRef(0);
   const startedRef = useRef(false);
   const streamRef = useRef(streamKey);
   const environment = useMotionEnvironment(sceneRef);
   const animateEvents = !environment.reducedMotion && status !== "failed";
   const animateEventsRef = useRef(animateEvents);
   const stageRef = useRef(stage);
+  const progressRef = useRef(0);
   animateEventsRef.current = animateEvents;
   stageRef.current = stage;
 
-  const targetProgress = progressByStage[stage][status];
+  const targetProgress =
+    fineProgress !== undefined
+      ? clamp01(fineProgress)
+      : progressByStage[stage][status];
+  progressRef.current = displayProgress;
 
   useEffect(() => {
     const node = sceneRef.current;
@@ -369,13 +641,15 @@ export function ProgressEventScene({
   useLayoutEffect(() => {
     const path = trackRef.current;
     if (!path) return;
-    setMarkerPoints(MILESTONES.map((milestone) => {
-      const point = pointAt(path, milestone);
-      return {
-        left: (point.x / VIEW.width) * 100,
-        top: (point.y / VIEW.height) * 100,
-      };
-    }));
+    setMarkerPoints(
+      MILESTONES.map((milestone) => {
+        const point = pointAt(path, milestone);
+        return {
+          left: (point.x / VIEW.width) * 100,
+          top: (point.y / VIEW.height) * 100,
+        };
+      }),
+    );
   }, []);
 
   const pumpQueue = useCallback(() => {
@@ -385,7 +659,16 @@ export function ProgressEventScene({
       const event = queueRef.current.shift();
       if (!event) break;
       const eventStage = event.stage ?? stageRef.current;
-      nextFlights.set(event.id, { ...event, stage: eventStage, slot: 0 });
+      const slot = slotCounterRef.current % 3;
+      slotCounterRef.current += 1;
+      const launchProgress = Math.max(0.04, Math.min(0.95, progressRef.current || eventAnchor[eventStage]));
+      nextFlights.set(event.id, {
+        ...event,
+        stage: eventStage,
+        launchProgress,
+        seed: hashSeed(`${event.id}:${slotCounterRef.current}`),
+        slot,
+      });
     }
     flightsRef.current = nextFlights;
     setFlights([...nextFlights.values()]);
@@ -395,24 +678,29 @@ export function ProgressEventScene({
     const seen = seenRef.current;
     const fresh = incomingEvents
       .filter((event) => !seen.has(event.id))
-      .sort((left, right) => left.seq !== undefined && right.seq !== undefined
-        ? left.seq - right.seq
-        : left.id.localeCompare(right.id));
+      .sort((left, right) =>
+        left.seq !== undefined && right.seq !== undefined
+          ? left.seq - right.seq
+          : left.id.localeCompare(right.id),
+      );
     if (!fresh.length) return;
     for (const event of fresh) seen.add(event.id);
     while (seen.size > 64) seen.delete(seen.values().next().value as string);
     if (!animateEvents) return;
-    queueRef.current = [...queueRef.current, ...fresh].slice(-4);
+    queueRef.current = [...queueRef.current, ...fresh].slice(-6);
     pumpQueue();
   }, [incomingEvents, animateEvents, pumpQueue]);
 
-  const finishFlight = useCallback((id: string) => {
-    const nextFlights = new Map(flightsRef.current);
-    nextFlights.delete(id);
-    flightsRef.current = nextFlights;
-    setFlights([...nextFlights.values()]);
-    pumpQueue();
-  }, [pumpQueue]);
+  const finishFlight = useCallback(
+    (id: string) => {
+      const nextFlights = new Map(flightsRef.current);
+      nextFlights.delete(id);
+      flightsRef.current = nextFlights;
+      setFlights([...nextFlights.values()]);
+      pumpQueue();
+    },
+    [pumpQueue],
+  );
 
   useEffect(() => {
     if (animateEvents) {
@@ -424,14 +712,20 @@ export function ProgressEventScene({
     setFlights([]);
   }, [animateEvents, pumpQueue]);
 
-  const showComets = environment.motionAllowed && status !== "failed" && status !== "completed";
+  // Strict zero-protrusion guard: before any progress starts, no filled ribbon or glow protrudes!
+  const hasProgress = displayProgress > 0.008;
+  const dashOffset = hasProgress ? 1000 * (1 - displayProgress) : 1000;
+
   const sceneClassName = [
     "progress-event-scene",
     `stage-${stage}`,
     `status-${status}`,
+    !hasProgress ? "is-idle" : "",
     !environment.motionAllowed ? "motion-limited" : "",
     status === "failed" ? "is-failed" : "",
-  ].filter(Boolean).join(" ");
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div
@@ -441,168 +735,45 @@ export function ProgressEventScene({
       data-status={status}
       aria-label={`${stageNames[stage]}${status === "failed" ? "，暂时中断" : status === "completed" ? "，已完成" : "，正在进行"}`}
     >
-      <div className="progress-backdrop" aria-hidden="true">
-        <svg className="progress-sky" viewBox="0 0 1000 340" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id={`${idPrefix}-sky-ribbon`} x1="0" y1="0" x2="1" y2="0.35">
-              <stop offset="0%" stopColor="#38d9c0" stopOpacity="0.42" />
-              <stop offset="48%" stopColor="#4c9be8" stopOpacity="0.28" />
-              <stop offset="100%" stopColor="#f0b96b" stopOpacity="0.45" />
-            </linearGradient>
-          </defs>
-          <path
-            className="progress-sky-ribbon"
-            d="M 18 302 C 218 196 380 258 520 184 C 680 100 824 158 992 64"
-            stroke={`url(#${idPrefix}-sky-ribbon)`}
-          />
-          <g className="progress-sky-lines">
-            <path d="M54 62 L132 34 L206 78 L122 112 Z" />
-            <path d="M786 42 L850 74 L928 40 M850 74 L902 118" />
-            <path d="M92 286 L162 308 L238 274" />
-            <path d="M724 294 L796 268 L868 302" />
-            <path d="M268 30 L312 16 M668 318 L710 300" />
-            <path d="M330 52 L378 32 L424 62 L394 96" />
-            <path d="M602 300 L648 278 L704 308 L674 320" />
-            <path d="M440 24 L468 12" />
-            <path d="M560 20 L600 36 L636 18" />
-            <path d="M362 318 L410 300 L444 320" />
-          </g>
-          <g className="progress-sky-dots">
-            <line className="sky-dot" x1="54" y1="62" x2="54" y2="62" />
-            <line className="sky-dot" x1="132" y1="34" x2="132" y2="34" />
-            <line className="sky-dot mint" x1="206" y1="78" x2="206" y2="78" />
-            <line className="sky-dot" x1="122" y1="112" x2="122" y2="112" />
-            <line className="sky-dot mint" x1="786" y1="42" x2="786" y2="42" />
-            <line className="sky-dot" x1="850" y1="74" x2="850" y2="74" />
-            <line className="sky-dot teal" x1="928" y1="40" x2="928" y2="40" />
-            <line className="sky-dot" x1="902" y1="118" x2="902" y2="118" />
-            <line className="sky-dot teal" x1="92" y1="286" x2="92" y2="286" />
-            <line className="sky-dot" x1="162" y1="308" x2="162" y2="308" />
-            <line className="sky-dot mint" x1="238" y1="274" x2="238" y2="274" />
-            <line className="sky-dot" x1="724" y1="294" x2="724" y2="294" />
-            <line className="sky-dot mint" x1="796" y1="268" x2="796" y2="268" />
-            <line className="sky-dot" x1="868" y1="302" x2="868" y2="302" />
-            <line className="sky-dot teal" x1="268" y1="30" x2="268" y2="30" />
-            <line className="sky-dot" x1="312" y1="16" x2="312" y2="16" />
-            <line className="sky-dot mint" x1="668" y1="318" x2="668" y2="318" />
-            <line className="sky-dot" x1="710" y1="300" x2="710" y2="300" />
-            <line className="sky-dot mint" x1="330" y1="52" x2="330" y2="52" />
-            <line className="sky-dot" x1="378" y1="32" x2="378" y2="32" />
-            <line className="sky-dot teal" x1="424" y1="62" x2="424" y2="62" />
-            <line className="sky-dot" x1="394" y1="96" x2="394" y2="96" />
-            <line className="sky-dot" x1="602" y1="300" x2="602" y2="300" />
-            <line className="sky-dot mint" x1="648" y1="278" x2="648" y2="278" />
-            <line className="sky-dot teal" x1="704" y1="308" x2="704" y2="308" />
-            <line className="sky-dot" x1="674" y1="320" x2="674" y2="320" />
-            <line className="sky-dot mint" x1="440" y1="24" x2="440" y2="24" />
-            <line className="sky-dot" x1="468" y1="12" x2="468" y2="12" />
-            <line className="sky-dot" x1="560" y1="20" x2="560" y2="20" />
-            <line className="sky-dot mint" x1="600" y1="36" x2="600" y2="36" />
-            <line className="sky-dot teal" x1="636" y1="18" x2="636" y2="18" />
-            <line className="sky-dot" x1="362" y1="318" x2="362" y2="318" />
-            <line className="sky-dot mint" x1="410" y1="300" x2="410" y2="300" />
-            <line className="sky-dot" x1="444" y1="320" x2="444" y2="320" />
-            <line className="sky-dot mint" x1="913" y1="229" x2="913" y2="229" />
-            <line className="sky-dot" x1="87" y1="229" x2="87" y2="229" />
-            <line className="sky-dot teal" x1="87" y1="123" x2="87" y2="123" />
-            <line className="sky-dot" x1="913" y1="123" x2="913" y2="123" />
-            <line className="sky-dot" x1="733" y1="255" x2="733" y2="255" />
-            <line className="sky-dot mint" x1="267" y1="97" x2="267" y2="97" />
-          </g>
-          <ellipse className="progress-sky-orbit orbit-a" cx="500" cy="176" rx="440" ry="156" />
-          <ellipse className="progress-sky-orbit orbit-b" cx="500" cy="176" rx="330" ry="112" />
-          <ellipse className="progress-sky-orbit orbit-c" cx="500" cy="176" rx="220" ry="76" />
-        </svg>
-        <span className="progress-corner corner-tl" />
-        <span className="progress-corner corner-tr" />
-        <span className="progress-corner corner-bl" />
-        <span className="progress-corner corner-br" />
-      </div>
+      {/* Full-bleed living daylight starfield, drifting particles & rising micro-bubbles */}
+      <StarfieldCanvas
+        size={sceneSize}
+        active={environment.motionAllowed}
+        headPoint={headPoint}
+        stage={stage}
+      />
+
+      {/* Ambient radial light aura following the active progress orb */}
       <div className="progress-glow-dust" aria-hidden="true">
-        <span className="progress-stage-aura" style={{ left: `${headPoint.left}%`, top: `${headPoint.top}%` }} />
-        {twinkles.map((twinkle, index) => (
-          <span
-            key={`twinkle-${index}`}
-            className="progress-twinkle"
-            style={{
-              left: `${twinkle.x}%`,
-              top: `${twinkle.y}%`,
-              animationDelay: `${twinkle.delay}s`,
-            }}
-          />
-        ))}
-        {diamonds.map((diamond, index) => (
-          <span
-            key={`diamond-${index}`}
-            className={`progress-diamond diamond-${diamond.tone}`}
-            style={{
-              left: `${diamond.x}%`,
-              top: `${diamond.y}%`,
-              width: `${diamond.size}px`,
-              height: `${diamond.size}px`,
-              animationDelay: `${diamond.delay}s`,
-            }}
-          />
-        ))}
-        {plusMarks.map((mark, index) => (
-          <span
-            key={`plus-${index}`}
-            className="progress-plus"
-            style={{
-              left: `${mark.x}%`,
-              top: `${mark.y}%`,
-              width: `${mark.size}px`,
-              height: `${mark.size}px`,
-              animationDelay: `${mark.delay}s`,
-            }}
-          />
-        ))}
-        {dust.map((mote, index) => (
-          <span
-            key={index}
-            className={`progress-mote mote-${mote.tone} ${"soft" in mote ? "mote-soft" : ""}`}
-            style={{
-              left: `${mote.x}%`,
-              top: `${mote.y}%`,
-              width: `${mote.size}px`,
-              height: `${mote.size}px`,
-              animationDelay: `${mote.delay}s`,
-            }}
-          />
-        ))}
+        <span
+          className="progress-stage-aura"
+          style={{ left: `${headPoint.left}%`, top: `${headPoint.top}%` }}
+        />
       </div>
-      <svg className="progress-event-ornament" viewBox="0 0 1000 340" preserveAspectRatio="none" aria-hidden="true">
-          <defs>
-            <linearGradient id={`${idPrefix}-fill`} x1="0" y1="0" x2="1" y2="0.14">
-              <stop offset="0%" stopColor="#3ecbb0" />
-              <stop offset="35%" stopColor="#129d83" />
-              <stop offset="68%" stopColor="#348ce3" />
-              <stop offset="100%" stopColor="#e89838" />
-            </linearGradient>
-            <linearGradient id={`${idPrefix}-base`} x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#129d83" stopOpacity="0.22" />
-              <stop offset="55%" stopColor="#348ce3" stopOpacity="0.22" />
-              <stop offset="100%" stopColor="#e89838" stopOpacity="0.26" />
-            </linearGradient>
-            <radialGradient id={`${idPrefix}-comet-mint`} cx="32%" cy="30%" r="78%">
-              <stop offset="0%" stopColor="#ffffff" />
-              <stop offset="40%" stopColor="#72e4ce" />
-              <stop offset="100%" stopColor="#0f967d" />
-            </radialGradient>
-            <radialGradient id={`${idPrefix}-comet-teal`} cx="32%" cy="30%" r="78%">
-              <stop offset="0%" stopColor="#ffffff" />
-              <stop offset="40%" stopColor="#89c5f8" />
-              <stop offset="100%" stopColor="#2d82d6" />
-            </radialGradient>
-            <radialGradient id={`${idPrefix}-comet-gold`} cx="32%" cy="30%" r="78%">
-              <stop offset="0%" stopColor="#ffffff" />
-              <stop offset="40%" stopColor="#f8cc82" />
-              <stop offset="100%" stopColor="#e08d30" />
-            </radialGradient>
-          <filter id={`${idPrefix}-glow`} x="-20%" y="-80%" width="140%" height="260%">
-            <feGaussianBlur stdDeviation="5.5" />
+
+      {/* Luminous fluid trajectory ribbon (strictly masked — zero protrusion bug at start!) */}
+      <svg
+        className="progress-event-ornament"
+        viewBox={`0 0 ${VIEW.width} ${VIEW.height}`}
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient id={`${idPrefix}-fill`} x1="0" y1="0" x2="1" y2="0.12">
+            <stop offset="0%" stopColor="#28d4b2" />
+            <stop offset="35%" stopColor="#129f86" />
+            <stop offset="68%" stopColor="#358de6" />
+            <stop offset="100%" stopColor="#eb9b38" />
+          </linearGradient>
+          <linearGradient id={`${idPrefix}-base`} x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#129d83" stopOpacity="0.2" />
+            <stop offset="50%" stopColor="#358de6" stopOpacity="0.18" />
+            <stop offset="100%" stopColor="#eb9b38" stopOpacity="0.22" />
+          </linearGradient>
+          <filter id={`${idPrefix}-glow`} x="-15%" y="-80%" width="130%" height="260%">
+            <feGaussianBlur stdDeviation="6" />
           </filter>
-          <mask id={`${idPrefix}-reveal`} maskUnits="userSpaceOnUse" x="0" y="0" width="1000" height="340">
+          <mask id={`${idPrefix}-reveal`} maskUnits="userSpaceOnUse" x="0" y="0" width={VIEW.width} height={VIEW.height}>
             <path
               className="progress-comet-mask"
               d={TRACK_D}
@@ -611,7 +782,7 @@ export function ProgressEventScene({
               strokeWidth="26"
               strokeLinecap="round"
               strokeDasharray="1000"
-              style={{ strokeDashoffset: 1000 * (1 - displayProgress) }}
+              style={{ strokeDashoffset: dashOffset }}
             />
           </mask>
         </defs>
@@ -623,7 +794,7 @@ export function ProgressEventScene({
           pathLength="1000"
           stroke={`url(#${idPrefix}-fill)`}
           filter={`url(#${idPrefix}-glow)`}
-          style={{ strokeDashoffset: 1000 * (1 - displayProgress) }}
+          style={{ strokeDashoffset: dashOffset, opacity: hasProgress ? 0.3 : 0 }}
         />
         <path
           ref={trackRef}
@@ -631,67 +802,29 @@ export function ProgressEventScene({
           d={TRACK_D}
           pathLength="1000"
           stroke={`url(#${idPrefix}-fill)`}
-          style={{ strokeDashoffset: 1000 * (1 - displayProgress) }}
+          style={{ strokeDashoffset: dashOffset, opacity: hasProgress ? 1 : 0 }}
         />
         <path
           className="progress-track-shine"
           d={TRACK_D}
           pathLength="1000"
-          style={{ strokeDashoffset: 1000 * (1 - displayProgress) }}
+          style={{ strokeDashoffset: dashOffset, opacity: hasProgress ? 0.85 : 0 }}
         />
-        <path
-          className="progress-track-shimmer"
-          d={TRACK_D}
-          pathLength="1000"
-          mask={`url(#${idPrefix}-reveal)`}
-        />
-        {showComets && (
-          <>
-            <g className="progress-comets ambient-comets">
-              {ambientComets.map((comet, index) => (
-                <ellipse
-                  key={index}
-                  className={`progress-comet comet-${comet.tone}`}
-                  rx={comet.size * 1.7}
-                  ry={comet.size * 0.72}
-                  fill={`url(#${idPrefix}-comet-${comet.tone})`}
-                >
-                  <animateMotion
-                    path={TRACK_D}
-                    dur={comet.duration}
-                    begin={comet.begin}
-                    repeatCount="indefinite"
-                    rotate="auto"
-                  />
-                </ellipse>
-              ))}
-            </g>
-            <g className="progress-comets" mask={`url(#${idPrefix}-reveal)`}>
-              {progressComets.map((comet, index) => (
-                <ellipse
-                  key={index}
-                  className={`progress-comet comet-${comet.tone}`}
-                  rx={comet.size * 1.7}
-                  ry={comet.size * 0.72}
-                  fill={`url(#${idPrefix}-comet-${comet.tone})`}
-                >
-                  <animateMotion
-                    path={TRACK_D}
-                    dur={comet.duration}
-                    begin={comet.begin}
-                    repeatCount="indefinite"
-                    rotate="auto"
-                  />
-                </ellipse>
-              ))}
-            </g>
-          </>
+        {hasProgress && (
+          <path
+            className="progress-track-shimmer"
+            d={TRACK_D}
+            pathLength="1000"
+            mask={`url(#${idPrefix}-reveal)`}
+          />
         )}
       </svg>
+
+      {/* Milestone stars & active glowing progress head */}
       <div className="progress-track-decor" aria-hidden="true">
         {markerPoints.map((point, index) => {
           const milestone = MILESTONES[index];
-          const passed = displayProgress + 0.004 >= milestone;
+          const passed = hasProgress && displayProgress + 0.005 >= milestone;
           return (
             <span
               key={milestone}
@@ -718,20 +851,22 @@ export function ProgressEventScene({
           )}
         </span>
       </div>
+
+      {/* Organic drifting event bubbles */}
       <div className="progress-flight-layer" aria-hidden="true">
         {flights.map((flight) => (
           <FlightBubble
             key={`${streamKey}:${flight.id}`}
             event={flight}
-            slot={flight.slot}
             trackRef={trackRef}
-            sceneRef={sceneRef}
             sceneSize={sceneSize}
             paused={!environment.motionAllowed || status === "failed"}
             onFinish={finishFlight}
           />
         ))}
       </div>
+
+      {/* Reduced-motion / failed static event pills */}
       <div className="progress-static-events" aria-hidden="true">
         {recentEvents.slice(-2).map((event, index) => {
           const eventStage = event.stage ?? stage;
@@ -742,7 +877,8 @@ export function ProgressEventScene({
               key={`${streamKey}:${event.id}`}
               style={{ left: `${left}%` }}
             >
-              <i />{event.text}
+              <i />
+              {event.text}
             </span>
           );
         })}
