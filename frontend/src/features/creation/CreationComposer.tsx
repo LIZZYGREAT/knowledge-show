@@ -1,4 +1,5 @@
 import { EditorialOrnament } from "../../components/EditorialOrnament";
+import { AmbientMotifs } from "../../components/AmbientMotifs";
 import { IdeaSeed } from "../landing/LivingFlowScene";
 import { type FormEvent, useRef } from "react";
 import { depths, modes, type Draft } from "../../common/creation";
@@ -74,6 +75,7 @@ export function CreationComposer({
 
   return (
     <main className="composer page-enter">
+      <AmbientMotifs variant="studio" />
       <div className="composer-heading">
         <EditorialOrnament
           variant="sprig"

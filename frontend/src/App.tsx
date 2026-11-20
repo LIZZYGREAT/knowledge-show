@@ -25,6 +25,7 @@ import { GenerationStatus } from "./features/progress/GenerationStatus";
 import { TaskProgress } from "./features/progress/TaskProgress";
 import { TemplateShowcase } from "./features/templates/TemplateShowcase";
 import { ProjectsGallery } from "./features/projects/ProjectsGallery";
+import { BrandLogo } from "./components/BrandLogo";
 
 type Page = "landing" | "composing" | "templates" | "projects" | "demo" | "working";
 type TaskSession = {
@@ -405,9 +406,7 @@ export default function App() {
               setError("");
             }}
           >
-            <span className="brand-mark">
-              k<span>·</span>
-            </span>
+            <BrandLogo size={36} />
             <span className="brand-wordmark">
               knowledge<span className="brand-dot">.</span>show
             </span>

@@ -1,4 +1,5 @@
 import { CuriosityStage } from "./CuriosityStage";
+import { AmbientMotifs } from "../../components/AmbientMotifs";
 
 const quickSparks = [
   ["生日悖论", "为什么只要 23 个人，就很可能出现相同的生日？"],
@@ -25,6 +26,7 @@ export function LandingHero({
 
   return (
     <main className="landing">
+      <AmbientMotifs variant="hero" />
       <div className="hero-copy">
         <div className="hero-badge">
           <span className="hero-badge-dot" aria-hidden="true" />

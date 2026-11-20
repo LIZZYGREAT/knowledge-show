@@ -662,6 +662,7 @@ input::placeholder {
 /* ── Composer ───────────────────────────────────────────────────────────── */
 
 .composer {
+  position: relative;
   max-width: 1380px;
   margin: 26px auto 64px;
   padding: 0 clamp(20px, 3.5vw, 52px);
