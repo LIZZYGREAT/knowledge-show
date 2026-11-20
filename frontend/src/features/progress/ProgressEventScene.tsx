@@ -445,9 +445,9 @@ export function ProgressEventScene({
         <svg className="progress-sky" viewBox="0 0 1000 340" preserveAspectRatio="none">
           <defs>
             <linearGradient id={`${idPrefix}-sky-ribbon`} x1="0" y1="0" x2="1" y2="0.35">
-              <stop offset="0%" stopColor="#9ed8c9" stopOpacity="0.5" />
-              <stop offset="48%" stopColor="#d9e7cf" stopOpacity="0.28" />
-              <stop offset="100%" stopColor="#cfad72" stopOpacity="0.46" />
+              <stop offset="0%" stopColor="#38d9c0" stopOpacity="0.42" />
+              <stop offset="48%" stopColor="#4c9be8" stopOpacity="0.28" />
+              <stop offset="100%" stopColor="#f0b96b" stopOpacity="0.45" />
             </linearGradient>
           </defs>
           <path
@@ -574,30 +574,30 @@ export function ProgressEventScene({
       <svg className="progress-event-ornament" viewBox="0 0 1000 340" preserveAspectRatio="none" aria-hidden="true">
         <defs>
           <linearGradient id={`${idPrefix}-fill`} x1="0" y1="0" x2="1" y2="0.14">
-            <stop offset="0%" stopColor="#9ed8c9" stopOpacity="0.72" />
-            <stop offset="34%" stopColor="#2f9a86" />
-            <stop offset="68%" stopColor="#2e6b4e" />
-            <stop offset="100%" stopColor="#cfad72" />
+            <stop offset="0%" stopColor="#7ef2dd" stopOpacity="0.82" />
+            <stop offset="34%" stopColor="#38d9c0" />
+            <stop offset="68%" stopColor="#68b8ff" />
+            <stop offset="100%" stopColor="#f5c678" />
           </linearGradient>
           <linearGradient id={`${idPrefix}-base`} x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#7fa58d" stopOpacity="0.2" />
-            <stop offset="55%" stopColor="#5f8f78" stopOpacity="0.24" />
-            <stop offset="100%" stopColor="#b49a6a" stopOpacity="0.26" />
+            <stop offset="0%" stopColor="#38d9c0" stopOpacity="0.24" />
+            <stop offset="55%" stopColor="#68b8ff" stopOpacity="0.24" />
+            <stop offset="100%" stopColor="#f0b96b" stopOpacity="0.28" />
           </linearGradient>
           <radialGradient id={`${idPrefix}-comet-mint`} cx="32%" cy="30%" r="78%">
             <stop offset="0%" stopColor="#ffffff" />
-            <stop offset="34%" stopColor="#b6e9dc" />
-            <stop offset="100%" stopColor="#4aab95" />
+            <stop offset="36%" stopColor="#9af9e9" />
+            <stop offset="100%" stopColor="#26bba4" />
           </radialGradient>
           <radialGradient id={`${idPrefix}-comet-teal`} cx="32%" cy="30%" r="78%">
-            <stop offset="0%" stopColor="#f7fffc" />
-            <stop offset="38%" stopColor="#7cc9b7" />
-            <stop offset="100%" stopColor="#23796a" />
+            <stop offset="0%" stopColor="#f7fbff" />
+            <stop offset="38%" stopColor="#95ceff" />
+            <stop offset="100%" stopColor="#388be0" />
           </radialGradient>
           <radialGradient id={`${idPrefix}-comet-gold`} cx="32%" cy="30%" r="78%">
             <stop offset="0%" stopColor="#fffdf7" />
-            <stop offset="36%" stopColor="#eed8ab" />
-            <stop offset="100%" stopColor="#b18844" />
+            <stop offset="36%" stopColor="#ffe1a4" />
+            <stop offset="100%" stopColor="#d99a3e" />
           </radialGradient>
           <filter id={`${idPrefix}-glow`} x="-20%" y="-80%" width="140%" height="260%">
             <feGaussianBlur stdDeviation="5.5" />

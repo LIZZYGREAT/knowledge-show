@@ -220,8 +220,14 @@ export function AnimationHandoff({
 
   const canRetry = hasApiKey && Boolean(apiKey);
   return (
-    <section aria-label="动画制作" style={{ margin: "24px auto", maxWidth: 760 }}>
-      <p role="status">{message}</p>
+    <section
+      aria-label="动画制作"
+      className={`handoff-card handoff-${phase}`}
+    >
+      <p className="handoff-status" role="status">
+        <span className="handoff-dot" aria-hidden="true" />
+        {message}
+      </p>
       <div className="progress-actions">
         {preview?.status === "ready" && preview.workbench_url ? (
           <>

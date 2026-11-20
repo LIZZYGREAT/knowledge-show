@@ -224,11 +224,23 @@ export function TaskProgress({
       </p>
       {ready && script && (
         <section className="script-overview" aria-label="脚本概览">
-          <p className="eyebrow">SCRIPT OVERVIEW</p>
+          <div className="script-overview-head">
+            <p className="eyebrow">SCRIPT STORYBOARD</p>
+            <span className="script-meta-pill">
+              {script.scenes.length} 个场景 · {Math.round(script.total_duration_ms / 1000)} 秒
+            </span>
+          </div>
           <h2>{script.core_message}</h2>
-          <p>
-            {script.scenes.length} 个场景 · {Math.round(script.total_duration_ms / 1000)} 秒
-          </p>
+          {script.scenes.length > 0 && (
+            <ol className="script-scenes" aria-label="分幕主线">
+              {script.scenes.map((scene) => (
+                <li key={scene.scene_id} className="script-scene-item">
+                  <span className="script-scene-id">{scene.scene_id}</span>
+                  <span className="script-scene-objective">{scene.objective}</span>
+                </li>
+              ))}
+            </ol>
+          )}
         </section>
       )}
       {ready && job && (
