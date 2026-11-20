@@ -63,16 +63,16 @@ export function EditorialOrnament({
       >
         <defs>
           <linearGradient id={`${id}-beam`} x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#38d9c0" stopOpacity="0" />
-            <stop offset="28%" stopColor="#38d9c0" stopOpacity=".42" />
-            <stop offset="50%" stopColor="#f0b96b" stopOpacity=".75" />
-            <stop offset="72%" stopColor="#38d9c0" stopOpacity=".42" />
-            <stop offset="100%" stopColor="#38d9c0" stopOpacity="0" />
+            <stop offset="0%" stopColor="#0f967d" stopOpacity="0" />
+            <stop offset="28%" stopColor="#14b092" stopOpacity=".46" />
+            <stop offset="50%" stopColor="#e08d30" stopOpacity=".72" />
+            <stop offset="72%" stopColor="#14b092" stopOpacity=".46" />
+            <stop offset="100%" stopColor="#0f967d" stopOpacity="0" />
           </linearGradient>
           <linearGradient id={`${id}-glow`} x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#38d9c0" stopOpacity="0" />
-            <stop offset="50%" stopColor="#f0b96b" stopOpacity=".18" />
-            <stop offset="100%" stopColor="#38d9c0" stopOpacity="0" />
+            <stop offset="0%" stopColor="#14b092" stopOpacity="0" />
+            <stop offset="50%" stopColor="#f2a94b" stopOpacity=".18" />
+            <stop offset="100%" stopColor="#14b092" stopOpacity="0" />
           </linearGradient>
         </defs>
         <path
