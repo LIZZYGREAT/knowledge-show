@@ -67,7 +67,9 @@ def install_animation_routes(app: FastAPI, *, projects, candidates, revisions, s
             user_art_preference=preference
             if style_id=='auto' and preference:
                 style_id=preferred_profile_id(preference,script)
-            result=await service.generate(project,script,style_id=style_id,custom=custom,client=client,knowledge_package=package,art_preference=user_art_preference)
+            def report_progress(msg: str) -> None:
+                write_job(path, {'job_id': job_id, 'status': 'running', 'message': msg})
+            result=await service.generate(project,script,style_id=style_id,custom=custom,client=client,knowledge_package=package,art_preference=user_art_preference,on_progress=report_progress)
             write_job(path,{**result,'job_id':job_id,'status':'completed','message':'动画已通过实际播放检查并发布。'})
         except asyncio.CancelledError:
             write_job(path,{'job_id':job_id,'status':'interrupted','message':'服务停止，未完成的动画没有替换当前成果。'}); raise

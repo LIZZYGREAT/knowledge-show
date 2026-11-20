@@ -113,12 +113,16 @@ class AnimationService:
     def bundle_url(project_id: str, ref: dict[str,Any]) -> str:
         return f"/api/projects/{project_id}/animations/{ref['artifact_id']}/r{ref['revision']}/bundle"
 
-    async def generate(self, project: dict[str,Any], script: dict[str,Any], *, style_id='auto', custom=None, client=None, knowledge_package=None, art_preference='') -> dict[str,Any]:
+    async def generate(self, project: dict[str,Any], script: dict[str,Any], *, style_id='auto', custom=None, client=None, knowledge_package=None, art_preference='', on_progress=None) -> dict[str,Any]:
         profile=resolve_profile(style_id, custom, script=script)
         resources={}
         pn=is_pn_script(script)
         if not pn and client is None: raise ValueError('这份新脚本需要模型构思动画，请提供本次使用的 API Key。')
+        total_scenes = len(script['scenes'])
         for index,scene in enumerate(script['scenes']):
+            if on_progress is not None:
+                objective = str(scene.get('objective', ''))[:26]
+                on_progress(f"正在制作第 {index + 1}/{total_scenes} 幕：{objective or scene['scene_id']}")
             if pn:
                 resources[scene['scene_id']]={'kind':'pn-scene','sceneId':scene['scene_id'],'style':profile,'parameters':{'speed':1}}
                 continue
@@ -136,6 +140,8 @@ class AnimationService:
                         format_feedback=str(error)
                 self._write_scene_cache(cache_path,cache_key,resource)
             resources[scene['scene_id']]=resource
+        if on_progress is not None:
+            on_progress('正在通过真实播放器检查全片画面与时间轴…')
         return await self._publish_async(project,script,resources)
 
     @staticmethod
@@ -155,6 +161,7 @@ class AnimationService:
                 verified.append({key:unit.get(key) for key in ['id','content','explanation','conditions']})
         prior=[]
         stable={}
+        previous_ending_actors=[]
         for position in range(max(0,index-2),index):
             previous_scene=scenes[position]
             resource=completed.get(previous_scene['scene_id'])
@@ -162,12 +169,27 @@ class AnimationService:
             objects=[{'id':obj['id'],'label':obj['label']} for obj in resource.get('objects',[])[:40]]
             prior.append({'scene_id':previous_scene['scene_id'],'objective':previous_scene.get('objective',''),'objects':objects})
             for obj in objects: stable.setdefault(obj['id'],obj['label'])
+            if position == index - 1:
+                for obj in resource.get('objects',[])[:20]:
+                    if obj.get('shape') == 'text':
+                        continue
+                    frames = obj.get('keyframes') or []
+                    last_frame = frames[-1] if frames else {}
+                    previous_ending_actors.append({
+                        'id': obj['id'],
+                        'label': obj['label'],
+                        'shape': obj.get('shape'),
+                        'fill': obj.get('fill'),
+                        'end_x': last_frame.get('x', obj.get('x', 0)),
+                        'end_y': last_frame.get('y', obj.get('y', 0)),
+                    })
         return {
             'core_message':script.get('core_message',''),
             'user_art_preference':art_preference,
             'neighboring_scene_goals':neighbors,
             'verified_knowledge':verified,
             'completed_scene_summaries':prior,
+            'previous_ending_actors':previous_ending_actors,
             'stable_object_ids':[{'id':key,'label':label} for key,label in list(stable.items())[:40]],
         }
 
