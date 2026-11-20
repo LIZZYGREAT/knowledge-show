@@ -754,9 +754,33 @@ input::placeholder {
 
 .form-columns {
   display: grid;
-  grid-template-columns: 1.05fr 1fr;
-  gap: clamp(24px, 3.6vw, 48px);
-  margin: 26px 0;
+  grid-template-columns: 1.02fr 1.08fr;
+  gap: clamp(20px, 2.8vw, 32px);
+  margin: 24px 0;
+  align-items: stretch;
+}
+
+.studio-card {
+  padding: 22px 24px;
+  border-radius: 18px;
+  background: linear-gradient(160deg, rgba(19, 26, 40, 0.76), rgba(11, 16, 26, 0.82));
+  border: 1px solid var(--ks-line);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.studio-card-hint {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--ks-muted-dim);
+  line-height: 1.6;
+}
+
+.examples-tag {
+  font-family: var(--ks-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ks-muted-dim);
+  margin-right: 2px;
 }
 
 .field {
@@ -786,9 +810,17 @@ input::placeholder {
 .form-columns > fieldset,
 .preferences > fieldset {
   margin: 0;
-  padding: 0;
   border: 0;
   min-width: 0;
+}
+
+.form-columns > fieldset.studio-card {
+  padding: 22px 24px;
+  border: 1px solid var(--ks-line);
+}
+
+.preferences > fieldset {
+  padding: 0;
 }
 
 legend {
@@ -799,16 +831,36 @@ legend {
   color: var(--ks-ink);
 }
 
+.form-columns > fieldset.studio-card > legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 14px;
+}
+
+.form-columns > fieldset.studio-card > .choices {
+  clear: both;
+}
+
 .choices {
   display: flex;
   gap: 9px;
   flex-wrap: wrap;
 }
 
+.mode-choices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
 .choices button {
-  padding: 9px 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 13px;
   border: 1px solid var(--ks-line);
-  border-radius: 10px;
+  border-radius: 11px;
   font-size: 13px;
   font-weight: 500;
   color: var(--ks-ink-body);
@@ -817,30 +869,134 @@ legend {
     background 0.2s ease,
     border-color 0.2s ease,
     color 0.2s ease,
-    box-shadow 0.2s ease;
+    box-shadow 0.2s ease,
+    transform 0.18s ease;
 }
 
 .choices button:hover {
   border-color: var(--ks-line-strong);
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.075);
+  transform: translateY(-1px);
 }
 
 .choices button[aria-pressed="true"] {
-  background: var(--ks-accent-soft);
-  border-color: rgba(56, 217, 192, 0.62);
-  color: #a8fff0;
-  box-shadow: 0 0 18px -6px rgba(56, 217, 192, 0.55);
+  background: linear-gradient(145deg, rgba(56, 217, 192, 0.18), rgba(56, 217, 192, 0.08));
+  border-color: rgba(56, 217, 192, 0.65);
+  color: #b4fff2;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 0 22px -8px rgba(56, 217, 192, 0.65);
+}
+
+.choice-icon {
+  font-size: 13px;
+  color: var(--ks-warm);
+  opacity: 0.88;
+}
+
+.choices button[aria-pressed="true"] .choice-icon {
+  color: var(--ks-accent);
+}
+
+.mode-caption {
+  margin-top: 12px;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--ks-muted);
+  min-height: 20px;
+}
+
+.depth-choices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.depth-step {
+  font-family: var(--ks-font-mono);
+  font-size: 10.5px;
+  color: var(--ks-muted-dim);
+}
+
+.choices button[aria-pressed="true"] .depth-step {
+  color: var(--ks-warm-bright);
+}
+
+.style-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.style-preset-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--ks-line);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 11.5px;
+  color: var(--ks-muted);
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.style-preset-chip:hover {
+  border-color: var(--ks-line-strong);
+  color: var(--ks-ink);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.style-preset-chip.is-selected {
+  border-color: rgba(240, 185, 107, 0.62);
+  background: var(--ks-warm-soft);
+  color: var(--ks-warm-bright);
+}
+
+.preset-swatches {
+  display: inline-flex;
+  align-items: center;
+}
+
+.preset-swatches i {
+  display: block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  margin-left: -2px;
+}
+
+.preset-swatches i:first-child {
+  margin-left: 0;
 }
 
 .custom-field {
   margin-top: 16px;
 }
 
+.preferences-drawer {
+  border: 1px solid var(--ks-line);
+  border-radius: 18px;
+  background: rgba(14, 20, 32, 0.65);
+  padding: 0 24px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.preferences-drawer[open] {
+  border-color: var(--ks-line-strong);
+  background: rgba(16, 22, 35, 0.84);
+}
+
 .preferences {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px 32px;
-  padding: 10px 0 24px;
+  padding: 6px 0 22px;
   align-items: start;
 }
 
@@ -890,21 +1046,53 @@ summary span {
   align-items: center;
   justify-content: space-between;
   margin-top: 26px;
-  gap: 15px;
+  gap: 16px;
+}
+
+.form-bottom-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.format-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--ks-line);
+  background: rgba(255, 255, 255, 0.03);
+  font-family: var(--ks-font-mono);
+  font-size: 12px;
+  color: var(--ks-muted);
+}
+
+.composer-submit {
+  min-width: 182px;
+  gap: 20px;
 }
 
 .development-note {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 8px 12px;
   font-size: 12.5px;
   color: var(--ks-muted);
-  margin-top: 32px;
+  margin-top: 30px;
   padding: 14px 18px;
-  border-radius: 14px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.025);
   border: 1px solid var(--ks-line);
+}
+
+.development-note-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
 }
 
 .development-note > span {
@@ -1753,12 +1941,28 @@ summary span {
   }
   .form-columns {
     grid-template-columns: 1fr;
-    gap: 22px;
-    margin: 22px 0;
+    gap: 18px;
+    margin: 20px 0;
+  }
+  .studio-card,
+  .form-columns > fieldset.studio-card {
+    padding: 16px;
+  }
+  .mode-choices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .depth-choices {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .preferences-drawer {
+    padding: 0 16px;
   }
   .preferences {
     grid-template-columns: 1fr;
     gap: 18px;
+  }
+  .development-note-actions {
+    margin-left: 0;
   }
   .field-wide {
     grid-column: auto;
