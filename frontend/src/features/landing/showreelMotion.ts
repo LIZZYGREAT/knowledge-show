@@ -259,16 +259,16 @@ export function sharedBeadState(index: number, cycle: number): SharedBead {
   const sum = row + col + 2;
   const isSeven = sum === 7;
 
-  // Birth directly out of the Origami Prism-K's refractive core (418, 204) -> Act 1 Dice & 6x6 Matrix -> Histogram
+  // Birth directly out of the Origami Prism-K's refractive core (418, 204) -> Act 1 Dice & 6x6 Matrix -> Elevated Bell-Curve Histogram
   const logoBurst = easeInOutCubic((cycle - (5.15 + (row + col) * 0.045)) / 1.15);
   const drop = easeInOutCubic((cycle - (10.1 + row * 0.09)) / 1.15);
   const coreX = 418;
   const coreY = 204;
-  const gridX = 432 + col * 42;
-  const gridY = 204 + row * 34;
+  const gridX = 432 + col * 44;
+  const gridY = 178 + row * 38;
   const rank = row - Math.max(0, sum - 7);
-  const histX = 398 + (sum - 2) * 30;
-  const histY = 474 - rank * 22;
+  const histX = 394 + (sum - 2) * 32;
+  const histY = 436 - rank * 27;
 
   const arc1 = Math.sin(logoBurst * Math.PI) * 36;
   const gx = lerp(coreX, gridX, logoBurst);

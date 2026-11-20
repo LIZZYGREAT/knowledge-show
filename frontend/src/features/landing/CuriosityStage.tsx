@@ -195,52 +195,60 @@ export function CuriosityStage({
                 <stop offset="68%" stopColor="#f4faf7" />
                 <stop offset="100%" stopColor="#ebf4f1" />
               </radialGradient>
-              {/* Soft gallery daylight caustic aura behind the Origami Prism-K */}
-              <radialGradient id={`${id}-caustic-mint`} cx="45%" cy="44%" r="52%">
-                <stop offset="0%" stopColor="#26d1b0" stopOpacity=".22" />
-                <stop offset="52%" stopColor="#3c9ae8" stopOpacity=".1" />
+              {/* Soft gallery daylight iridescent caustic aura behind the Origami Prism-K */}
+              <radialGradient id={`${id}-caustic-mint`} cx="42%" cy="42%" r="54%">
+                <stop offset="0%" stopColor="#32e8c2" stopOpacity=".28" />
+                <stop offset="52%" stopColor="#4f83f2" stopOpacity=".14" />
                 <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
               </radialGradient>
-              <radialGradient id={`${id}-caustic-gold`} cx="58%" cy="54%" r="46%">
-                <stop offset="0%" stopColor="#f5bc5e" stopOpacity=".24" />
-                <stop offset="60%" stopColor="#fce2b4" stopOpacity=".08" />
+              <radialGradient id={`${id}-caustic-gold`} cx="60%" cy="54%" r="48%">
+                <stop offset="0%" stopColor="#ffaa70" stopOpacity=".28" />
+                <stop offset="56%" stopColor="#f5c96e" stopOpacity=".12" />
                 <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
               </radialGradient>
-              {/* Origami Prism-K high-craft gradients */}
-              <linearGradient id={`${id}-k-spine`} x1="18" y1="14" x2="35" y2="86" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stopColor="#082420" />
-                <stop offset="55%" stopColor="#0f3d36" />
-                <stop offset="100%" stopColor="#186055" />
+              <radialGradient id={`${id}-floor-caustic`} cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#35d4b6" stopOpacity=".22" />
+                <stop offset="48%" stopColor="#587af2" stopOpacity=".14" />
+                <stop offset="78%" stopColor="#f5b35d" stopOpacity=".12" />
+                <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+              </radialGradient>
+              {/* Luminous Prismatic Origami-K jewel-glass gradients */}
+              <linearGradient id={`${id}-k-spine`} x1="20" y1="15" x2="36" y2="85" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#0f3c42" />
+                <stop offset="55%" stopColor="#146368" />
+                <stop offset="100%" stopColor="#1b8480" />
               </linearGradient>
-              <linearGradient id={`${id}-k-upper`} x1="38" y1="15" x2="86" y2="52" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stopColor="#23d6b4" />
-                <stop offset="55%" stopColor="#0ea088" />
-                <stop offset="100%" stopColor="#0b7c74" />
+              <linearGradient id={`${id}-k-upper`} x1="36" y1="14" x2="88" y2="52" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#35ecc6" />
+                <stop offset="52%" stopColor="#10b8a0" />
+                <stop offset="100%" stopColor="#1e8ae0" />
               </linearGradient>
-              <linearGradient id={`${id}-k-lower`} x1="38" y1="50" x2="84" y2="84" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stopColor="#0f9888" />
-                <stop offset="48%" stopColor="#1c7fd6" />
-                <stop offset="100%" stopColor="#245ec0" />
+              <linearGradient id={`${id}-k-lower`} x1="36" y1="50" x2="88" y2="84" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#269be8" />
+                <stop offset="55%" stopColor="#4f6ef2" />
+                <stop offset="100%" stopColor="#7b5ae6" />
               </linearGradient>
-              <linearGradient id={`${id}-k-core`} x1="38" y1="34" x2="84" y2="66" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stopColor="#ffffff" stopOpacity=".74" />
-                <stop offset="46%" stopColor="#ffe8b8" stopOpacity=".62" />
-                <stop offset="100%" stopColor="#94f5e4" stopOpacity=".24" />
+              <linearGradient id={`${id}-k-core`} x1="37" y1="32" x2="84" y2="66" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity=".88" />
+                <stop offset="44%" stopColor="#ffd28a" stopOpacity=".72" />
+                <stop offset="76%" stopColor="#ff9a7b" stopOpacity=".42" />
+                <stop offset="100%" stopColor="#92f7e5" stopOpacity=".28" />
               </linearGradient>
               <linearGradient id={`${id}-word-show`} x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#0c8c75" />
-                <stop offset="100%" stopColor="#1f79d1" />
+                <stop offset="0%" stopColor="#0eb398" />
+                <stop offset="56%" stopColor="#2a83e8" />
+                <stop offset="100%" stopColor="#6d5ce6" />
               </linearGradient>
               <linearGradient id={`${id}-logo-rule`} x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#0f967d" stopOpacity="0" />
-                <stop offset="28%" stopColor="#0f967d" stopOpacity=".36" />
-                <stop offset="50%" stopColor="#e5942d" stopOpacity=".78" />
-                <stop offset="72%" stopColor="#1f79d1" stopOpacity=".36" />
-                <stop offset="100%" stopColor="#1f79d1" stopOpacity="0" />
+                <stop offset="0%" stopColor="#12b89e" stopOpacity="0" />
+                <stop offset="28%" stopColor="#12b89e" stopOpacity=".4" />
+                <stop offset="50%" stopColor="#eb9a38" stopOpacity=".85" />
+                <stop offset="72%" stopColor="#6d5ce6" stopOpacity=".4" />
+                <stop offset="100%" stopColor="#6d5ce6" stopOpacity="0" />
               </linearGradient>
               {/* Exact clip silhouette of the two origami glass wings for silky diagonal sheen */}
               <clipPath id={`${id}-wings-clip`}>
-                <path d="M39.5 47.5 L51.5 19 C53.2 15.2 58.2 14.3 61.2 17.2 L85.5 43.2 C88.2 46.1 86.2 49.5 82.2 49.5 L41.5 49.5 C39.7 49.5 38.8 49 39.5 47.5 Z M39.5 52.5 L51.5 81 C53.2 84.8 58.2 85.7 61.2 82.8 L85.5 56.8 C88.2 53.9 86.2 50.5 82.2 50.5 L41.5 50.5 C39.7 50.5 38.8 51 39.5 52.5 Z" />
+                <path d="M36.8 47.4 L50.8 17.8 C52.6 14 57.6 13.1 60.8 16 L86.6 43 C89.3 45.8 87.3 49.4 83.2 49.4 L38.6 49.4 C37 49.4 36.2 48.7 36.8 47.4 Z M36.8 52.6 L50.8 82.2 C52.6 86 57.6 86.9 60.8 84 L86.6 57 C89.3 54.2 87.3 50.6 83.2 50.6 L38.6 50.6 C37 50.6 36.2 51.3 36.8 52.6 Z" />
               </clipPath>
               {/* Baseline curtain clip mask for Apple/Pentagram editorial wordmark reveal */}
               <clipPath id={`${id}-word-curtain`}>
@@ -334,98 +342,121 @@ export function CuriosityStage({
                   </g>
                 )}
 
-                {/* Sculpted Hero Origami Prism-K Monogram (100x100 grid scaled 1.85x, centered at 400, 204) */}
+                {/* Delicate drifting starlight dust motes around the luminous crystal */}
+                <g opacity={logo.coreIn * logo.wordmarkOpacity}>
+                  {[
+                    [270, 152, 5.2, "#19c9ab", 0.0],
+                    [536, 146, 6.0, "#6d5ce6", 1.2],
+                    [558, 244, 4.4, "#f09c38", 2.3],
+                    [246, 256, 4.2, "#38a3f1", 3.4],
+                    [494, 114, 3.6, "#f09c38", 4.1],
+                    [308, 118, 3.8, "#19c9ab", 5.0],
+                  ].map(([sx, sy, sr, scolor, phase], idx) => {
+                    const dy = Math.sin(cycle * 2.1 + Number(phase)) * 5;
+                    const s = Number(sr);
+                    return (
+                      <g key={idx} transform={`translate(${sx} ${(Number(sy) + dy).toFixed(1)})`}>
+                        <path
+                          d={`M0,${-s} Q0,0 ${s},0 Q0,0 0,${s} Q0,0 ${-s},0 Q0,0 0,${-s} Z`}
+                          fill={String(scolor)}
+                          opacity="0.72"
+                        />
+                      </g>
+                    );
+                  })}
+                </g>
+
+                {/* Sculpted Hero Luminous Prismatic Origami-K (100x100 grid scaled 1.85x, centered at 400, 204) */}
                 <g
-                  transform={`translate(400 ${(204 + logo.floatY).toFixed(2)}) scale(${(1.85 * logo.emblemScale).toFixed(3)}) translate(-52 -50)`}
+                  transform={`translate(400 ${(204 + logo.floatY).toFixed(2)}) scale(${(1.85 * logo.emblemScale).toFixed(3)}) translate(-54 -50)`}
                   opacity={logo.emblemOpacity}
                 >
-                  {/* Soft porcelain plinth contact shadow */}
+                  {/* Luminous iridescent caustic floor reflection (replaces dull gray shadow!) */}
                   <ellipse
-                    cx="53"
-                    cy="92"
-                    rx="36"
-                    ry="5.2"
-                    fill="#0c3b34"
-                    opacity={0.1 * logo.lowerWingIn}
+                    cx="55"
+                    cy="94"
+                    rx="42"
+                    ry="7.5"
+                    fill={`url(#${id}-floor-caustic)`}
+                    opacity={logo.lowerWingIn}
                   />
 
-                  {/* Plane 1: Left Architectural Obsidian-Teal "K" Pillar */}
+                  {/* Plane 1: Slender Crystal K-Pillar */}
                   <g
                     transform={`translate(${(-exitSpread * 0.7).toFixed(2)} ${lerp(18, 0, logo.spineIn).toFixed(2)})`}
                     opacity={logo.spineIn}
                   >
                     <path
-                      d="M19 25 C19 19.5 23 16 28.5 16 C32 16 34.5 18.4 34.5 22 L34.5 78 C34.5 81.6 32 84 28.5 84 C23 84 19 80.5 19 75 Z"
+                      d="M21 23.5 C21 19.2 24.4 16 28.8 16 C31.6 16 33.4 18 33.4 20.8 L33.4 79.2 C33.4 82 31.6 84 28.8 84 C24.4 84 21 80.8 21 76.5 Z"
                       fill={`url(#${id}-k-spine)`}
                     />
                     <path
-                      d="M23.5 23 L23.5 77"
-                      stroke="#4ce0c4"
-                      strokeOpacity="0.34"
-                      strokeWidth="1.9"
+                      d="M24.8 22.5 L24.8 77.5"
+                      stroke="#7efae3"
+                      strokeOpacity="0.46"
+                      strokeWidth="1.5"
                       strokeLinecap="round"
                     />
                   </g>
 
-                  {/* Plane 2: Upper Origami Jade Glass Wing */}
+                  {/* Plane 2: Upper Luminous Aurora-Emerald Glass Wing */}
                   <g
                     transform={`translate(${(lerp(-14, 0, logo.upperWingIn) + exitSpread * 0.45).toFixed(2)} ${(lerp(12, 0, logo.upperWingIn) - exitSpread * 0.55).toFixed(2)})`}
                     opacity={logo.upperWingIn}
                   >
                     <path
-                      d="M39.5 47.5 L51.5 19 C53.2 15.2 58.2 14.3 61.2 17.2 L85.5 43.2 C88.2 46.1 86.2 49.5 82.2 49.5 L41.5 49.5 C39.7 49.5 38.8 49 39.5 47.5 Z"
+                      d="M36.8 47.4 L50.8 17.8 C52.6 14 57.6 13.1 60.8 16 L86.6 43 C89.3 45.8 87.3 49.4 83.2 49.4 L38.6 49.4 C37 49.4 36.2 48.7 36.8 47.4 Z"
                       fill={`url(#${id}-k-upper)`}
                     />
-                    {/* Crisp specular upper edge highlight */}
                     <path
-                      d="M54 19.2 L82.5 46.2"
+                      d="M53.5 18.2 L83.5 46.2"
                       stroke="#ffffff"
-                      strokeOpacity="0.52"
-                      strokeWidth="1.3"
-                      strokeLinecap="round"
-                    />
-                  </g>
-
-                  {/* Plane 3: Lower Sapphire-Teal Optical Wing */}
-                  <g
-                    transform={`translate(${(lerp(-14, 0, logo.lowerWingIn) + exitSpread * 0.45).toFixed(2)} ${(lerp(-12, 0, logo.lowerWingIn) + exitSpread * 0.55).toFixed(2)})`}
-                    opacity={logo.lowerWingIn}
-                  >
-                    <path
-                      d="M39.5 52.5 L51.5 81 C53.2 84.8 58.2 85.7 61.2 82.8 L85.5 56.8 C88.2 53.9 86.2 50.5 82.2 50.5 L41.5 50.5 C39.7 50.5 38.8 51 39.5 52.5 Z"
-                      fill={`url(#${id}-k-lower)`}
-                    />
-                    <path
-                      d="M54 80.8 L82.5 53.8"
-                      stroke="#9cd2ff"
-                      strokeOpacity="0.42"
+                      strokeOpacity="0.62"
                       strokeWidth="1.2"
                       strokeLinecap="round"
                     />
                   </g>
 
-                  {/* Overlapping Optical Glass Refraction Diamond + Horizon Ridge */}
+                  {/* Plane 3: Lower Luminous Cerulean-Violet Glass Wing */}
+                  <g
+                    transform={`translate(${(lerp(-14, 0, logo.lowerWingIn) + exitSpread * 0.45).toFixed(2)} ${(lerp(-12, 0, logo.lowerWingIn) + exitSpread * 0.55).toFixed(2)})`}
+                    opacity={logo.lowerWingIn}
+                  >
+                    <path
+                      d="M36.8 52.6 L50.8 82.2 C52.6 86 57.6 86.9 60.8 84 L86.6 57 C89.3 54.2 87.3 50.6 83.2 50.6 L38.6 50.6 C37 50.6 36.2 51.3 36.8 52.6 Z"
+                      fill={`url(#${id}-k-lower)`}
+                    />
+                    <path
+                      d="M53.5 81.8 L83.5 53.8"
+                      stroke="#d0c8ff"
+                      strokeOpacity="0.48"
+                      strokeWidth="1.15"
+                      strokeLinecap="round"
+                    />
+                  </g>
+
+                  {/* Overlapping Sunburst-Gold Optical Glass Heart + Horizon Ridge */}
                   <g opacity={logo.coreIn * (1 - logo.emblemExit)}>
                     <path
-                      d="M40.5 50 L60.5 32.5 L84.5 50 L60.5 67.5 Z"
+                      d="M37.8 50 L59.5 31 L85.5 50 L59.5 69 Z"
                       fill={`url(#${id}-k-core)`}
                     />
                     <path
-                      d="M41.5 50 L83.5 50"
+                      d="M39 50 L84.5 50"
                       stroke="#ffffff"
-                      strokeOpacity="0.86"
-                      strokeWidth="1.3"
+                      strokeOpacity="0.92"
+                      strokeWidth="1.2"
                       strokeLinecap="round"
                     />
-                    {/* Curved 4-point Optical Starlight Aperture at refractive heart */}
+                    {/* Curved 4-point Starlight Aperture at refractive heart */}
                     <g
-                      transform={`translate(60.5 50) rotate(${logo.starTwist.toFixed(1)}) scale(${lerp(0.25, 1, logo.coreIn).toFixed(3)})`}
+                      transform={`translate(59.5 50) rotate(${logo.starTwist.toFixed(1)}) scale(${lerp(0.25, 1, logo.coreIn).toFixed(3)})`}
                     >
                       <path
-                        d="M0,-10.5 Q0,0 10.5,0 Q0,0 0,10.5 Q0,0 -10.5,0 Q0,0 0,-10.5 Z"
-                        fill="#fffcf5"
+                        d="M0,-11 Q0,0 11,0 Q0,0 0,11 Q0,0 -11,0 Q0,0 0,-11 Z"
+                        fill="#ffffff"
                       />
-                      <circle r="2.2" fill="#ee9a38" />
+                      <circle r="2.1" fill="#f09c38" />
                     </g>
                   </g>
 
@@ -435,7 +466,7 @@ export function CuriosityStage({
                       <polygon
                         points={`${sheenX - 18},8 ${sheenX + 4},8 ${sheenX - 20},92 ${sheenX - 42},92`}
                         fill="#ffffff"
-                        opacity=".46"
+                        opacity=".5"
                       />
                     </g>
                   )}
@@ -528,28 +559,65 @@ export function CuriosityStage({
               </g>
             )}
 
-            {/* ── ACT 01: DICE PROBABILITY (ZERO FLOATING DOT) ──────────── */}
+            {/* ── ACT 01: BALANCED DICE PROBABILITY & GAUSSIAN ENVELOPE ─── */}
             <g opacity={opacity.dice}>
-              <text x="400" y="76" textAnchor="middle" className="stage-question">
+              <text x="400" y="72" textAnchor="middle" className="stage-question">
                 {SHOWREEL_ACTS[1].question}
               </text>
 
-              <DaylightDie x={182} y={268} value={3} enter={dieEnterA} tilt={-8} />
-              <DaylightDie x={288} y={294} value={4} mint enter={dieEnterB} tilt={7} />
+              <DaylightDie x={156} y={222} value={3} enter={dieEnterA} tilt={-8} />
+              <DaylightDie x={262} y={248} value={4} mint enter={dieEnterB} tilt={7} />
 
               <g opacity={smoothstep(cycle, 7.0, 7.7) * (1 - smoothstep(cycle, 14.6, 15.2))}>
-                <rect x="160" y="366" width="148" height="36" rx="18" fill="#ffffff" stroke="#d5e5df" />
-                <text x="234" y="390" textAnchor="middle" className="stage-equation">
+                <rect x="134" y="318" width="148" height="36" rx="18" fill="#ffffff" stroke="#d5e5df" />
+                <text x="208" y="342" textAnchor="middle" className="stage-equation">
                   3 + 4 = 7
                 </text>
               </g>
 
-              {/* 6x6 matrix lattice guides */}
+              {/* 6 winning sum-7 combinations card filling lower-left balance cleanly */}
+              <g opacity={histReveal}>
+                <rect x="82" y="378" width="252" height="106" rx="18" fill="#ffffff" fillOpacity=".86" stroke="#d9e8e3" strokeWidth="1.2" />
+                <text x="208" y="402" textAnchor="middle" className="stage-micro" fill="#b96d14">
+                  和为 7 的 6 种等可能组合
+                </text>
+                {["1 + 6", "2 + 5", "3 + 4", "4 + 3", "5 + 2", "6 + 1"].map((pair, idx) => {
+                  const col = idx % 3;
+                  const row = Math.floor(idx / 3);
+                  const px = 104 + col * 74;
+                  const py = 416 + row * 30;
+                  const active = idx === 2;
+                  return (
+                    <g key={pair} transform={`translate(${px} ${py})`}>
+                      <rect
+                        width="62"
+                        height="22"
+                        rx="11"
+                        fill={active ? "#fef0d4" : "#f4faf7"}
+                        stroke={active ? "#e59a38" : "#d3e4de"}
+                        strokeWidth={active ? "1.3" : "1"}
+                      />
+                      <text
+                        x="31"
+                        y="15"
+                        textAnchor="middle"
+                        fontSize="11.5"
+                        fontWeight={active ? "700" : "500"}
+                        fill={active ? "#b96d14" : "#3a5c57"}
+                      >
+                        {pair}
+                      </text>
+                    </g>
+                  );
+                })}
+              </g>
+
+              {/* 6x6 matrix lattice guides (centered vertically) */}
               <g opacity={gridOpacity}>
                 {[1, 2, 3, 4, 5, 6].map((n, i) => (
                   <g key={n} className="stage-axis">
-                    <text x={432 + i * 42} y="176" textAnchor="middle">{n}</text>
-                    <text x="396" y={209 + i * 34} textAnchor="middle">{n}</text>
+                    <text x={432 + i * 44} y="148" textAnchor="middle">{n}</text>
+                    <text x="392" y={183 + i * 38} textAnchor="middle">{n}</text>
                   </g>
                 ))}
                 {Array.from({ length: 36 }, (_, i) => {
@@ -559,39 +627,60 @@ export function CuriosityStage({
                   return (
                     <circle
                       key={i}
-                      cx={432 + c * 42}
-                      cy={204 + r * 34}
-                      r="11"
+                      cx={432 + c * 44}
+                      cy={178 + r * 38}
+                      r="12"
                       fill={win ? "#fef2dd" : "none"}
                       stroke={win ? "#e59a38" : "#c7dad3"}
-                      strokeWidth={win ? "1.3" : "1"}
+                      strokeWidth={win ? "1.4" : "1"}
                     />
                   );
                 })}
               </g>
 
-              {/* Histogram baseline, axes & clean golden 7 peak callout */}
+              {/* Elevated, balanced bell-curve histogram + probability grid + Gaussian envelope */}
               <g opacity={histReveal}>
-                <line x1="378" y1="494" x2="722" y2="494" stroke="#bdd3cc" strokeWidth="1.4" />
+                {/* Subtle horizontal probability reference guides */}
+                {[
+                  { y: 274, label: "6/36 · 16.7%" },
+                  { y: 356, label: "3/36" },
+                  { y: 412, label: "1/36" },
+                ].map((guide) => (
+                  <g key={guide.label}>
+                    <line
+                      x1="376"
+                      y1={guide.y}
+                      x2="736"
+                      y2={guide.y}
+                      stroke="#cfe2dc"
+                      strokeWidth="1"
+                      strokeDasharray="3 5"
+                    />
+                    <text x="372" y={guide.y + 4} textAnchor="end" fontSize="10.5" fill="#7d9a95">
+                      {guide.label}
+                    </text>
+                  </g>
+                ))}
+                <line x1="376" y1="460" x2="736" y2="460" stroke="#b5ccc5" strokeWidth="1.5" />
                 {Array.from({ length: 11 }, (_, i) => {
                   const sum = i + 2;
                   const count = 6 - Math.abs(sum - 7);
-                  const barH = count * 22 + 12;
+                  const barH = count * 27 + 16;
                   return (
                     <g key={sum}>
                       <rect
-                        x={386 + i * 30}
-                        y={494 - barH * histReveal}
-                        width="24"
+                        x={381 + i * 32}
+                        y={460 - barH * histReveal}
+                        width="26"
                         height={barH * histReveal}
-                        rx="12"
+                        rx="13"
                         fill={sum === 7 ? "#fef0d4" : "#eaf6f2"}
                         stroke={sum === 7 ? "#e59a38" : "#cbe2da"}
-                        strokeWidth={sum === 7 ? "1.4" : "1"}
+                        strokeWidth={sum === 7 ? "1.5" : "1"}
                       />
                       <text
-                        x={398 + i * 30}
-                        y="516"
+                        x={394 + i * 32}
+                        y="482"
                         textAnchor="middle"
                         className={sum === 7 ? "stage-axis stage-gold" : "stage-axis"}
                       >
@@ -600,10 +689,23 @@ export function CuriosityStage({
                     </g>
                   );
                 })}
-                <g transform={`translate(548 ${lerp(334, 316, histReveal)})`}>
-                  <rect x="-46" y="-15" width="92" height="28" rx="14" fill="#e69238" />
-                  <text y="3" textAnchor="middle" className="stage-pill-text">
-                    7 · 占 6/36
+                {/* Smooth Gaussian bell-curve envelope gliding above the 11 columns */}
+                <path
+                  d="M394,412 C448,380 500,264 554,264 C608,264 660,380 714,412"
+                  fill="none"
+                  stroke="#e59a38"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeDasharray="1"
+                  pathLength="1"
+                  strokeDashoffset={1 - histReveal}
+                  opacity="0.72"
+                />
+                {/* Crisp peak badge positioned cleanly at y = 216 */}
+                <g transform={`translate(554 ${lerp(244, 218, histReveal)})`}>
+                  <rect x="-56" y="-16" width="112" height="30" rx="15" fill="#e69238" />
+                  <text y="3.5" textAnchor="middle" className="stage-pill-text">
+                    7 · 峰值 6/36
                   </text>
                 </g>
               </g>
