@@ -372,7 +372,13 @@ export default function App() {
         data-transition={transitioning ? "entering" : "idle"}
       >
         {page === "landing" ? (
-          <LandingHero onStart={() => navigate("composing")} />
+          <LandingHero
+            onStart={() => navigate("composing")}
+            onStartWithTopic={(topic) => {
+              setDraft((current) => ({ ...current, topic }));
+              navigate("composing");
+            }}
+          />
         ) : page === "composing" && restoringProject ? (
           <main className="generation" role="status">
             正在恢复原项目的创作要求…

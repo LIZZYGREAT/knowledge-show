@@ -1,43 +1,258 @@
 .curiosity-stage {
-  margin: -20px -28px -12px -30px;
+  margin: 0;
   min-width: 0;
   position: relative;
   pointer-events: none;
   view-transition-name: flow-scene;
 }
-.curiosity-theatre { position: relative; width: 100%; aspect-ratio: 800 / 640; }
-.curiosity-artwork { display: block; width: 100%; height: 100%; overflow: visible; }
-.curiosity-artwork text { fill: #466454; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
-.curiosity-artwork .stage-question { font-size: 25px; letter-spacing: .08em; fill: #315846; }
-.curiosity-artwork .stage-equation { font-family: Georgia, serif; font-size: 26px; fill: #718370; }
-.curiosity-artwork .stage-axis { font-size: 14px; fill: #7e8c78; }
-.curiosity-artwork .stage-seven { font: italic 100px Georgia, serif; fill: #a37b36; }
-.curiosity-artwork .stage-result-label { font-size: 20px; }
-.curiosity-artwork .stage-small { font-size: 15px; fill: #788571; }
-.curiosity-artwork .stage-gold { fill: #987435; font-weight: 600; }
-.curiosity-stage figcaption { text-align: center; font-size: 13px; letter-spacing: .08em; color: var(--ks-muted); margin-top: -14px; }
-.curiosity-artwork .stage-distribution text { font-size: 12px; }
+
+.curiosity-viewport {
+  position: relative;
+  border-radius: 26px;
+  overflow: hidden;
+  border: 1px solid rgba(214, 228, 245, 0.14);
+  background:
+    radial-gradient(ellipse 68% 60% at 50% 48%, rgba(28, 72, 92, 0.34), rgba(10, 15, 25, 0.92) 74%),
+    linear-gradient(155deg, rgba(18, 27, 42, 0.96), rgba(9, 13, 21, 0.98));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 34px 90px -30px rgba(0, 0, 0, 0.85),
+    0 0 60px -28px rgba(56, 217, 192, 0.25);
+}
+
+.curiosity-viewport::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(214, 228, 245, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(214, 228, 245, 0.03) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: radial-gradient(ellipse at 50% 50%, #000 35%, transparent 86%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 50%, #000 35%, transparent 86%);
+  pointer-events: none;
+}
+
+.curiosity-chrome {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  right: 16px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.curiosity-live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(8, 13, 22, 0.72);
+  border: 1px solid rgba(56, 217, 192, 0.3);
+  font-family: var(--ks-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: #a6f8ea;
+  backdrop-filter: blur(8px);
+}
+
+.curiosity-live-pill i {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ks-accent);
+  box-shadow: 0 0 10px var(--ks-accent);
+  animation: live-pulse 2.2s ease-in-out infinite;
+}
+
+.curiosity-act-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(8, 13, 22, 0.72);
+  border: 1px solid rgba(214, 228, 245, 0.12);
+  font-size: 11.5px;
+  color: var(--ks-ink-body);
+  backdrop-filter: blur(8px);
+}
+
+.curiosity-act-label em {
+  font-style: normal;
+  font-family: var(--ks-font-mono);
+  font-size: 10.5px;
+  color: var(--ks-warm);
+}
+
+.curiosity-theatre {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 800 / 640;
+  margin-inline: auto;
+}
+
+.curiosity-artwork {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.curiosity-artwork text {
+  fill: #e7edf5;
+  font-family: var(--ks-font-sans);
+}
+
+.curiosity-artwork .stage-question,
+.curiosity-artwork .pn-question {
+  font-family: var(--ks-font-serif);
+  font-size: 25px;
+  letter-spacing: 0.06em;
+  fill: #f7f2e7;
+}
+
+.curiosity-artwork .stage-equation {
+  font-family: Georgia, serif;
+  font-size: 26px;
+  fill: #a7c2d6;
+}
+
+.curiosity-artwork .stage-axis {
+  font-size: 14px;
+  fill: #8da5be;
+}
+
+.curiosity-artwork .stage-seven {
+  font: italic 100px Georgia, serif;
+  fill: #f5c678;
+}
+
+.curiosity-artwork .stage-result-label {
+  font-size: 20px;
+  fill: #f4efe4;
+}
+
+.curiosity-artwork .stage-small,
+.curiosity-artwork .pn-explanation {
+  font-size: 15.5px;
+  fill: #9eb4ca;
+}
+
+.curiosity-artwork .stage-gold {
+  fill: #f5c678;
+  font-weight: 600;
+}
+
+.curiosity-artwork .pn-meter-label {
+  font-size: 10px;
+  fill: #8eb3cc;
+}
+
+.curiosity-artwork .stage-distribution text {
+  font-size: 12px;
+}
+
+.curiosity-rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2.5px;
+  background: rgba(214, 228, 245, 0.08);
+}
+
+.curiosity-rail-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--ks-accent), var(--ks-warm));
+  box-shadow: 0 0 12px rgba(56, 217, 192, 0.6);
+}
+
+.curiosity-stage figcaption {
+  display: grid;
+  text-align: center;
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  color: var(--ks-muted);
+  margin-top: 10px;
+}
+
+.curiosity-stage figcaption > span {
+  grid-area: 1 / 1;
+}
+
+@keyframes live-pulse {
+  50% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+}
+
 @media (min-width: 1001px) {
-  .curiosity-theatre { max-height: calc(100svh - 240px); }
+  .curiosity-theatre {
+    max-width: calc((100svh - 210px) * 1.25);
+  }
 }
+
 @media (max-width: 1000px) {
-  .curiosity-stage { margin: -8px -16px 0; }
-  .curiosity-stage figcaption { font-size: 12px; letter-spacing: .02em; }
+  .curiosity-stage {
+    margin: 0;
+  }
+  .curiosity-stage figcaption {
+    font-size: 12px;
+    letter-spacing: 0.02em;
+  }
 }
+
 @media (max-width: 600px) {
-  .curiosity-stage { width: 100%; max-width: 430px; margin: 4px auto 16px; overflow: clip; }
-  .curiosity-theatre { aspect-ratio: 560 / 480; }
-  .curiosity-artwork .stage-small { font-size: 18px; }
-  .curiosity-artwork .stage-axis { font-size: 17px; }
-  .curiosity-stage figcaption { margin: 10px 0 0; font-size: 12px; }
-  .curiosity-artwork .stage-distribution text { font-size: 16px; }
+  .curiosity-stage {
+    width: 100%;
+    max-width: 440px;
+    margin: 4px auto 8px;
+    overflow: clip;
+  }
+  .curiosity-viewport {
+    border-radius: 18px;
+  }
+  .curiosity-chrome {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+  }
+  .curiosity-live-pill {
+    font-size: 9px;
+    padding: 4px 8px;
+  }
+  .curiosity-act-label {
+    font-size: 10.5px;
+    padding: 4px 9px;
+  }
+  .curiosity-theatre {
+    aspect-ratio: 560 / 480;
+  }
+  .curiosity-artwork .stage-small {
+    font-size: 18px;
+  }
+  .curiosity-artwork .stage-axis {
+    font-size: 17px;
+  }
+  .curiosity-stage figcaption {
+    margin: 8px 0 0;
+    font-size: 12px;
+  }
+  .curiosity-artwork .stage-distribution text {
+    font-size: 16px;
+  }
   .stage-distribution [data-sum="3"],
   .stage-distribution [data-sum="5"],
   .stage-distribution [data-sum="9"],
-  .stage-distribution [data-sum="11"] { display: none; }
+  .stage-distribution [data-sum="11"] {
+    display: none;
+  }
 }
-.curiosity-stage figcaption { display: grid; }
-.curiosity-stage figcaption > span { grid-area: 1 / 1; }
-.curiosity-artwork .pn-question { font-size: 25px; letter-spacing: .08em; fill: #315846; }
-.curiosity-artwork .pn-meter-label { font-size: 10px; fill: #738870; }
-.curiosity-artwork .pn-explanation { font-size: 17px; fill: #788571; }
