@@ -7,29 +7,13 @@
 
 .curiosity-viewport {
   position: relative;
-  border-radius: 24px;
+  border-radius: 26px;
   overflow: hidden;
-  border: 1px solid rgba(214, 228, 245, 0.14);
-  background:
-    radial-gradient(ellipse 68% 60% at 50% 54%, rgba(28, 72, 92, 0.34), rgba(10, 15, 25, 0.92) 74%),
-    linear-gradient(155deg, rgba(18, 27, 42, 0.96), rgba(9, 13, 21, 0.98));
+  border: 1px solid rgba(18, 62, 56, 0.12);
+  background: #ffffff;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 34px 90px -30px rgba(0, 0, 0, 0.85),
-    0 0 60px -28px rgba(56, 217, 192, 0.25);
-}
-
-.curiosity-viewport::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(214, 228, 245, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(214, 228, 245, 0.03) 1px, transparent 1px);
-  background-size: 36px 36px;
-  mask-image: radial-gradient(ellipse at 50% 54%, #000 35%, transparent 86%);
-  -webkit-mask-image: radial-gradient(ellipse at 50% 54%, #000 35%, transparent 86%);
-  pointer-events: none;
+    0 28px 72px -28px rgba(15, 58, 52, 0.2),
+    0 4px 16px -6px rgba(15, 58, 52, 0.08);
 }
 
 .curiosity-chrome {
@@ -40,9 +24,8 @@
   justify-content: space-between;
   gap: 10px;
   padding: 10px 14px;
-  border-bottom: 1px solid rgba(214, 228, 245, 0.08);
-  background: rgba(7, 11, 18, 0.62);
-  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(18, 62, 56, 0.08);
+  background: rgba(255, 255, 255, 0.92);
 }
 
 .curiosity-live-pill {
@@ -51,12 +34,12 @@
   gap: 7px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: rgba(56, 217, 192, 0.09);
-  border: 1px solid rgba(56, 217, 192, 0.28);
+  background: var(--ks-accent-soft);
+  border: 1px solid rgba(15, 150, 125, 0.24);
   font-family: var(--ks-font-mono);
   font-size: 10px;
-  letter-spacing: 0.14em;
-  color: #a6f8ea;
+  letter-spacing: 0.12em;
+  color: var(--ks-accent-strong);
   white-space: nowrap;
 }
 
@@ -66,7 +49,6 @@
   height: 6px;
   border-radius: 50%;
   background: var(--ks-accent);
-  box-shadow: 0 0 10px var(--ks-accent);
   animation: live-pulse 2.2s ease-in-out infinite;
 }
 
@@ -82,12 +64,13 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 9px;
+  padding: 5px 10px;
   border-radius: 999px;
   border: 1px solid transparent;
-  background: rgba(255, 255, 255, 0.025);
+  background: transparent;
   color: var(--ks-muted);
-  font-size: 11px;
+  font-size: 11.5px;
+  font-weight: 500;
   white-space: nowrap;
   transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
@@ -100,14 +83,14 @@
 }
 
 .curiosity-chapter-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--ks-surface-soft);
   color: var(--ks-ink);
 }
 
 .curiosity-chapter-btn.is-active {
-  background: rgba(240, 185, 107, 0.14);
-  border-color: rgba(240, 185, 107, 0.36);
-  color: var(--ks-warm-bright);
+  background: var(--ks-warm-soft);
+  border-color: rgba(224, 141, 48, 0.34);
+  color: var(--ks-warm-deep);
 }
 
 .curiosity-chapter-btn.is-active em {
@@ -117,11 +100,11 @@
 .curiosity-pause-btn {
   display: inline-grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   border: 1px solid var(--ks-line);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--ks-surface-soft);
   color: var(--ks-muted);
   font-size: 9px;
   margin-left: 2px;
@@ -129,7 +112,7 @@
 }
 
 .curiosity-pause-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: #ffffff;
   border-color: var(--ks-line-strong);
   color: var(--ks-ink);
 }
@@ -137,7 +120,7 @@
 .curiosity-theatre {
   position: relative;
   width: 100%;
-  aspect-ratio: 800 / 640;
+  aspect-ratio: 800 / 560;
   margin-inline: auto;
   pointer-events: none;
 }
@@ -146,61 +129,92 @@
   display: block;
   width: 100%;
   height: 100%;
-  overflow: visible;
 }
 
 .curiosity-artwork text {
-  fill: #e7edf5;
   font-family: var(--ks-font-sans);
 }
 
-.curiosity-artwork .stage-question,
-.curiosity-artwork .pn-question {
+.curiosity-artwork .stage-question {
   font-family: var(--ks-font-serif);
-  font-size: 25px;
-  letter-spacing: 0.06em;
-  fill: #f7f2e7;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  fill: #122926;
 }
 
 .curiosity-artwork .stage-equation {
   font-family: Georgia, serif;
-  font-size: 26px;
-  fill: #a7c2d6;
+  font-size: 20px;
+  font-weight: 600;
+  fill: #1b4640;
 }
 
 .curiosity-artwork .stage-axis {
-  font-size: 14px;
-  fill: #8da5be;
-}
-
-.curiosity-artwork .stage-seven {
-  font: italic 100px Georgia, serif;
-  fill: #f5c678;
-}
-
-.curiosity-artwork .stage-result-label {
-  font-size: 20px;
-  fill: #f4efe4;
-}
-
-.curiosity-artwork .stage-small,
-.curiosity-artwork .pn-explanation {
-  font-size: 15.5px;
-  fill: #9eb4ca;
+  font-size: 13px;
+  font-weight: 500;
+  fill: #617d79;
 }
 
 .curiosity-artwork .stage-gold {
-  fill: #f5c678;
+  fill: #c97a16;
+  font-weight: 700;
+}
+
+.curiosity-artwork .stage-pill-text {
+  font-size: 13px;
+  font-weight: 600;
+  fill: #ffffff;
+}
+
+.curiosity-artwork .stage-small {
+  font-size: 14px;
+  font-weight: 500;
+  fill: #516f6b;
+}
+
+.curiosity-artwork .stage-micro {
+  font-size: 12px;
   font-weight: 600;
 }
 
-.curiosity-artwork .pn-meter-label {
-  font-size: 10px;
-  fill: #8eb3cc;
+.curiosity-artwork .stage-polarity {
+  font-size: 18px;
+  font-weight: 700;
 }
 
-.curiosity-artwork .stage-distribution text {
+.curiosity-footer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-top: 1px solid rgba(18, 62, 56, 0.08);
+  background: rgba(248, 250, 247, 0.94);
+}
+
+.curiosity-takeaway {
+  font-size: 12.5px;
+  color: var(--ks-muted);
+  min-width: 0;
+}
+
+.curiosity-try-btn {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--ks-accent-soft);
+  border: 1px solid rgba(15, 150, 125, 0.28);
+  color: var(--ks-accent-strong);
   font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.curiosity-try-btn:hover {
+  background: #d2f1e9;
+  transform: translateY(-1px);
 }
 
 .curiosity-rail {
@@ -208,29 +222,14 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: 2.5px;
-  background: rgba(214, 228, 245, 0.08);
+  height: 3px;
+  background: rgba(18, 62, 56, 0.07);
 }
 
 .curiosity-rail-fill {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, var(--ks-accent), var(--ks-warm));
-  box-shadow: 0 0 12px rgba(56, 217, 192, 0.6);
-}
-
-.curiosity-stage figcaption {
-  display: grid;
-  text-align: center;
-  font-size: 12.5px;
-  letter-spacing: 0.06em;
-  color: var(--ks-muted);
-  margin-top: 9px;
-  pointer-events: none;
-}
-
-.curiosity-stage figcaption > span {
-  grid-area: 1 / 1;
+  background: linear-gradient(90deg, #16a88c, #3b93e6, #eba03c);
 }
 
 @keyframes live-pulse {
@@ -242,11 +241,11 @@
 
 @media (min-width: 1001px) {
   .curiosity-theatre {
-    max-width: calc((100svh - 248px) * 1.25);
+    max-width: calc((100svh - 246px) * 1.428);
   }
 }
 
-@media (max-width: 1120px) {
+@media (max-width: 1140px) {
   .curiosity-chapter-btn span {
     display: none;
   }
@@ -255,22 +254,11 @@
   }
 }
 
-@media (max-width: 1000px) {
-  .curiosity-stage {
-    margin: 0;
-  }
-  .curiosity-stage figcaption {
-    font-size: 12px;
-    letter-spacing: 0.02em;
-  }
-}
-
 @media (max-width: 600px) {
   .curiosity-stage {
     width: 100%;
     max-width: 440px;
     margin: 4px auto 8px;
-    overflow: clip;
   }
   .curiosity-viewport {
     border-radius: 18px;
@@ -282,26 +270,9 @@
     font-size: 9px;
     padding: 3px 8px;
   }
-  .curiosity-theatre {
-    aspect-ratio: 560 / 480;
-  }
-  .curiosity-artwork .stage-small {
-    font-size: 18px;
-  }
-  .curiosity-artwork .stage-axis {
-    font-size: 17px;
-  }
-  .curiosity-stage figcaption {
-    margin: 8px 0 0;
-    font-size: 12px;
-  }
-  .curiosity-artwork .stage-distribution text {
-    font-size: 16px;
-  }
-  .stage-distribution [data-sum="3"],
-  .stage-distribution [data-sum="5"],
-  .stage-distribution [data-sum="9"],
-  .stage-distribution [data-sum="11"] {
-    display: none;
+  .curiosity-footer-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px 12px;
   }
 }
