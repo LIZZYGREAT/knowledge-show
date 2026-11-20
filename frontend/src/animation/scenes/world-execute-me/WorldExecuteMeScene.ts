@@ -111,9 +111,8 @@ export function createWorldExecuteMeSequence(bundle: AnimationBundle): SceneDefi
           if (destroyed) return;
           setStatus('正在初始化三色版画与 WebGL2 渲染管线…');
 
-          // Dynamic native browser ES module import served directly from public/demos/world-execute-me
-          const modUrl = `${BASE_URL}/src/engine/engine.js`;
-          const mod = (await import(/* @vite-ignore */ modUrl)) as WemModule;
+          // Lazy-load bundled vendored ES module engine (works seamlessly in both Vite dev & build)
+          const mod = (await import('./vendor/engine/engine.js')) as WemModule;
           if (destroyed) return;
 
           const created = await mod.createEngine({
