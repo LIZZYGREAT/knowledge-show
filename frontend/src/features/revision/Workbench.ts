@@ -59,7 +59,7 @@ function addClip(lane: HTMLElement, label: string, selection: Selection, index: 
   button.dataset.startMs = String(selection.start); button.dataset.endMs = String(selection.end);
   button.textContent = label; button.title = `${label} ${fmt(selection.start)}–${fmt(selection.end)}`;
   button.style.left = `${(start - viewStart) / (viewEnd - viewStart) * 100}%`; button.style.width = `${(end - start) / (viewEnd - viewStart) * 100}%`;
-  button.style.background = ['#d6e7cf', '#ccdbe8', '#ecd8b5'][index % 3];
+  button.dataset.tone = String(index % 3);
   selection = { ...selection, label };
   button.draggable = true;
   button.onclick = event => { event.stopPropagation(); choose(selection); };
