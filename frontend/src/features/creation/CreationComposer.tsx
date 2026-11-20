@@ -33,6 +33,7 @@ export function CreationComposer({
   onChange,
   onSubmit,
   onDemo,
+  onOpenTemplates,
   onNewProject,
   error,
 }: {
@@ -40,6 +41,7 @@ export function CreationComposer({
   onChange: (value: Draft) => void;
   onSubmit: () => void;
   onDemo: () => void;
+  onOpenTemplates?: () => void;
   onNewProject?: () => void;
   error: string;
 }) {
@@ -81,7 +83,7 @@ export function CreationComposer({
           variant="sprig"
           className="heading-sprig heading-sprig-right"
         />
-        <p className="eyebrow">DIRECTOR&apos;S STUDIO · FROM QUESTION TO FILM</p>
+        <p className="eyebrow">CREATOR&apos;S DESK · FROM QUESTION TO FILM</p>
         <h1>从一个问题开始。</h1>
         <p>你负责好奇，我们把背后的机制做成值得看完的动态画面。</p>
       </div>
@@ -182,9 +184,12 @@ export function CreationComposer({
           </fieldset>
         </div>
 
-        <details className="preferences-drawer">
+        <details
+          className="preferences-drawer"
+          open={Boolean(draft.art_style.trim())}
+        >
           <summary>
-            更多创作偏好 <span>选填 · 知识深度、视频画风与必含内容</span>
+            更多创作偏好 <span>选填 · 知识深度、画风模板与必含内容</span>
           </summary>
           <div className="preferences">
             <fieldset>
@@ -212,29 +217,47 @@ export function CreationComposer({
                 id="preference-art_style"
                 value={draft.art_style}
                 onChange={(e) => change("art_style", e.target.value)}
-                placeholder="例如：手绘插画风，颜色温暖一点，或点下方预设"
+                placeholder="可直接点下方模板，或自由描述：如手绘插画风，颜色温暖"
               />
-              <div className="style-presets" aria-label="快捷视频画风参考">
+              <div className="template-card-grid" aria-label="视频画风模板选择">
                 {profiles.map((profile) => {
-                  const selected = draft.art_style.trim() === profile.name;
+                  const selected = draft.art_style.includes(profile.name);
                   return (
                     <button
                       key={profile.id}
                       type="button"
-                      className={`style-preset-chip ${selected ? "is-selected" : ""}`}
+                      className={`template-mini-card ${selected ? "is-selected" : ""}`}
                       onClick={() => change("art_style", profile.name)}
                       title={profile.intent}
                     >
-                      <span className="preset-swatches" aria-hidden="true">
-                        <i style={{ background: profile.palette.background }} />
-                        <i style={{ background: profile.palette.red }} />
+                      <span
+                        className="template-mini-thumb"
+                        style={{ background: profile.palette.background }}
+                        aria-hidden="true"
+                      >
+                        <span style={{ background: profile.palette.red }} />
                         <i style={{ background: profile.palette.blue }} />
                       </span>
-                      <span>{profile.name}</span>
+                      <span className="template-mini-info">
+                        <strong>{profile.name}</strong>
+                        <small>{profile.materials.slice(0, 2).join(" · ")}</small>
+                      </span>
                     </button>
                   );
                 })}
               </div>
+              {onOpenTemplates && (
+                <div className="template-link-row">
+                  <span>不确定选哪套画风？</span>
+                  <button
+                    type="button"
+                    className="text-button"
+                    onClick={onOpenTemplates}
+                  >
+                    去 1:1 模板展厅试看动态效果 ↗
+                  </button>
+                </div>
+              )}
             </div>
             {field(
               "creative_idea",
@@ -273,11 +296,16 @@ export function CreationComposer({
       </form>
       <aside className="development-note">
         <span>创作流程</span>
-        会按你的选择完成研究、脚本与动画制作，并生成可预览与可微调的作品。
+        会按你的选择完成研究、脚本与模板动画制作，并支持在工作台中逐对象微调。
         <div className="development-note-actions">
           <button className="text-button" onClick={onDemo}>
             查看流程演示 ↗
           </button>
+          {onOpenTemplates && (
+            <button className="text-button" onClick={onOpenTemplates}>
+              画风模板与组件 ↗
+            </button>
+          )}
           <a className="text-button" href="/workbench.html?demo=pn">
             打开样片工作台 ↗
           </a>

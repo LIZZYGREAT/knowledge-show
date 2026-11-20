@@ -2,10 +2,12 @@ import { flushSync } from "react-dom";
 import { useEffect, useRef, useState } from "react";
 import {
   createProject,
+  getHealth,
   getProject,
   startAnimationJob,
   startScriptJob,
   testModelConnection,
+  type ProjectListItem,
 } from "./common/api";
 import {
   fromUserInput,
@@ -21,8 +23,10 @@ import { ApiSettingsDrawer } from "./features/settings/ApiSettingsDrawer";
 import { useEphemeralKey } from "./features/settings/EphemeralKeyContext";
 import { GenerationStatus } from "./features/progress/GenerationStatus";
 import { TaskProgress } from "./features/progress/TaskProgress";
+import { TemplateShowcase } from "./features/templates/TemplateShowcase";
+import { ProjectsGallery } from "./features/projects/ProjectsGallery";
 
-type Page = "landing" | "composing" | "demo" | "working";
+type Page = "landing" | "composing" | "templates" | "projects" | "demo" | "working";
 type TaskSession = {
   projectId: string;
   jobId: string;
@@ -45,11 +49,13 @@ function readTaskSession(): TaskSession | null {
       projectId: value.projectId,
       jobId: typeof value.jobId === "string" ? value.jobId : "",
       topic: value.topic,
-      // Old sessions stop at the script instead of unexpectedly starting paid work.
       continueToPreview: value.continueToPreview === true,
       artStyle: typeof value.artStyle === "string" ? value.artStyle : undefined,
       styleChangePending: value.styleChangePending === true,
-      animationJobId: typeof value.animationJobId === "string" ? value.animationJobId : undefined,
+      animationJobId:
+        typeof value.animationJobId === "string"
+          ? value.animationJobId
+          : undefined,
     };
   } catch {
     return null;
@@ -75,10 +81,25 @@ export default function App() {
   const [resumeConfirm, setResumeConfirm] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [backendOnline, setBackendOnline] = useState<boolean | null>(null);
   const connection = useEphemeralKey();
   const content = useRef<HTMLDivElement>(null);
   const [transitioning, setTransitioning] = useState(false);
   const transition = useRef<ViewTransition | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    void getHealth()
+      .then((res) => {
+        if (active) setBackendOnline(res.status === "ok");
+      })
+      .catch(() => {
+        if (active) setBackendOnline(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     const session = initialTaskSession.current;
@@ -88,11 +109,13 @@ export default function App() {
       .then((project) => {
         if (!active) return;
         const restored = fromUserInput(project.brief.user_input);
-        if (typeof session.artStyle === "string") restored.art_style = session.artStyle;
+        if (typeof session.artStyle === "string")
+          restored.art_style = session.artStyle;
         setDraft(restored);
         setProjectId(project.project_id);
         setTaskSession((current) => {
-          if (!current || current.projectId !== project.project_id) return current;
+          if (!current || current.projectId !== project.project_id)
+            return current;
           const next = { ...current, topic: restored.topic };
           try {
             sessionStorage.setItem(TASK_SESSION_KEY, JSON.stringify(next));
@@ -127,7 +150,9 @@ export default function App() {
     transition.current?.skipTransition();
     if (
       typeof document.startViewTransition === "function" &&
-      !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
+      ((page === "landing" && next === "composing") ||
+        (page === "composing" && next === "landing"))
     ) {
       const active = document.startViewTransition(() =>
         flushSync(() => {
@@ -179,6 +204,32 @@ export default function App() {
     }
   }
 
+  async function resumeProjectFromList(
+    item: ProjectListItem,
+    openProgress: boolean,
+  ) {
+    try {
+      const project = await getProject(item.project_id);
+      const restored = fromUserInput(project.brief.user_input);
+      setDraft(restored);
+      setProjectId(project.project_id);
+      const nextJobId = item.latest_job_id ?? "";
+      setJobId(nextJobId);
+      setResumeError("");
+      setError("");
+      persistTask({
+        projectId: project.project_id,
+        jobId: nextJobId,
+        topic: restored.topic,
+        continueToPreview: false,
+        artStyle: restored.art_style,
+      });
+      navigate(openProgress && nextJobId ? "working" : "composing");
+    } catch (cause) {
+      setError((cause as Error).message || "无法读取该项目，请稍后重试。");
+    }
+  }
+
   async function submit(continueToPreview = true) {
     if (restoringProject || resumeError) return;
     if (!connection.connected || !connection.key) {
@@ -192,25 +243,41 @@ export default function App() {
     setError("");
     try {
       const userInput = toUserInput(draft);
-      const requestedArtStyle = typeof userInput.art_style === "string" ? userInput.art_style : "";
+      const requestedArtStyle =
+        typeof userInput.art_style === "string" ? userInput.art_style : "";
       let targetProjectId = projectId;
       if (targetProjectId) {
         const current = await getProject(targetProjectId);
         const savedArtStyle = (
           taskSession?.artStyle ??
-          (typeof current.brief.user_input.art_style === "string" ? current.brief.user_input.art_style : "")
+          (typeof current.brief.user_input.art_style === "string"
+            ? current.brief.user_input.art_style
+            : "")
         ).trim();
         const artStyleChanged = requestedArtStyle !== savedArtStyle;
-        if (sameUserInputExceptArtStyle(current.brief.user_input, userInput) && jobId) {
-          const alreadyRequested = taskSession?.animationJobId && taskSession.artStyle?.trim() === requestedArtStyle;
-          if (alreadyRequested || (!artStyleChanged && !(taskSession?.styleChangePending && continueToPreview))) {
+        if (
+          sameUserInputExceptArtStyle(current.brief.user_input, userInput) &&
+          jobId
+        ) {
+          const alreadyRequested =
+            taskSession?.animationJobId &&
+            taskSession.artStyle?.trim() === requestedArtStyle;
+          if (
+            alreadyRequested ||
+            (!artStyleChanged &&
+              !(taskSession?.styleChangePending && continueToPreview))
+          ) {
             setConfirm(false);
             setError("");
             navigate("working");
             return;
           }
           if (continueToPreview) {
-            const started = await startAnimationJob(targetProjectId, connection.key, requestedArtStyle);
+            const started = await startAnimationJob(
+              targetProjectId,
+              connection.key,
+              requestedArtStyle,
+            );
             const next: TaskSession = {
               projectId: targetProjectId,
               jobId,
@@ -252,7 +319,13 @@ export default function App() {
         setProjectId(targetProjectId);
       }
       setJobId("");
-      persistTask({ projectId: targetProjectId, jobId: "", topic: draft.topic, continueToPreview, artStyle: draft.art_style });
+      persistTask({
+        projectId: targetProjectId,
+        jobId: "",
+        topic: draft.topic,
+        continueToPreview,
+        artStyle: draft.art_style,
+      });
       const started = await startScriptJob(targetProjectId, connection.key);
       const next = {
         projectId: targetProjectId,
@@ -268,7 +341,9 @@ export default function App() {
       setError("");
       navigate("working");
     } catch (cause) {
-      setError((cause as Error).message || "暂时无法启动创作任务，请稍后重试。");
+      setError(
+        (cause as Error).message || "暂时无法启动创作任务，请稍后重试。",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -285,7 +360,13 @@ export default function App() {
     try {
       const started = await startScriptJob(projectId, connection.key);
       setJobId(started.job_id);
-      persistTask({ ...taskSession, projectId, jobId: started.job_id, topic: draft.topic, continueToPreview: taskSession?.continueToPreview === true });
+      persistTask({
+        ...taskSession,
+        projectId,
+        jobId: started.job_id,
+        topic: draft.topic,
+        continueToPreview: taskSession?.continueToPreview === true,
+      });
     } catch (cause) {
       setError((cause as Error).message || "暂时无法重试任务，请稍后重试。");
     } finally {
@@ -331,6 +412,41 @@ export default function App() {
               knowledge<span className="brand-dot">.</span>show
             </span>
           </button>
+
+          <nav className="header-nav" aria-label="主导航">
+            <button
+              type="button"
+              className={`nav-pill ${page === "landing" ? "is-active" : ""}`}
+              onClick={() => navigate("landing")}
+            >
+              首页
+            </button>
+            <button
+              type="button"
+              className={`nav-pill ${page === "composing" || page === "working" || page === "demo" ? "is-active" : ""}`}
+              onClick={() => navigate("composing")}
+            >
+              开始创作
+            </button>
+            <button
+              type="button"
+              className={`nav-pill ${page === "templates" ? "is-active" : ""}`}
+              onClick={() => navigate("templates")}
+            >
+              画风模板与 Demo
+            </button>
+            <button
+              type="button"
+              className={`nav-pill ${page === "projects" ? "is-active" : ""}`}
+              onClick={() => navigate("projects")}
+            >
+              我的作品
+            </button>
+            <a className="nav-pill" href="/workbench.html?demo=pn">
+              工作台样片 ↗
+            </a>
+          </nav>
+
           <div className="header-right">
             <span
               className={`header-status-pill ${connection.connected ? "is-connected" : ""}`}
@@ -371,13 +487,47 @@ export default function App() {
         tabIndex={-1}
         data-transition={transitioning ? "entering" : "idle"}
       >
+        {backendOnline === false && page === "composing" && (
+          <div className="backend-banner" role="status">
+            <span>
+              本地后端 API（8000 端口）暂未响应；你仍可先填写创作要求、浏览画风模板与工作台样片。正式生成前请在终端启动后端服务。
+            </span>
+            <code>
+              PYTHONPATH=backend/src .venv/bin/python -m uvicorn api.app:app --host 127.0.0.1 --port 8000
+            </code>
+          </div>
+        )}
         {page === "landing" ? (
           <LandingHero
             onStart={() => navigate("composing")}
+            onOpenTemplates={() => navigate("templates")}
             onStartWithTopic={(topic) => {
               setDraft((current) => ({ ...current, topic }));
               navigate("composing");
             }}
+          />
+        ) : page === "templates" ? (
+          <TemplateShowcase
+            onUseTemplate={(styleName, sampleTopic) => {
+              setDraft((current) => ({
+                ...current,
+                art_style: styleName,
+                ...(sampleTopic ? { topic: sampleTopic } : {}),
+              }));
+              navigate("composing");
+            }}
+          />
+        ) : page === "projects" ? (
+          <ProjectsGallery
+            onCreateNew={() => {
+              startFreshProject();
+              setDraft({ ...initialDraft });
+              navigate("composing");
+            }}
+            onResumeProject={(item, openProgress) =>
+              void resumeProjectFromList(item, openProgress)
+            }
+            onOpenTemplates={() => navigate("templates")}
           />
         ) : page === "composing" && restoringProject ? (
           <main className="generation" role="status">
@@ -385,7 +535,9 @@ export default function App() {
           </main>
         ) : page === "composing" && resumeError ? (
           <main className="generation">
-            <p className="current-action" role="alert">{resumeError}</p>
+            <p className="current-action" role="alert">
+              {resumeError}
+            </p>
             <button className="primary" onClick={startFreshProject}>
               放弃旧项目并重新填写 →
             </button>
@@ -396,6 +548,7 @@ export default function App() {
             onChange={setDraft}
             onSubmit={review}
             onDemo={() => navigate("demo")}
+            onOpenTemplates={() => navigate("templates")}
             onNewProject={projectId ? startFreshProject : undefined}
             error={error}
           />
@@ -432,7 +585,9 @@ export default function App() {
           />
         ) : (
           <main className="generation">
-            <p className="current-action">创作项目已建立，请配置连接后继续启动任务。</p>
+            <p className="current-action">
+              创作项目已建立，请配置连接后继续启动任务。
+            </p>
             <button className="primary" onClick={() => setConfirm(true)}>
               继续创作 →
             </button>
