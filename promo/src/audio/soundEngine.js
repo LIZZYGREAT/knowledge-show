@@ -314,16 +314,26 @@ export async function renderSoundtrackBuffer(duration = TOTAL_DURATION) {
   }
 
   // =========================================================================
-  // 二、0ms 精准同步拟音与高光时刻事件（对齐 AUDIO_CUES）
+  // 二、0ms 精准同步拟音与高光时刻事件（全面对齐最新迭代画面 AUDIO_CUES）
   // =========================================================================
 
-  // 第一幕：0:00.15 单点破晓清音 -> 暖光展开纸风 -> 墨滴唤醒句号 -> 折纸弹起 -> 玻璃轻叩 -> 拨动紫光 -> 倒卷光标
-  playGlassChime(0.15, 1396.9, 0.13, 1.8, 0.0);
-  playPaperWhoosh(0.65, 1.5, 420, 1240, 0.085, 0.0);
-  playGlassChime(2.95, 1760.0, 0.11, 1.0, -0.15);
-  playClick(3.95, 1420, 0.09, -0.1);
+  // ── 第一幕：光学星盘破晓 -> 日光揭幕 -> 落笔句号 -> 轻叩灰三角 -> 立体书弹起 -> 拨动紫光 -> 倒卷光标 ──
+  playGlassChime(AUDIO_CUES.openSeedChime, 1396.9, 0.12, 2.0, 0.0);
+  playFeltPad(0.08, [60, 69, 72], 0.024, 3.4);
+  // 0.36s 18° 斜阳光束 + 精密星盘舒展（轻盈上升三泛音）
+  playPaperWhoosh(AUDIO_CUES.openBeamBloom, 1.35, 380, 1480, 0.075, 0.0);
+  playGlassChime(AUDIO_CUES.openBeamBloom + 0.14, 1046.5, 0.075, 1.4, -0.18);
+  playGlassChime(AUDIO_CUES.openBeamBloom + 0.34, 1318.5, 0.075, 1.5, 0.18);
+  // 0.90s 日光揭幕光环沿书桌圆形展开
+  playPaperWhoosh(AUDIO_CUES.openIrisUnveil, 1.65, 520, 1280, 0.085, 0.0);
+  // 3.22s 星芒沿 S 弧轻吻句号「。」，激起水墨涟漪
+  playGlassChime(AUDIO_CUES.openDotKiss, 1760.0, 0.12, 1.2, -0.18);
+  playMarimba(AUDIO_CUES.openDotKiss + 0.03, 77, 0.15, 0.9, -0.15);
+  // 5.65s & 6.30s 棱片轻叩平面灰三角触感回弹环
+  playClick(AUDIO_CUES.tapTriangle1, 1480, 0.095, 0.12);
+  playClick(AUDIO_CUES.tapTriangle2, 1620, 0.105, 0.12);
   // 立体书清脆弹起
-  playPaperWhoosh(AUDIO_CUES.origamiPop, 0.28, 650, 2600, 0.24, 0.05);
+  playPaperWhoosh(AUDIO_CUES.origamiPop, 0.30, 650, 2600, 0.24, 0.05);
   playSnap(AUDIO_CUES.origamiPop + 0.08, 0.16, 0.1);
   // 温润玻璃棱镜轻叩
   playGlassChime(AUDIO_CUES.glassClink, 1396.9, 0.18, 1.4, 0.0);
@@ -336,7 +346,7 @@ export async function renderSoundtrackBuffer(duration = TOTAL_DURATION) {
   playPaperWhoosh(AUDIO_CUES.rewindSweep, 1.1, 2200, 560, 0.14, 0);
   playClick(AUDIO_CUES.cursorLand, 1680, 0.12, -0.15);
 
-  // 第二幕：打字键入 -> 点选模式 -> 确认 -> 光学色散 -> 弹飞误区 -> 游丝绷直 -> 划开舞台
+  // ── 第二幕：打字键入 -> 点选模式 -> 确认 -> 光学色散 -> 弹飞误区 -> 游丝绷直 -> 划开舞台 ──
   for (let i = 0; i < 14; i++) {
     playClick(AUDIO_CUES.typingStart + i * 0.22, 1720 + (i % 4) * 140, 0.075, -0.12 + i * 0.02);
   }
@@ -354,57 +364,100 @@ export async function renderSoundtrackBuffer(duration = TOTAL_DURATION) {
   playPaperWhoosh(AUDIO_CUES.arcSlice, 0.48, 1100, 2900, 0.19, 0);
   playGlassChime(AUDIO_CUES.arcSlice + 0.05, 1396.9, 0.13, 1.2, 0);
 
-  // 第三幕：微观入镜 -> 全景彩虹 -> 两次厚纸中轴翻页 -> 跨主题变奏
-  playGlassChime(AUDIO_CUES.microWaveChime, 1174.6, 0.12, 1.4, -0.1);
-  playGlassChime(AUDIO_CUES.panoramaBloom, 1396.9, 0.15, 1.8, 0);
-  // 厚杂志纸页两次优雅翻折
+  // ── 第三幕：玻璃晶格滑入实时偏折 -> 放大镜 -> 7色游标扫频 -> 两次翻页 -> 邮戳 -> 跨主题 -> 骰子折页返回 ──
+  // 54.2s 磨砂玻璃块自右平滑推入，光波撞击移动前沿现场弯折（暖玻璃滑声 + 三重折射泛音）
+  playPaperWhoosh(AUDIO_CUES.glassSlideIn, 2.2, 460, 1420, 0.14, 0.35);
+  playGlassChime(AUDIO_CUES.glassSlideIn + 0.55, 1046.5, 0.11, 1.3, 0.32);
+  playGlassChime(AUDIO_CUES.glassSlideIn + 1.15, 1318.5, 0.11, 1.4, 0.12);
+  playGlassChime(AUDIO_CUES.glassSlideIn + 1.80, 1568.0, 0.12, 1.5, -0.08);
+  // 57.8s 黄铜放大镜显现
+  playClick(AUDIO_CUES.loupePop, 1880, 0.09, -0.15);
+  playGlassChime(AUDIO_CUES.loupePop + 0.03, 1760.0, 0.09, 1.0, -0.15);
+  // 64.4s 全景彩虹舒展
+  playGlassChime(AUDIO_CUES.panoramaBloom, 1396.9, 0.14, 1.8, 0);
+  // 67.6s–72.4s 7 股分光游标聚光扫频（7 枚轻盈渐高的五声音阶晶莹微音，680nm -> 405nm 声画通感！）
+  const vernierMidis = [72, 74, 77, 79, 81, 84, 86];
+  vernierMidis.forEach((m, idx) => {
+    const tv = AUDIO_CUES.vernierScanStart + idx * 0.78;
+    playMarimba(tv, m, 0.115, 0.55, 0.25 + idx * 0.03);
+    playGlassChime(tv + 0.02, midiToHz(m + 12), 0.045, 0.65, 0.32);
+  });
+  // 厚杂志纸页两次优雅翻折（paper-editorial -> modern-graphic -> narrative-collage）
   playPaperWhoosh(AUDIO_CUES.pageFlip1, 0.56, 520, 2100, 0.24, 0.15);
   playPaperWhoosh(AUDIO_CUES.pageFlip1 + 0.32, 0.24, 1600, 680, 0.16, -0.25);
   playPaperWhoosh(AUDIO_CUES.pageFlip2, 0.56, 540, 2200, 0.24, 0.15);
   playPaperWhoosh(AUDIO_CUES.pageFlip2 + 0.32, 0.24, 1650, 720, 0.16, -0.25);
-  // 跨主题：肥皂泡、PN 结、骰子
-  playGlassChime(AUDIO_CUES.morphSoap, 1568.0, 0.14, 0.9, 0);
-  playSnap(AUDIO_CUES.morphPn, 0.18, 0);
-  playMarimba(AUDIO_CUES.morphPn + 0.06, 77, 0.22, 0.5, 0.2);
+  // 80.85s 叙事拼贴风朱红邮戳「OPTICS 1672」弹跳落印木质轻响
+  playClick(AUDIO_CUES.collageStamp, 620, 0.14, 0.42);
+  // 跨主题：肥皂泡干涉 -> PN 结正向导通亮灯 -> 3D 骰子落桌 -> 90.18s 物理手帐 FOLD 翻页切回主线彩虹！
+  playGlassChime(AUDIO_CUES.morphSoap, 1568.0, 0.14, 0.95, 0);
+  playSnap(AUDIO_CUES.morphPn, 0.16, 0);
+  playMarimba(AUDIO_CUES.pnBulbGlow, 77, 0.20, 0.7, 0.18);
+  playGlassChime(AUDIO_CUES.pnBulbGlow + 0.22, 1396.9, 0.12, 1.2, 0.22);
   playClick(AUDIO_CUES.morphDice, 1420, 0.15, -0.15);
-  playClick(AUDIO_CUES.morphDice + 0.11, 1680, 0.14, 0.18);
+  playClick(AUDIO_CUES.morphDice + 0.12, 1680, 0.14, 0.18);
+  // 90.18s 骰子 -> 主线彩虹物理 FOLD 翻页（自左向右声场平移）+ 91.4s 从容滑翔微风
+  playPaperWhoosh(AUDIO_CUES.diceFoldBack, 0.62, 540, 2150, 0.23, -0.28);
+  playPaperWhoosh(AUDIO_CUES.diceFoldBack + 0.42, 0.34, 1620, 700, 0.15, 0.25);
+  playPaperWhoosh(91.42, 1.35, 920, 460, 0.08, 0.18);
 
-  // 第四幕：退镜入台 -> BRACKET 咬合 -> 输入指令 -> 框内水墨涟漪 -> v2 翻转 -> 描图纸 -> 微调二连击 -> 点击导出
-  playPaperWhoosh(AUDIO_CUES.workbenchPullback, 0.85, 1400, 520, 0.13, 0);
-  playSnap(AUDIO_CUES.bracketSnap, 0.22, -0.1);
-  playGlassChime(AUDIO_CUES.bracketSnap + 0.03, 1396.9, 0.10, 0.7, -0.1);
+  // ── 第四幕：退镜入台 -> 三形态巡检 -> ① 波浪带精修 v2 -> 描图纸 -> ② 棱锥精修 v3 -> ③ 圆环精修 v4 -> 导出 ──
+  playPaperWhoosh(AUDIO_CUES.workbenchPullback, 0.85, 1400, 520, 0.12, 0);
+  // 97.5s 悬停「▲ 三角棱锥」轻盈玻璃微叩；99.4s 悬停「◯ 测角圆环」细腻黄铜微叩
+  playClick(AUDIO_CUES.hoverPrism, 1760, 0.085, -0.22);
+  playGlassChime(AUDIO_CUES.hoverPrism + 0.02, 1318.5, 0.075, 0.7, -0.22);
+  playClick(AUDIO_CUES.hoverRing, 2020, 0.085, -0.12);
+  playGlassChime(AUDIO_CUES.hoverRing + 0.02, 1568.0, 0.075, 0.7, -0.12);
+  // 101.4s 锁定「~ 彩色波浪带」清脆磁吸锁合
+  playSnap(AUDIO_CUES.bracketSnap, 0.21, -0.05);
+  playGlassChime(AUDIO_CUES.bracketSnap + 0.03, 1396.9, 0.11, 0.8, -0.05);
   for (let i = 0; i < 24; i++) {
     playClick(AUDIO_CUES.revTypeStart + i * 0.25, 1650 + (i % 5) * 130, 0.065, 0.45);
   }
   playClick(AUDIO_CUES.revApplyClick, 2100, 0.15, 0.45);
-  // 框内暖杏水墨涟漪爆发（温暖清脆的水墨泛音和弦）
-  playPaperWhoosh(AUDIO_CUES.rippleBurst, 0.72, 620, 1950, 0.18, -0.12);
-  playGlassChime(AUDIO_CUES.rippleBurst + 0.05, 1046.5, 0.17, 1.4, -0.18);
-  playGlassChime(AUDIO_CUES.rippleBurst + 0.18, 1396.9, 0.16, 1.5, 0.0);
-  playGlassChime(AUDIO_CUES.rippleBurst + 0.32, 1760.0, 0.16, 1.6, 0.18);
+  // 115.2s 沿弯曲波扇涌动的暖杏水墨涟漪（v1 -> v2）
+  playPaperWhoosh(AUDIO_CUES.rippleBurst, 0.82, 620, 2050, 0.18, -0.12);
+  playGlassChime(AUDIO_CUES.rippleBurst + 0.05, 1046.5, 0.16, 1.4, -0.18);
+  playGlassChime(AUDIO_CUES.rippleBurst + 0.18, 1396.9, 0.15, 1.5, 0.0);
+  playGlassChime(AUDIO_CUES.rippleBurst + 0.32, 1760.0, 0.15, 1.6, 0.18);
   // v2 纸签清脆翻转
-  playSnap(AUDIO_CUES.v2BadgeFlip, 0.17, -0.32);
-  playMarimba(AUDIO_CUES.v2BadgeFlip + 0.03, 81, 0.24, 0.7, -0.25);
-  // 描图纸轻划对比
+  playSnap(AUDIO_CUES.v2BadgeFlip, 0.16, -0.32);
+  playMarimba(AUDIO_CUES.v2BadgeFlip + 0.03, 81, 0.23, 0.7, -0.25);
+  // 描图纸轻划对比（先右扫再左扫）
   playPaperWhoosh(AUDIO_CUES.tracingWipe, 1.15, 780, 1750, 0.14, 0);
-  playPaperWhoosh(AUDIO_CUES.tracingWipe + 2.2, 1.1, 1650, 760, 0.12, 0);
-  // 快节奏微调二连击（响指 + 木琴）
-  playSnap(AUDIO_CUES.microSnap1, 0.20, -0.15);
-  playMarimba(AUDIO_CUES.microSnap1 + 0.04, 79, 0.24, 0.55, -0.1);
-  playSnap(AUDIO_CUES.microSnap2, 0.20, 0.15);
-  playMarimba(AUDIO_CUES.microSnap2 + 0.04, 84, 0.24, 0.55, 0.12);
+  playPaperWhoosh(AUDIO_CUES.tracingWipe + 2.25, 1.1, 1650, 760, 0.12, 0);
+
+  // ② 129.15s 锁定「▲ 三角棱锥」-> 130.35s 晶体对角扫光 -> 131.65s v3 翻转
+  playSnap(AUDIO_CUES.prismLockV3, 0.18, -0.24);
+  playGlassChime(AUDIO_CUES.prismLockV3 + 0.03, 1318.5, 0.09, 0.65, -0.24);
+  playPaperWhoosh(AUDIO_CUES.prismShimmerV3, 0.85, 840, 2400, 0.14, -0.22);
+  playGlassChime(AUDIO_CUES.prismShimmerV3 + 0.08, 1396.9, 0.15, 1.3, -0.24);
+  playGlassChime(AUDIO_CUES.prismShimmerV3 + 0.24, 1760.0, 0.14, 1.4, -0.12);
+  playSnap(AUDIO_CUES.v3BadgeFlip, 0.14, -0.32);
+  playMarimba(AUDIO_CUES.v3BadgeFlip + 0.03, 84, 0.22, 0.65, -0.25);
+
+  // ③ 133.45s 锁定「◯ 测角圆环」-> 134.55s 360° 黄金流光环扫 -> 135.85s v4 翻转
+  playSnap(AUDIO_CUES.ringLockV4, 0.18, -0.15);
+  playGlassChime(AUDIO_CUES.ringLockV4 + 0.03, 1568.0, 0.09, 0.65, -0.15);
+  playPaperWhoosh(AUDIO_CUES.ringSweepV4, 1.15, 720, 2250, 0.14, -0.25);
+  playPaperWhoosh(AUDIO_CUES.ringSweepV4 + 0.52, 0.72, 1850, 960, 0.11, 0.15);
+  playGlassChime(AUDIO_CUES.ringSweepV4 + 0.10, 1568.0, 0.14, 1.3, -0.18);
+  playGlassChime(AUDIO_CUES.ringSweepV4 + 0.34, 2093.0, 0.12, 1.4, 0.12);
+  playSnap(AUDIO_CUES.v4BadgeFlip, 0.15, -0.32);
+  playMarimba(AUDIO_CUES.v4BadgeFlip + 0.03, 86, 0.22, 0.75, -0.22);
+
   // 点击「导出 MP4」
   playSnap(AUDIO_CUES.exportClick, 0.18, 0.45);
 
-  // 第五幕：双色标尺扫屏 -> 印章落定 -> 丝带汇聚 -> 品牌图标合拢 -> 清澈木琴泛音与轻微合页声
+  // ── 第五幕：双色标尺扫屏 -> 印章落定 -> 丝带溶解编织 -> 品牌图标合拢 -> 清澈木琴泛音与轻微合页声 ──
   playPaperWhoosh(AUDIO_CUES.rulerSweepStart, 2.2, 680, 1900, 0.12, -0.4);
   playGlassChime(AUDIO_CUES.rulerSweepStart + 0.6, 1046.5, 0.11, 2.2, -0.2);
   playGlassChime(AUDIO_CUES.rulerSweepStart + 3.4, 1396.9, 0.11, 2.2, 0.2);
   playSnap(AUDIO_CUES.exportStamp, 0.16, 0.4);
   playGlassChime(AUDIO_CUES.exportStamp + 0.04, 1760.0, 0.14, 1.3, 0.35);
 
-  // 2:31.5–2:36.2 原画丝滑编织消融和声泛音过渡
-  playPaperWhoosh(152.0, 2.6, 980, 420, 0.09, 0.0);
+  // 2:31.8–2:36.2 原画丝滑编织消融和声泛音过渡
+  playPaperWhoosh(AUDIO_CUES.ribbonMerge, 2.6, 980, 420, 0.09, 0.0);
   playGlassChime(153.2, 1046.5, 0.10, 2.4, -0.18);
   playGlassChime(154.6, 1318.5, 0.11, 2.2, 0.15);
 
