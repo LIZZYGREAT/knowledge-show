@@ -99,10 +99,10 @@ function drawMicroRefraction(ctx, t, alpha) {
   ctx.lineTo(bxBot + 5, STAGE_H);
   ctx.stroke();
 
-  // 顶部刊物注记卡片
-  drawPaperCard(ctx, 130, 74, 240, 44, {
-    radius: 22,
-    fill: "rgba(255, 253, 249, 0.90)",
+  // 刊物注记卡片（避开红波路径，左置下方留白、右置上方玻璃区）
+  drawPaperCard(ctx, 112, 930, 248, 46, {
+    radius: 23,
+    fill: "rgba(255, 253, 249, 0.92)",
     stroke: COLORS.inkHairline,
     lineWidth: 1.2,
     shadowBlur: 12,
@@ -112,18 +112,18 @@ function drawMicroRefraction(ctx, t, alpha) {
   ctx.fillStyle = COLORS.inkSecondary;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("AIR · 空气中步幅一致", 250, 96);
+  ctx.fillText("AIR · 空气中步幅一致", 236, 953);
 
-  drawPaperCard(ctx, 940, 74, 376, 44, {
-    radius: 22,
-    fill: "rgba(255, 253, 249, 0.90)",
+  drawPaperCard(ctx, 940, 74, 376, 46, {
+    radius: 23,
+    fill: "rgba(255, 253, 249, 0.92)",
     stroke: rgba(COLORS.brandTeal, 0.34),
     lineWidth: 1.2,
     shadowBlur: 12,
     shadowOffsetY: 4,
   });
   ctx.fillStyle = COLORS.brandTealDark;
-  ctx.fillText("GLASS LATTICE · 介质减速与偏折分化", 1128, 96);
+  ctx.fillText("GLASS LATTICE · 介质减速与偏折分化", 1128, 97);
   ctx.textAlign = "left";
 
   // 2. 7 排并肩彩色波列 + 同步行进光子珠
