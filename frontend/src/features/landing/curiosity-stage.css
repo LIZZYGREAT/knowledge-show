@@ -1,43 +1,316 @@
 .curiosity-stage {
-  margin: -20px -28px -12px -30px;
+  margin: 0;
   min-width: 0;
   position: relative;
-  pointer-events: none;
   view-transition-name: flow-scene;
 }
-.curiosity-theatre { position: relative; width: 100%; aspect-ratio: 800 / 640; }
-.curiosity-artwork { display: block; width: 100%; height: 100%; overflow: visible; }
-.curiosity-artwork text { fill: #466454; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
-.curiosity-artwork .stage-question { font-size: 25px; letter-spacing: .08em; fill: #315846; }
-.curiosity-artwork .stage-equation { font-family: Georgia, serif; font-size: 26px; fill: #718370; }
-.curiosity-artwork .stage-axis { font-size: 14px; fill: #7e8c78; }
-.curiosity-artwork .stage-seven { font: italic 100px Georgia, serif; fill: #a37b36; }
-.curiosity-artwork .stage-result-label { font-size: 20px; }
-.curiosity-artwork .stage-small { font-size: 15px; fill: #788571; }
-.curiosity-artwork .stage-gold { fill: #987435; font-weight: 600; }
-.curiosity-stage figcaption { text-align: center; font-size: 13px; letter-spacing: .08em; color: var(--ks-muted); margin-top: -14px; }
-.curiosity-artwork .stage-distribution text { font-size: 12px; }
+
+.curiosity-viewport {
+  position: relative;
+  border-radius: 26px;
+  overflow: hidden;
+  border: 1px solid rgba(18, 62, 56, 0.12);
+  background: #ffffff;
+  box-shadow:
+    0 28px 72px -28px rgba(15, 58, 52, 0.2),
+    0 4px 16px -6px rgba(15, 58, 52, 0.08);
+}
+
+.curiosity-chrome {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(18, 62, 56, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.curiosity-live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--ks-accent-soft);
+  border: 1px solid rgba(15, 150, 125, 0.24);
+  font-family: var(--ks-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--ks-accent-strong);
+  white-space: nowrap;
+}
+
+.curiosity-live-pill i {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ks-accent);
+  animation: live-pulse 2.2s ease-in-out infinite;
+}
+
+.curiosity-chapters {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.curiosity-chapter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8.5px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ks-muted);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.curiosity-chapter-btn em {
+  font-style: normal;
+  font-family: var(--ks-font-mono);
+  font-size: 10px;
+  color: var(--ks-muted-dim);
+}
+
+.curiosity-chapter-btn:hover:not(:disabled) {
+  background: var(--ks-surface-soft);
+  color: var(--ks-ink);
+}
+
+.curiosity-chapter-btn.is-active {
+  background: var(--ks-warm-soft);
+  border-color: rgba(224, 141, 48, 0.34);
+  color: var(--ks-warm-deep);
+}
+
+.curiosity-chapter-btn.is-active em {
+  color: var(--ks-warm);
+}
+
+.curiosity-pause-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--ks-line);
+  background: var(--ks-surface-soft);
+  color: var(--ks-muted);
+  font-size: 9px;
+  margin-left: 2px;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.curiosity-pause-btn:hover {
+  background: #ffffff;
+  border-color: var(--ks-line-strong);
+  color: var(--ks-ink);
+}
+
+.curiosity-theatre {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 800 / 560;
+  margin-inline: auto;
+  pointer-events: none;
+}
+
+.curiosity-artwork {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.curiosity-artwork text {
+  font-family: var(--ks-font-sans);
+}
+
+.curiosity-artwork .stage-question {
+  font-family: var(--ks-font-serif);
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  fill: #122926;
+}
+
+.curiosity-artwork .stage-equation {
+  font-family: Georgia, serif;
+  font-size: 20px;
+  font-weight: 600;
+  fill: #1b4640;
+}
+
+.curiosity-artwork .stage-axis {
+  font-size: 13px;
+  font-weight: 500;
+  fill: #617d79;
+}
+
+.curiosity-artwork .stage-gold {
+  fill: #c97a16;
+  font-weight: 700;
+}
+
+.curiosity-artwork .stage-pill-text {
+  font-size: 13px;
+  font-weight: 600;
+  fill: #ffffff;
+}
+
+.curiosity-artwork .stage-small {
+  font-size: 14px;
+  font-weight: 500;
+  fill: #516f6b;
+}
+
+.curiosity-artwork .stage-micro {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.curiosity-artwork .stage-polarity {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.curiosity-artwork .logo-word-knowledge {
+  font-family: Georgia, "Noto Serif SC", "Times New Roman", serif;
+  font-size: 44px;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  fill: #0e2421;
+}
+
+.curiosity-artwork .logo-word-show {
+  font-family: Georgia, "Noto Serif SC", "Times New Roman", serif;
+  font-size: 44px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.curiosity-artwork .logo-word-paren {
+  font-family: var(--ks-font-sans);
+  font-size: 38px;
+  font-weight: 300;
+  fill: #84a7a0;
+}
+
+.curiosity-artwork .logo-word-me {
+  font-family: Georgia, "Noto Serif SC", "Times New Roman", serif;
+  font-style: italic;
+  font-size: 40px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  fill: #c8791c;
+}
+
+.curiosity-artwork .logo-tagline {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  fill: #5a7874;
+}
+
+.curiosity-footer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-top: 1px solid rgba(18, 62, 56, 0.08);
+  background: rgba(248, 250, 247, 0.94);
+}
+
+.curiosity-takeaway {
+  font-size: 12.5px;
+  color: var(--ks-muted);
+  min-width: 0;
+}
+
+.curiosity-try-btn {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--ks-accent-soft);
+  border: 1px solid rgba(15, 150, 125, 0.28);
+  color: var(--ks-accent-strong);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.curiosity-try-btn:hover {
+  background: #d2f1e9;
+  transform: translateY(-1px);
+}
+
+.curiosity-rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: rgba(18, 62, 56, 0.07);
+}
+
+.curiosity-rail-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #16a88c, #3b93e6, #eba03c);
+}
+
+@keyframes live-pulse {
+  50% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+}
+
 @media (min-width: 1001px) {
-  .curiosity-theatre { max-height: calc(100svh - 240px); }
+  .curiosity-theatre {
+    max-width: calc((100svh - 246px) * 1.428);
+  }
 }
-@media (max-width: 1000px) {
-  .curiosity-stage { margin: -8px -16px 0; }
-  .curiosity-stage figcaption { font-size: 12px; letter-spacing: .02em; }
+
+@media (max-width: 1140px) {
+  .curiosity-chapter-btn span {
+    display: none;
+  }
+  .curiosity-chapter-btn {
+    padding: 4px 8px;
+  }
 }
+
 @media (max-width: 600px) {
-  .curiosity-stage { width: 100%; max-width: 430px; margin: 4px auto 16px; overflow: clip; }
-  .curiosity-theatre { aspect-ratio: 560 / 480; }
-  .curiosity-artwork .stage-small { font-size: 18px; }
-  .curiosity-artwork .stage-axis { font-size: 17px; }
-  .curiosity-stage figcaption { margin: 10px 0 0; font-size: 12px; }
-  .curiosity-artwork .stage-distribution text { font-size: 16px; }
-  .stage-distribution [data-sum="3"],
-  .stage-distribution [data-sum="5"],
-  .stage-distribution [data-sum="9"],
-  .stage-distribution [data-sum="11"] { display: none; }
+  .curiosity-stage {
+    width: 100%;
+    max-width: 440px;
+    margin: 4px auto 8px;
+  }
+  .curiosity-viewport {
+    border-radius: 18px;
+  }
+  .curiosity-chrome {
+    padding: 8px 10px;
+  }
+  .curiosity-live-pill {
+    font-size: 9px;
+    padding: 3px 8px;
+  }
+  .curiosity-footer-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px 12px;
+  }
 }
-.curiosity-stage figcaption { display: grid; }
-.curiosity-stage figcaption > span { grid-area: 1 / 1; }
-.curiosity-artwork .pn-question { font-size: 25px; letter-spacing: .08em; fill: #315846; }
-.curiosity-artwork .pn-meter-label { font-size: 10px; fill: #738870; }
-.curiosity-artwork .pn-explanation { font-size: 17px; fill: #788571; }

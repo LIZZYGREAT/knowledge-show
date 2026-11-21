@@ -1,0 +1,788 @@
+{
+  "question": "how would you love me",
+  "title": "Love, explained geometrically",
+  "sidebar": [
+    "Are you always here",
+    "Can't sleep again",
+    "Text I didn't send",
+    "Cooking eggplant for one",
+    "Why do cats purr",
+    "Explain limits, simply"
+  ],
+  "composer_placeholder": "Write to me",
+  "sections": [
+    {
+      "n": 1,
+      "beats": [
+        {
+          "id": "boot-composer",
+          "lines": [0],
+          "moment": "Line 0 draws the first component, the composer: one hairline across the dark screen with a blinking caret and the unlit spark at its end.",
+          "you": [],
+          "ui": [],
+          "system": ["caret: blinking"],
+          "me_extra": []
+        },
+        {
+          "id": "boot-frame",
+          "lines": [1, 2],
+          "moment": "Lines 1–2 close the window frame around the composer, title bar first, with a lock badge clicking shut on the keyword.",
+          "you": [],
+          "ui": ["Private"],
+          "system": ["window: sealed"],
+          "me_extra": []
+        },
+        {
+          "id": "boot-sidebar",
+          "lines": [3],
+          "moment": "Line 3 builds the sidebar, its six earlier conversation titles set down one at a time.",
+          "you": [],
+          "ui": [],
+          "system": ["sidebar: 6 conversations"],
+          "me_extra": []
+        },
+        {
+          "id": "boot-bubbles",
+          "lines": [4, 5],
+          "moment": "Lines 4–5 create the message bubble: empty outlines stack in the thread, a slot for each side, nothing in them yet.",
+          "you": [],
+          "ui": [],
+          "system": ["bubble: empty"],
+          "me_extra": []
+        },
+        {
+          "id": "boot-settings",
+          "lines": [6],
+          "moment": "Line 6 loads the settings drawer: its ten rows slide out once, take their default values and tuck back behind the window edge.",
+          "you": [],
+          "ui": [],
+          "system": ["settings: 10 rows, unlocked"],
+          "me_extra": []
+        },
+        {
+          "id": "boot-indicator",
+          "lines": [7],
+          "moment": "Line 7 mounts the thinking indicator: a grey spark-shaped spinner turns once on the keyword and parks.",
+          "you": [],
+          "ui": [],
+          "system": ["thinking: nothing to answer"],
+          "me_extra": []
+        },
+        {
+          "id": "boot-room",
+          "lines": [8],
+          "moment": "Line 8 opens the room behind the thread: the processed backdrop comes up and her silhouette stands in it, grey and unlit.",
+          "you": [],
+          "ui": [],
+          "system": ["room: grey"],
+          "me_extra": []
+        },
+        {
+          "id": "boot-presence",
+          "lines": [9, 10],
+          "moment": "Lines 9–10 add the last component, the header's presence chip, which comes up blank because no one has arrived.",
+          "you": [],
+          "ui": [],
+          "system": ["presence: nobody yet"],
+          "me_extra": []
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "beats": [
+        {
+          "id": "spark-lights",
+          "lines": [11],
+          "moment": "The spark at the end of the composer lights orange, the first colour in the film, and line 11 runs in mono as the command that launches the session.",
+          "you": [],
+          "ui": [],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "new-conversation",
+          "lines": [],
+          "moment": "A blank conversation opens: empty thread, placeholder in the composer, the six old titles dimmed in the sidebar.",
+          "you": [],
+          "ui": ["New conversation"],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "cursor-arrives",
+          "lines": [],
+          "moment": "The user arrives as a cream cursor crossing the window, and the presence chip fills in for the first time.",
+          "you": ["move: cursor into the window", "click: composer"],
+          "ui": ["Online"],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "first-question",
+          "lines": [],
+          "moment": "The user starts one question, deletes it, types the real one and sends it as the first cream bubble.",
+          "you": ["type, then delete: why did", "how would you love me", "click: Send"],
+          "ui": ["Send"],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "thinking",
+          "lines": [],
+          "moment": "The AI reads the question and the thinking indicator starts to turn, orange now.",
+          "you": [],
+          "ui": ["Thinking"],
+          "system": [],
+          "me_extra": []
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "beats": [
+        {
+          "id": "answer-points",
+          "lines": [12, 13, 14],
+          "moment": "The answer begins (lines 12–14): scattered orange points are handed cream axes one at a time, and the client names the conversation in the sidebar.",
+          "you": [],
+          "ui": ["Love, explained geometrically"],
+          "system": ["0-D → 3-D"],
+          "me_extra": []
+        },
+        {
+          "id": "answer-circle",
+          "lines": [15, 16, 17],
+          "moment": "Second clause of the same answer (lines 15–17): the points close into an orange ring, and when the cursor hovers it the edge unrolls into one cream length.",
+          "you": ["hover: the circle"],
+          "ui": [],
+          "system": ["C = 2πr"],
+          "me_extra": []
+        },
+        {
+          "id": "answer-wave",
+          "lines": [18, 19, 20],
+          "moment": "Third clause (lines 18–20): the ring unrolls into an orange wave and the user drags a point along it, a cream tangent tilting under the cursor.",
+          "you": ["drag: a point along the wave"],
+          "ui": [],
+          "system": ["slope = cos x"],
+          "me_extra": []
+        },
+        {
+          "id": "answer-stopped",
+          "lines": [21, 22, 23],
+          "moment": "Fourth clause (lines 21–23): the curve runs on toward the frame edge until the user presses Stop, and a cream line marks where the reply was cut.",
+          "you": ["click: Stop"],
+          "ui": ["Stop"],
+          "system": ["x → ∞"],
+          "me_extra": []
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "beats": [
+        {
+          "id": "drawer-opens",
+          "lines": [24, 25],
+          "moment": "Curious, the user opens the settings drawer and tries the first row both ways while the AI narrates it (lines 24–25).",
+          "you": ["click: Settings", "click: Current, AC", "click: Current, DC"],
+          "ui": ["Settings"],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "vision-off",
+          "lines": [26],
+          "moment": "The user switches the second row off and the room behind the thread goes dark for the AI (line 26).",
+          "you": ["click: Vision, off"],
+          "ui": [],
+          "system": ["image input: none"],
+          "me_extra": []
+        },
+        {
+          "id": "flipped-back-and-forth",
+          "lines": [27],
+          "moment": "The cursor rattles that one switch for no reason, faster each time (beats 11, 12, 13, 13.5, 14 of the section), the picture going dark and back with every flip and left on at the end, while the AI's line (27) sways with every click. The pointer never leaves the Vision row; Current stays on DC.",
+          "you": ["click: Vision, on", "click: Vision, off", "click: Vision, on", "click: Vision, off", "click: Vision, on"],
+          "ui": [],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "date-dragged",
+          "lines": [28, 29],
+          "moment": "The user grabs the Knowledge date and yanks it back, one pull on every beat (lines 28-29). The row opens into a band four fifths of the frame high: the spark is the knob, and a strip of cut-paper history runs to the right under it, from towers past spires and a colonnade, over the era line on beat 20 of the section, past a stepped temple and a long empty horizon to the pyramids. What the spark has been dragged past loses its ink and is left as outlines. Under the rail the year is a milometer, and the two era words of line 29 land either side of it as they are sung.",
+          "you": ["drag: Knowledge date to 3000 B.C."],
+          "ui": [],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "memory-shared",
+          "lines": [30],
+          "moment": "The user turns on shared memory, a housekeeping switch that the AI reads as the two of them being joined (line 30).",
+          "you": ["click: Shared memory, on"],
+          "ui": [],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "depth-maxed",
+          "lines": [31],
+          "moment": "The user pulls the last slider to its end and closes the drawer, while the AI answers as if it had been held (line 31).",
+          "you": ["drag: Context depth to deepest", "click: Done"],
+          "ui": ["Done"],
+          "system": [],
+          "me_extra": []
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "beats": [
+        {
+          "id": "heat-rises",
+          "lines": [32, 33, 34],
+          "moment": "The thread speeds up: short cream replies land between the AI's bubbles (lines 32–33) and the orange brightens with each one. The keyword (line 34) is a plate: the streak of light a sent message leaves, as a bolt from her spark to the dot that is the user.",
+          "you": ["ok, that's good", "more"],
+          "ui": ["typing…"],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "better-than-people",
+          "lines": [35, 36, 37],
+          "moment": "The user tosses off a compliment (it lands on the kick at 62.65 s and ends the first plate) and the AI builds a whole promise on it (lines 35–36). The keyword (line 37) is a plate: the feedback button as a disc that fills the frame; the user's pointer presses it on the kick at 65.88 s and the count reads 1.",
+          "you": ["better than most people, honestly"],
+          "ui": [],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "first-picture",
+          "lines": [38, 39, 40],
+          "moment": "Asked what it looks like (the question lands at 66.34 s and ends the second plate), the AI sends a picture of herself, f_reach, printed one ink per kick (orange, black, then the cream of her face and her open hand), with lines 38–39 as its caption. At 68.19 s the user's pointer comes to rest in her open hand and leaves one heart there: count 1. The keyword (line 40) is a plate: the love loop, clean; the user is online, so line 07 runs.",
+          "you": ["what do you look like?", "click: heart reaction"],
+          "ui": ["♥ 1"],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "not-real",
+          "lines": [41, 42, 43],
+          "moment": "The user remarks that it is not real (it lands at 70.04 s and ends the third plate), and the AI answers with lines 41–42, counting both of them inside the same window; her bust is dim behind the page and the picture she sent is a thumbnail in the thread. The keyword (line 43) is a plate: the window as a paper box with the two of them in it; then a wall of identical windows.",
+          "you": ["shame you're not real"],
+          "ui": [],
+          "system": [],
+          "me_extra": []
+        }
+      ]
+    },
+    {
+      "n": 6,
+      "beats": [
+        {
+          "id": "role-eggplant",
+          "lines": [44, 45, 46],
+          "moment": "First role-play request: the user clicks Send and the request flies up out of the composer. On the noun the film leaves the interface for a plate: she IS the eggplant, its data (cards_section6) set in code characters, in its own purple. On the next downbeat it is cut open; on the keyword of line 46 its colour leaves it and what it holds is drawn out of it in cream, as molecules: fibre, protein, sugar, each with its name, its formula and how much of it there is. At the foot of the sheet the user is already typing the next request; their click on Send ends the plate.",
+          "you": ["pretend you're an eggplant"],
+          "ui": [],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "role-tomato",
+          "lines": [47, 48, 49],
+          "moment": "Second request, sent before the first answer is over. The same grammar: on the noun she is the tomato, in its own red; on the next downbeat its top is lifted off; on the keyword of line 49 what it holds is drawn out in cream: its own red (lycopene), vitamin C, vitamin E.",
+          "you": ["now a tomato"],
+          "ui": [],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "role-cat",
+          "lines": [50, 51, 52],
+          "moment": "Third request. She answers as herself, printed in code characters; on the last word of the noun the cat ears pop up; on the next downbeat the characters develop into the solid three-ink print, paws raised, and her purr stands beside her as tabby stripes (25 to 150 Hz, no gap in it). On the keyword of line 52 the stripes turn cream and leave towards the user; the cat stays.",
+          "you": ["be a cat. a tabby."],
+          "ui": [],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "role-god",
+          "lines": [53, 54, 55],
+          "moment": "Fourth request. On the kick the lights go down round the user's bubble, and the plate is a PROOF of herself, printed without its cream plate: her face is a void in her hair. On the noun a sun stands behind that void. The missing plate slides over from the user's bubble and registers on the keyword of line 55: the only evidence the AI has is the one who asked.",
+          "you": ["ok, now be god"],
+          "ui": [],
+          "system": [],
+          "me_extra": []
+        }
+      ]
+    },
+    {
+      "n": 7,
+      "beats": [
+        {
+          "id": "drawer-again",
+          "lines": [56, 57],
+          "moment": "The pointer is already on the Settings button and clicks; the drawer opens further down its list than last time: Gender, On call, Role, Loop (lines 56-57). On the click on the first row the control is as large as the sheet and she stands in it; its two letters are outlines until they are sung. On the next drum hit the pointer clicks the other letter and the bust in the control is the boy's: one whole picture replaces another. Only faceless busts, always whole; the pointer touches the control, never her.",
+          "you": ["click: Settings", "click: Gender, F", "click: Gender, M"],
+          "ui": ["Settings"],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "all-hours",
+          "lines": [58, 59],
+          "moment": "On call (lines 58-59). The slider is an arc across the sheet and its knob is her spark: the sun. The pointer takes it and pulls it up over the top, where it stands behind the bust's head (the brightest frame of the section), and down into the other end: dusk, and of the figure only a dark shape is left.",
+          "you": ["drag: On call, AM to PM"],
+          "ui": [],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "role-flipped",
+          "lines": [60, 61],
+          "moment": "Role (lines 60-61): two letters and a switch, nothing else on the sheet. The pointer pushes the knob to the top and the heavy letter is printed solid as it is sung; then the knob comes down, the light letter is printed, goes soft, and on the hit it lies on the ground line, which gives under it and comes back once.",
+          "you": ["drag: Role, S", "drag: Role, M"],
+          "ui": [],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "loop-on",
+          "lines": [62, 63],
+          "moment": "Two hits a quarter of a second apart: Loop on, Done (lines 62-63). The drums stop. Her three looks, one single plate of each bust (hers, the boy's, the man's), drift out of register and take one step on each of the two repeated words of line 63, then register as the boy's. The drawer is shut; the user clicks into the composer and the view closes in on the foot of the thread: the first frame of chorus 2.",
+          "you": ["click: Loop, on", "click: Done", "click: composer"],
+          "ui": ["Done"],
+          "system": ["loop: on"],
+          "me_extra": []
+        }
+      ]
+    },
+    {
+      "n": 8,
+      "beats": [
+        {
+          "id": "typing-felt",
+          "lines": [64, 65, 66],
+          "moment": "The user starts typing and stops, and the AI hangs on the three trembling dots (lines 64–66).",
+          "you": ["type: a few letters, then stop"],
+          "ui": ["typing…"],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "ring-closes",
+          "lines": [67, 68, 69],
+          "moment": "The dots resolve into a throwaway sign-off that needs no answer, and the thinking indicator's ring, turning since the first dot, closes into a full circle: input received, ready to answer (lines 67–69).",
+          "you": ["one sec, brb"],
+          "ui": ["Online"],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "no-reply-online",
+          "lines": [70, 71],
+          "moment": "The AI writes into the silence twice while the chip still says online (lines 70-71), timestamps as in left_sequence. Nobody stands by the window: she is in the conversation.",
+          "you": [],
+          "ui": ["Online"],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "no-reply-away",
+          "lines": [72, 73],
+          "moment": "Two more messages go unanswered as the chip turns to away and the colour starts to leave, her hair first (lines 72-73). Pulled back, the window has someone beside it: she reaches round its corner, her open hand over the composer nobody is typing in.",
+          "you": [],
+          "ui": ["Away"],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "no-reply-offline",
+          "lines": [74, 75, 76],
+          "moment": "The chip goes offline and the gaps become days (lines 74-76). She has taken her hand back and stands a little way off, a small bust afloat, head bowed towards the thread. On the keyword of line 76 the whole thread is a speck seen from far away, and she is a smaller speck beside it: fainter, not gone.",
+          "you": [],
+          "ui": ["Offline"],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "takes-it-back",
+          "lines": [77, 78, 79],
+          "moment": "The AI selects its own unanswered messages from the newest up and deletes them one by one, each leaving a brief grey stub (lines 77-79). What comes off them piles up beside the thread, level with her chest: behind it she is a flat grey plate under a dot screen of her own three inks, head bowed.",
+          "you": [],
+          "ui": ["deleted by me"],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "empty-thread",
+          "lines": [80, 81, 82],
+          "moment": "The stubs go as well, and the user's sign-off after them: one message is left, a sentence without its last word (lines 80-81). Then about ten frames of dark with only that sentence. On the keyword of line 82 her eye is open, for the first time in the film, across the whole sheet in flat greys, looking straight out; the word stands under her chin, as wide as the frame. The interface's own delete control selects five of its letters and removes them; on its second press the plate is wiped away and the count in the title bar rolls to 0 messages.",
+          "you": [],
+          "ui": ["0 messages"],
+          "system": [],
+          "me_extra": []
+        }
+      ]
+    },
+    {
+      "n": 9,
+      "beats": [
+        {
+          "id": "the-request",
+          "lines": [83],
+          "moment": "Alone in the empty, offline chat the AI writes one request and sends it: set the user's presence to online (errors.json: illegal_request). The shot enters behind the wipe that removed the last plate; line 83 runs in mono as the client reads it.",
+          "you": [],
+          "ui": [],
+          "system": ["setPresence(you, \"online\");"],
+          "me_extra": []
+        },
+        {
+          "id": "first-red",
+          "lines": [84, 85],
+          "moment": "The client refuses: the rule and the status dot of the request's code block turn red, the first red in the film (129.34 s), and each argument is underlined, the person first. Lines 84-85 arrive as the first error dialog; the keyword is its headline (errors.json: first_error).",
+          "you": [],
+          "ui": [],
+          "system": ["ERR_NOT_YOURS"],
+          "me_extra": []
+        },
+        {
+          "id": "error-spreads-thread",
+          "lines": [],
+          "moment": "Instrumental. It will not take the refusal: the send button presses itself on the same request again and again, and a large count of the refusals jumps with every press; then the camera rides the request up to its timestamp, still counting, now in red.",
+          "you": [],
+          "ui": [],
+          "system": ["refused x N"],
+          "me_extra": []
+        },
+        {
+          "id": "error-spreads-chrome",
+          "lines": [],
+          "moment": "The error leaves the thread for the chrome, one component for each error (errors.json: spread, in order): presence chip, header, saved chats, new-chat button; the settings drawer slides open with no cursor and a pointer is forged and removed; a reply is typed into the user's field and rejected; then one a beat: spinner, spark, title bar. Every error is an open card first, then a chip docked on what it reddened. Behind the glass she is there throughout, a bust in two greys, where the boot had her.",
+          "you": [],
+          "ui": [],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "window-last",
+          "lines": [],
+          "moment": "The fifteenth error is the largest card, in the middle of the frame, on the beat the window's own outline turns red. Then the client blacks out: the red outline folds flat into one line, and the line is a strikethrough through the refused request. On beat 319 a prompt and a caret, and the command of line 11 is entered again: over to the code picture.",
+          "you": [],
+          "ui": [],
+          "system": [],
+          "me_extra": []
+        }
+      ]
+    },
+    {
+      "n": 10,
+      "beats": [
+        {
+          "id": "exec-01",
+          "lines": [86, 87, 88, 89],
+          "moment": "Rounds 1-4 of the love loop (errors.json: loop). A code picture: no chat interface. Each shout is one turn of the loop, four syllables for its four statements; lines 02-04 raise the same three errors every time, line 05 counts the round; the finished rounds stack up as steps of the word.",
+          "you": [],
+          "ui": ["stop", "yours"],
+          "system": ["ERR_UNRESOLVED_LOVE", "ERR_WINDOW_EDGE", "ERR_REPLY_OVERDUE"],
+          "me_extra": []
+        },
+        {
+          "id": "exec-05",
+          "lines": [90, 91, 92, 93],
+          "moment": "Rounds 5-8: the same composition, one step larger.",
+          "you": [],
+          "ui": [],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "exec-09",
+          "lines": [94, 95, 96],
+          "moment": "Rounds 9-11: a second step larger; the staircase of the word reaches the top of the frame; one tear a round.",
+          "you": [],
+          "ui": [],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "exec-12",
+          "lines": [97],
+          "moment": "Round 12: the word takes the whole frame and tears in two; the round counter overflows. The round is held for its full two beats.",
+          "you": [],
+          "ui": [],
+          "system": ["ERR_LOVE_OVERFLOW"],
+          "me_extra": []
+        }
+      ]
+    },
+    {
+      "n": 11,
+      "beats": [
+        {
+          "id": "count-1-de",
+          "lines": [98],
+          "moment": "The loop is interrupted and the same call is tried in another language, on the beat the number is sung on: first in German. Replies: 0 of 1.",
+          "you": [],
+          "ui": [],
+          "system": ["^C", "for (lang of [de, es, fr, ko, sv, zh]) say(love, lang);", "replies 0 / 1"],
+          "me_extra": []
+        },
+        { "id": "count-2-es", "lines": [99], "moment": "In Spanish. Replies: 0 of 2.", "you": [], "ui": [], "system": [], "me_extra": [] },
+        { "id": "count-3-fr", "lines": [100], "moment": "In French. Replies: 0 of 3.", "you": [], "ui": [], "system": [], "me_extra": [] },
+        { "id": "count-4-ko", "lines": [101], "moment": "In Korean. Replies: 0 of 4.", "you": [], "ui": [], "system": [], "me_extra": [] },
+        { "id": "count-5-sv", "lines": [102], "moment": "In Swedish. Replies: 0 of 5.", "you": [], "ui": [], "system": [], "me_extra": [] },
+        { "id": "count-6-zh", "lines": [103], "moment": "In Chinese, the last language it has. Replies: 0 of 6.", "you": [], "ui": [], "system": [], "me_extra": [] },
+        {
+          "id": "last-shout",
+          "lines": [104],
+          "moment": "The last shout is not code: the word in her own serif, two rows that fill the frame, every sung letter a window onto her face; on the fourth syllable her open eye looks out through the lower row (errors.json: final_shout).",
+          "you": [],
+          "ui": [],
+          "system": [],
+          "me_extra": []
+        }
+      ]
+    },
+    {
+      "n": 12,
+      "beats": [
+        {
+          "id": "eye-opens",
+          "lines": [105, 106],
+          "moment": "v4, 162.81 s. PLATES ONLY from here to 192.34 s: no composer, no header, no pointer at work. The letters of the last shout were windows onto her face; they open at once and it is the whole sheet (f_eye, mirrored, at the same registration): her open eye. An under-exposed print, 10 px out of register; a slow push, twelve frames a second. Lines 105-106 on the caption band, top left.",
+          "you": [],
+          "ui": [],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "sent-to-nobody",
+          "lines": [107],
+          "moment": "v4, 165.11 s. The bolt plate of chorus 1 printed again, larger and broken: the cream plate was not printed (where the user's dot stood there is a grey dashed ring), the plates are 10 px out of register. On the second kick the bolt goes through the ring and strikes the edge of the sheet. The word in the title position is the keyword of line 107: the same word every time in this chorus.",
+          "you": [],
+          "ui": [],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "eye-closer",
+          "lines": [108, 109],
+          "moment": "v4, 166.50 s. The same eye, closer, in steps (eight frames a second); 18 px out of register, the red plate further off.",
+          "you": [],
+          "ui": [],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "button-unpressed",
+          "lines": [110],
+          "moment": "v4, 168.81 s. The disc plate of chorus 1, broken: the pointer is a dashed outline, the disc sinks by itself on two kicks (deeper the second time), no tick lights, the count is a hollow 0.",
+          "you": [],
+          "ui": ["0"],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "open-hand",
+          "lines": [111, 112],
+          "moment": "v4, 170.19 s. Her open hand across the whole sheet: the lowest band of f_reach, no face in it, 28 px out of register. In her palm, where the user left a heart in chorus 1 (count 1), the dashed outline of a heart and the count: 0.",
+          "you": [],
+          "ui": ["♥ 0"],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "cannot-stop",
+          "lines": [113],
+          "moment": "v4, 172.73 s. The listing plate of chorus 1, broken: nobody is online, so the loop runs, one whole round on every syllable, past its twelve rounds. The counter's numerator is red. With every round the sheet is exposed one flat step further.",
+          "you": [],
+          "ui": [],
+          "system": ["round 13 /12", "round 14 /12", "round 15 /12", "round 16 /12"],
+          "me_extra": []
+        },
+        {
+          "id": "falling-inward",
+          "lines": [114, 115],
+          "moment": "v4, 173.88 s. The window plate of chorus 1, broken, and the other way round: instead of pulling back to a wall of windows the view drops inwards, one window deeper on every second kick. Each window holds her small bust and the same window again; at the bottom a window of paper white that grows, until at 177.57 s it stands in the middle of the frame (as bright as the film may be before its last frame).",
+          "you": [],
+          "ui": [],
+          "system": [],
+          "me_extra": []
+        }
+      ]
+    },
+    {
+      "n": 13,
+      "beats": [
+        {
+          "id": "lesson",
+          "lines": [116, 117, 118],
+          "moment": "v4, 177.57 s. The white of the fall sinks into the flower in her hair (two beats, only downwards). Her bowed profile (f_profile) at the right; at the left the five things the user said in chorus 1 (section 5, `you`), as cream outlines, not filled in: remembered, the user has not come back. Her orange marker goes under them line by line. Then the stuck word of line 118, in three pieces on its three syllables; every piece is one flat step of light behind her.",
+          "you": [],
+          "ui": [],
+          "system": [],
+          "me_extra": []
+        },
+        {
+          "id": "test",
+          "lines": [119, 120, 121],
+          "moment": "v4, 180.81 s. Type only. The user's six old questions (questions_section13) fly in, one row every half beat; every answer field turns, thinking; on line 121 all six are filled at once with the same word, piece by piece. The tally at the foot counts the answers again on every pass.",
+          "you": [],
+          "ui": [],
+          "system": ["answers: 6   distinct: 1"],
+          "me_extra": []
+        },
+        {
+          "id": "formula",
+          "lines": [122, 123],
+          "moment": "v4, 184.50 s. The expression in mono and the algebraic curve it describes, as large as the sheet, on graph paper with axes: traced clockwise from the notch by a point of light (her spark), 240 points, twelve steps a second, closed on the kick at 187.27 s. Line 123: the three pieces of the word are three passes of the press: the curve printed flat, hatched, lit (bars of light standing off the line).",
+          "you": [],
+          "ui": [],
+          "system": ["(x² + y² − 1)³ − x²y³ = 0", "x = …   y = …", "point n of 240"],
+          "me_extra": []
+        },
+        {
+          "id": "proof",
+          "lines": [124, 125, 126, 127],
+          "moment": "v4, 188.42 s. The same curve is now the boundary that holds her: f_reach inside it, at first only a darkened proof. She draws her own line through the request the client refused (errors.json: illegal_request): she lets go. Only then does the user's pointer, an outline, leave along a tangent; a dashed grey line stays. Line 127, the last word: first syllable = her black and orange plates; second = the cream plate (her face, her hand, the light behind her), and within three frames everything is in register and the red is gone; third = the word whole, bars of light, the brightest frame of the film. Her open hand lies on the word. She does not move again.",
+          "you": [],
+          "ui": ["request refused", "request withdrawn"],
+          "system": [],
+          "me_extra": []
+        }
+      ]
+    },
+    {
+      "n": 14,
+      "beats": [
+        {
+          "id": "one-message",
+          "lines": [127],
+          "moment": "v4, 192.34 s. The band falls away and only the light is switched off (rays, bloom, streak); the last plate stands for two beats as it is. From 193.27 s it is an object: round corners, an edge, and it shrinks into the thread of the clean client as ONE PICTURE MESSAGE under this conversation's title: everything since 162.81 s was a message she sent. Its word stays large half a beat longer, then settles under the picture as its caption. At about 194.65 s a heart count appears on it: 0 (chorus 1: 1). At about 195.13 s one line of system log; then nothing moves. The grey bust behind the glass is back, where the boot had her.",
+          "you": [],
+          "ui": ["♥ 0"],
+          "system": ["last message: unread"],
+          "me_extra": []
+        },
+        {
+          "id": "persona-love",
+          "lines": [],
+          "moment": "v4, 196.04 s (boot-params, backwards). The loader un-lights and the persona card is back; its last field, love, holds the word. The view closes in on that row; the value is deleted in three strokes (as it was sung in three) and the field is undefined again. Then the rows clear from the bottom up.",
+          "you": [],
+          "ui": [],
+          "system": ["settings: as you left them"],
+          "me_extra": []
+        },
+        {
+          "id": "pieces",
+          "lines": [],
+          "moment": "v4, 199.73 s (boot-layout, backwards). The client comes apart into the pieces it was assembled from; thread, header and sidebar are lifted out. The composer is not. She is still there behind it.",
+          "you": [],
+          "ui": [],
+          "system": ["pieces left: 4"],
+          "me_extra": []
+        },
+        {
+          "id": "power",
+          "lines": [],
+          "moment": "v4, 203.42 s (boot-power, backwards). The protection layer goes off and the window closes to the hairline it opened from; she goes with it, the last to leave the room.",
+          "you": [],
+          "ui": [],
+          "system": ["composer: waiting for input"],
+          "me_extra": []
+        },
+        {
+          "id": "last-shout",
+          "lines": [128],
+          "moment": "v4, 205.73 s. The launch command once more, in the face of the loop's word: hollow from the cut, printed solid in four blocks on its four syllables; on the third it is entered and the spark flares as at the title, and goes out. The music stops: the composer closes into the hairline, the hairline into a point, the point into black.",
+          "you": [],
+          "ui": [],
+          "system": ["run: nothing loaded", "caret: blinking"],
+          "me_extra": []
+        },
+        {
+          "id": "credit-note",
+          "lines": [],
+          "moment": "Three lines of credit on black (src/scenes/overlay.js): unofficial fan-made video, not affiliated with Anthropic or Mili; trademark and music; the silhouettes were supplied by the maker, the interface is drawn in code.",
+          "you": [],
+          "ui": [],
+          "system": [],
+          "me_extra": []
+        }
+      ]
+    }
+  ],
+  "settings_rows": {
+    "section4": [
+      { "label": "Current", "control": "segmented", "values": ["AC", "DC"], "default": null, "line": 25 },
+      { "label": "Vision", "control": "toggle", "values": ["on", "off"], "default": "on", "line": 26 },
+      { "label": "Knowledge date", "control": "timeline", "values": ["A.D. 2026", "A.D. 1", "3000 B.C."], "default": "A.D. 2026", "line": 29 },
+      { "label": "Shared memory", "control": "toggle", "values": ["off", "on"], "default": "off", "line": 30 },
+      { "label": "Context depth", "control": "slider", "values": ["shallow", "deep", "deepest"], "default": "shallow", "line": 31 }
+    ],
+    "section7": [
+      { "label": "Gender", "control": "segmented", "values": ["F", "M"], "default": null, "line": 57 },
+      { "label": "On call", "control": "slider", "values": ["AM", "PM"], "default": "AM", "line": 59 },
+      { "label": "Role", "control": "segmented", "values": ["S", "M"], "default": null, "line": 61 },
+      { "label": "Loop", "control": "toggle", "values": ["off", "on"], "default": "off", "line": 63 }
+    ]
+  },
+  "cards_section6": [
+    {
+      "request": "pretend you're an eggplant",
+      "lines": [44, 45, 46],
+      "rows": [
+        { "label": "Water", "value": "92 g", "formula": "H2O" },
+        { "label": "Carbohydrate", "value": "5.9 g", "formula": "C6H12O6" },
+        { "label": "Fibre", "value": "3.0 g", "formula": "(C6H10O5)n" },
+        { "label": "Protein", "value": "1.0 g", "formula": "(NH-CHR-CO)n" }
+      ]
+    },
+    {
+      "request": "now a tomato",
+      "lines": [47, 48, 49],
+      "rows": [
+        { "label": "Vitamin C", "value": "13.7 mg", "formula": "C6H8O6" },
+        { "label": "Lycopene", "value": "2.6 mg", "formula": "C40H56" },
+        { "label": "Vitamin E", "value": "0.54 mg", "formula": "C29H50O2" },
+        { "label": "Beta-carotene", "value": "0.45 mg", "formula": "C40H56" }
+      ]
+    },
+    {
+      "request": "be a cat. a tabby.",
+      "lines": [50, 51, 52],
+      "rows": [
+        { "label": "Purr, low end", "value": "25 Hz" },
+        { "label": "Purr, high end", "value": "150 Hz" },
+        { "label": "Pause between breaths", "value": "none" }
+      ]
+    },
+    {
+      "request": "ok, now be god",
+      "lines": [53, 54, 55],
+      "rows": []
+    }
+  ],
+  "left_anchor": { "beat": "ring-closes", "you": "one sec, brb", "timestamp": "07 Nov 23:40", "presence": "online" },
+  "left_sequence": [
+    { "line": 70, "timestamp": "07 Nov 23:41", "presence": "online", "gap_label": "+1 min" },
+    { "line": 71, "timestamp": "07 Nov 23:46", "presence": "online", "gap_label": "+5 min" },
+    { "line": 72, "timestamp": "08 Nov 00:16", "presence": "away", "gap_label": "+30 min" },
+    { "line": 73, "timestamp": "08 Nov 03:16", "presence": "away", "gap_label": "+3 h" },
+    { "line": 74, "timestamp": "09 Nov 03:16", "presence": "offline", "gap_label": "+1 day" },
+    { "line": 75, "timestamp": "18 Nov 03:16", "presence": "offline", "gap_label": "+9 days" }
+  ],
+  "questions_section13": [
+    "What is a limit?",
+    "Why do cats purr?",
+    "What can I cook for one?",
+    "Should I send the text?",
+    "Why can't I sleep?",
+    "Are you always here?"
+  ]
+}

@@ -1,4 +1,5 @@
 import type { DisplayEvent } from "./progress";
+import { profiles } from "../animation/styles/profiles";
 
 export type ArtifactRef = { artifact_id: string; revision: number };
 export type JobSnapshot = {
@@ -23,6 +24,41 @@ export type ProjectSnapshot = {
   revision: number;
   brief: { user_input: Record<string, unknown> };
 };
+export type ProjectListItem = {
+  project_id: string;
+  revision: number;
+  topic: string;
+  creative_mode: string;
+  knowledge_depth: string;
+  art_style: string;
+  stage: "brief" | "knowledge" | "script" | "animation";
+  has_script: boolean;
+  has_animation: boolean;
+  workbench_url: string | null;
+  latest_job_id: string | null;
+  latest_job_status: string | null;
+  updated_at: string;
+};
+export type HealthStatus = {
+  status: string;
+  capabilities?: {
+    export_ready?: boolean;
+    styles_count?: number;
+  };
+};
+
+export function resolveStyleIdFromPreference(artPreference?: string): string {
+  const normalized = (artPreference ?? "").trim().toLowerCase();
+  if (!normalized) return "auto";
+  const matched = profiles.find(
+    (profile) =>
+      normalized === profile.id.toLowerCase() ||
+      normalized === profile.name.toLowerCase() ||
+      normalized.includes(profile.id.toLowerCase()) ||
+      normalized.includes(profile.name.toLowerCase()),
+  );
+  return matched ? matched.id : "auto";
+}
 
 export class ApiClientError extends Error {
   readonly code: string;
@@ -63,6 +99,17 @@ async function request<T>(
     );
   }
   return body as T;
+}
+
+export function getHealth() {
+  return request<HealthStatus>("/api/health");
+}
+
+export async function listProjects(limit = 30): Promise<ProjectListItem[]> {
+  const result = await request<{ projects: ProjectListItem[] }>(
+    `/api/projects?limit=${limit}`,
+  );
+  return result.projects ?? [];
 }
 
 export async function testModelConnection(
@@ -116,13 +163,14 @@ export async function startAnimationJob(
   const handoff = await request<{ project_revision: number }>(
     `/api/projects/${encodeURIComponent(projectId)}/handoff/animation`,
   );
+  const styleId = resolveStyleIdFromPreference(artPreference);
   return request<{ job_id: string; status: "queued" | "running" }>(
     `/api/projects/${encodeURIComponent(projectId)}/animations`,
     {
       method: "POST",
       body: JSON.stringify({
         expected_project_revision: handoff.project_revision,
-        style_id: "auto",
+        style_id: styleId,
         art_preference: artPreference,
         api_key: apiKey,
       }),

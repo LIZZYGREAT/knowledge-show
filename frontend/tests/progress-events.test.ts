@@ -4,6 +4,7 @@ import {
   displayEventsAfter,
   latestDisplayEventSeq,
 } from "../src/common/progress";
+import { computeFineProgress } from "../src/features/progress/GraduatedStageBar";
 
 describe("display event adapter", () => {
   it("keeps only bounded, stage-consistent, ordered user-facing events", () => {
@@ -57,5 +58,38 @@ describe("display event adapter", () => {
     expect(displayEventsAfter(events, 3)).toEqual([]);
     expect(adaptDisplayEvents("", events)).toEqual([]);
     expect(adaptDisplayEvents("JOB_d", "not-an-array")).toEqual([]);
+  });
+
+  it("computes strict zero initial progress and advances smoothly tick-by-tick across events", () => {
+    const start = computeFineProgress({
+      knowledge: "pending",
+      script: "pending",
+      animation: "pending",
+    });
+    expect(start).toBe(0);
+
+    const k1 = computeFineProgress(
+      { knowledge: "running", script: "pending", animation: "pending" },
+      { knowledge: 1 },
+    );
+    const k3 = computeFineProgress(
+      { knowledge: "running", script: "pending", animation: "pending" },
+      { knowledge: 3 },
+    );
+    const kDone = computeFineProgress({
+      knowledge: "completed",
+      script: "pending",
+      animation: "pending",
+    });
+    const allDone = computeFineProgress({
+      knowledge: "completed",
+      script: "completed",
+      animation: "completed",
+    });
+
+    expect(k1).toBeGreaterThan(0);
+    expect(k3).toBeGreaterThan(k1);
+    expect(kDone).toBeCloseTo(1 / 3, 2);
+    expect(allDone).toBe(1);
   });
 });

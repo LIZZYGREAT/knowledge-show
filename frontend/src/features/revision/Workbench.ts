@@ -1,5 +1,6 @@
 import type { AnimationPlayer } from '../../animation/runtime/AnimationPlayer';
 import type { AnimationBundle, ArtifactRef } from '../../animation/runtime/BundleTypes';
+import { WEM_ELEMENT_METADATA } from '../../animation/scenes/world-execute-me/demoBundle';
 import { profiles } from '../../animation/styles/profiles';
 
 type Selection = { kind: 'scene' | 'clip' | 'render_element'; id: string; clipId: string; start: number; end: number; artifact: ArtifactRef; label?: string };
@@ -10,6 +11,7 @@ const overlay = el('selectionOverlay'), status = el('statusMessage'), input = el
 el<HTMLSelectElement>('styleSelect').replaceChildren(...profiles.map(profile => new Option(profile.name, profile.id)));
 const params = new URLSearchParams(location.search);
 const projectId = params.get('project_id');
+const demoId = params.get('demo') === 'pn' ? 'pn' : 'wem';
 let bundle: AnimationBundle, bridge: Bridge | undefined, selected: Selection | null = null;
 let time = 0, viewStart = 0, viewEnd = 165000, mode = 'scene', playing = false;
 let unsubscribe: (() => void) | undefined, resize: ResizeObserver | undefined;
@@ -59,7 +61,7 @@ function addClip(lane: HTMLElement, label: string, selection: Selection, index: 
   button.dataset.startMs = String(selection.start); button.dataset.endMs = String(selection.end);
   button.textContent = label; button.title = `${label} ${fmt(selection.start)}–${fmt(selection.end)}`;
   button.style.left = `${(start - viewStart) / (viewEnd - viewStart) * 100}%`; button.style.width = `${(end - start) / (viewEnd - viewStart) * 100}%`;
-  button.style.background = ['#d6e7cf', '#ccdbe8', '#ecd8b5'][index % 3];
+  button.dataset.tone = String(index % 3);
   selection = { ...selection, label };
   button.draggable = true;
   button.onclick = event => { event.stopPropagation(); choose(selection); };
@@ -81,7 +83,7 @@ function rebuild() {
   } else {
     const metadata = new Map(bridge!.getSelectableElements().map(e => [e.id, e.label]));
     for (const resource of Object.values(bundle.resources)) for (const object of resource.objects ?? []) metadata.set(object.id, object.label);
-    for (const [id, label] of Object.entries({EL_S01_JUNCTION:'结本体',EL_S01_CARRIERS:'载流子群',EL_S01_METER:'电流仪表',EL_PN_FIXED_IONS:'固定离子',EL_PN_BARRIER:'势垒地形',EL_PN_FIELD:'内建电场',EL_PN_WAVES:'输入与输出波形'})) metadata.set(id, label);
+    for (const [id, label] of Object.entries({EL_S01_JUNCTION:'结本体',EL_S01_CARRIERS:'载流子群',EL_S01_METER:'电流仪表',EL_PN_FIXED_IONS:'固定离子',EL_PN_BARRIER:'势垒地形',EL_PN_FIELD:'内建电场',EL_PN_WAVES:'输入与输出波形',...WEM_ELEMENT_METADATA})) metadata.set(id, label);
     bundle.manifest.selectable_elements.forEach((element, index) => {
       const lane = addLane(element.source_ref?.kind === 'timed_text' ? '文字' : '对象');
       for (const clip of bundle.manifest.clips) {
@@ -143,7 +145,7 @@ async function openVersion(artifact?: ArtifactRef) {
     if (ready.status !== 'ready' && !artifact) throw new Error(ready.message ?? '动画预览尚未就绪。');
     const target = artifact ?? ready.artifact_ref;
     iframe.src = `/animation-render.html?bundle=${encodeURIComponent(`/api/projects/${projectId}/animations/${target.artifact_id}/r${target.revision}/bundle`)}`;
-  } else iframe.src = `/animation-render.html?demo=pn&style=${style}`;
+  } else iframe.src = `/animation-render.html?demo=${demoId}&style=${style}`;
   el('load').style.display = 'grid';
 }
 function connect() {
@@ -151,7 +153,7 @@ function connect() {
   bridge = api; bundle = api.bundle; selected = null; overlay.style.display = 'none';
   time = 0; viewStart = 0; viewEnd = bundle.manifest.total_duration_ms;
   el('load').style.display = 'none'; el('durBadge').textContent = fmt(viewEnd);
-  el('versionBadge').textContent = `${projectId ? '已发布动画' : '固定 PN 样片'} · r${bundle.manifest.revision}`;
+  el('versionBadge').textContent = `${projectId ? '已发布动画' : demoId === 'pn' ? '固定 PN 样片' : 'world.execute(me); 参考样片'} · r${bundle.manifest.revision}`;
   el('stageFoot').textContent = `${bundle.script.core_message.slice(0, 50)}`;
   const actualStyle = Object.values(bundle.resources)[0].style;
   if (![...el<HTMLSelectElement>('styleSelect').options].some(o => o.value === actualStyle.id)) el<HTMLSelectElement>('styleSelect').add(new Option(actualStyle.name, actualStyle.id));

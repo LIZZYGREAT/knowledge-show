@@ -1,66 +1,109 @@
 import { useId } from "react";
 import "./editorial-ornament.css";
 
-type Leaf = readonly [number, number, number, number];
-function Leaves({ leaves }: { leaves: readonly Leaf[] }) {
-  return <>{leaves.map(([x, y, rotate, scale], i) => (
-    <g key={i} transform={`translate(${x} ${y}) rotate(${rotate}) scale(${scale})`}>
-      <path className="ornament-leaf" d="M0 0 C-8 -8 -8 -22 0 -31 C10 -21 10 -8 0 0Z" />
-      <path className="ornament-vein" d="M0 -1 Q2 -13 0 -27" />
-    </g>
-  ))}</>;
-}
-
-export function EditorialOrnament({ variant = "river", className = "" }: {
-  variant?: "river" | "sprig" | "hem"; className?: string;
+export function EditorialOrnament({
+  variant = "river",
+  className = "",
+}: {
+  variant?: "river" | "sprig" | "hem";
+  className?: string;
 }) {
   const id = useId().replace(/:/g, "");
-  if (variant === "sprig") return (
-    <svg className={`editorial-ornament ornament-sprig ${className}`} viewBox="0 0 180 110" aria-hidden="true" focusable="false">
-      <path className="ornament-stem" d="M8 102 C61 96 112 63 161 12 M38 94 Q61 67 62 43 M76 77 Q104 76 130 83 M112 53 Q115 30 110 14" />
-      <Leaves leaves={[[41, 92, -62, .7], [56, 78, -18, .85], [65, 62, 32, .58], [79, 76, 65, .8], [101, 61, -34, .9], [119, 45, 56, .78], [137, 29, -13, .64], [116, 79, 105, .48]]} />
-      <path className="ornament-gold" d="M20 107 C72 106 120 73 158 38" />
-      <circle className="ornament-gold-dot" cx="163" cy="26" r="2.5" />
-      <circle className="ornament-dot" cx="88" cy="43" r="1.6" />
-      <path className="ornament-tick" d="M139 62l5 4m2-14 6 2m-16 18 3 4" />
-    </svg>
-  );
-  if (variant === "hem") return (
-    <svg className={`editorial-ornament ornament-hem ${className}`} viewBox="0 0 300 40" aria-hidden="true" focusable="false">
-      <path className="ornament-stem" d="M4 24 C56 9 96 36 149 22 S236 10 296 22" />
-      <path className="ornament-gold" d="M36 30 Q97 38 160 26 T268 27" />
-      <path className="ornament-stem" d="M179 17 Q195 12 209 2" />
-      <Leaves leaves={[[185, 15, -45, .43], [198, 10, 28, .43], [217, 15, 80, .34]]} />
-      <circle className="ornament-gold-dot" cx="24" cy="22" r="2" />
-      <path className="ornament-tick" d="M239 8v-3m9 5 1-4m9 7 2-3" />
-    </svg>
-  );
+
+  if (variant === "sprig") {
+    return (
+      <svg
+        className={`editorial-ornament ornament-sprig ${className}`}
+        viewBox="0 0 160 88"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <path
+          className="ornament-stem"
+          d="M14 70 L14 26 Q14 14 26 14 L76 14"
+        />
+        <path
+          className="ornament-gold"
+          d="M28 54 C54 48 82 32 128 18"
+        />
+        <circle className="ornament-gold-dot" cx="132" cy="17" r="2.6" />
+        <circle className="ornament-dot" cx="26" cy="14" r="2" />
+        <path
+          className="ornament-tick"
+          d="M92 14h6m8 0h10M14 40h6m-6 14h4"
+        />
+      </svg>
+    );
+  }
+
+  if (variant === "hem") {
+    return (
+      <svg
+        className={`editorial-ornament ornament-hem ${className}`}
+        viewBox="0 0 280 26"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <path className="ornament-stem" d="M6 13 H122 M158 13 H274" />
+        <path className="ornament-gold" d="M132 13 L140 7 L148 13 L140 19 Z" />
+        <circle className="ornament-gold-dot" cx="140" cy="13" r="1.8" />
+        <circle className="ornament-dot" cx="104" cy="13" r="1.5" />
+        <circle className="ornament-dot" cx="176" cy="13" r="1.5" />
+      </svg>
+    );
+  }
+
   return (
     <div className={`creation-flourish ${className}`} aria-hidden="true">
-      <svg className="editorial-ornament ornament-river" viewBox="0 0 1000 100" fill="none" focusable="false">
+      <svg
+        className="editorial-ornament ornament-river"
+        viewBox="0 0 1000 56"
+        fill="none"
+        focusable="false"
+      >
         <defs>
-          <linearGradient id={`${id}-wash`} x1="0" y1="0" x2="1" y2="0">
-            <stop stopColor="#9abda4" stopOpacity="0" />
-            <stop offset=".32" stopColor="#9abda4" stopOpacity=".22" />
-            <stop offset=".65" stopColor="#b9d1a6" stopOpacity=".35" />
-            <stop offset="1" stopColor="#9abda4" stopOpacity="0" />
+          <linearGradient id={`${id}-beam`} x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#0f967d" stopOpacity="0" />
+            <stop offset="28%" stopColor="#14b092" stopOpacity=".46" />
+            <stop offset="50%" stopColor="#e08d30" stopOpacity=".72" />
+            <stop offset="72%" stopColor="#14b092" stopOpacity=".46" />
+            <stop offset="100%" stopColor="#0f967d" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id={`${id}-glow`} x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#14b092" stopOpacity="0" />
+            <stop offset="50%" stopColor="#f2a94b" stopOpacity=".18" />
+            <stop offset="100%" stopColor="#14b092" stopOpacity="0" />
           </linearGradient>
         </defs>
-        <path d="M0 58 C140 20 192 84 347 54 S540 34 650 53 820 84 1000 43 L1000 52 C820 96 751 74 649 65 S477 31 348 65 140 36 0 67Z" fill={`url(#${id}-wash)`} />
-        {[0, 5, 10].map((y, i) => <path key={y} className="ornament-current" opacity={.65 - i * .17} transform={`translate(0 ${y})`} d="M0 54 C140 16 192 80 347 50 S540 30 650 49 820 80 1000 39" />)}
-        <path className="ornament-gold flourish-gold" d="M85 62 C199 90 290 66 380 49 S533 41 590 52 M675 64 Q799 91 934 56" />
+        <path
+          d="M40 28 C210 14 340 42 500 28 C660 14 790 42 960 28"
+          stroke={`url(#${id}-glow)`}
+          strokeWidth="12"
+        />
+        <path
+          className="ornament-current"
+          d="M40 28 C210 14 340 42 500 28 C660 14 790 42 960 28"
+          stroke={`url(#${id}-beam)`}
+        />
+        <path
+          className="ornament-gold flourish-gold"
+          d="M210 30 C320 40 420 20 500 28 C580 36 680 16 790 30"
+        />
         <g className="river-botanical">
-          <path className="ornament-stem" d="M122 48 Q176 36 219 5 M171 32 Q178 13 178 4 M788 63 Q830 47 866 12 M822 48 Q845 49 864 43" />
-          <Leaves leaves={[[145, 43, -67, .56], [167, 34, -35, .65], [186, 25, 42, .65], [204, 15, -13, .48], [803, 58, -45, .62], [822, 48, 64, .69], [842, 34, -20, .68], [854, 46, 85, .48]]} />
-          <path className="ornament-tick" d="m267 41 1-5m10 3 2-6m10 2 3-4m405 38 1 5m9-4 2 5m9-4 2 4" />
-          <circle className="ornament-gold-dot" cx="241" cy="38" r="2.4" />
-          <circle className="ornament-dot" cx="763" cy="70" r="2.2" />
-          <circle className="ornament-dot" cx="748" cy="76" r="1.2" />
-          <path className="ornament-gold" d="m488 43 4-5 4 5-4 5Z" />
+          <path
+            className="ornament-gold"
+            d="M492 28 L500 20 L508 28 L500 36 Z"
+          />
+          <circle className="ornament-gold-dot" cx="500" cy="28" r="2.2" />
+          <circle className="ornament-dot" cx="318" cy="25" r="1.8" />
+          <circle className="ornament-dot" cx="682" cy="31" r="1.8" />
+          <path
+            className="ornament-tick"
+            d="M180 28v-5m12 5v-3m628 3v-3m12 3v-5"
+          />
         </g>
         <g className="river-mobile">
-          <path className="ornament-stem" d="M630 48 Q662 33 680 15" />
-          <Leaves leaves={[[649, 37, -35, .55], [666, 28, 42, .55]]} />
+          <circle className="ornament-gold-dot" cx="500" cy="28" r="2.4" />
         </g>
       </svg>
     </div>

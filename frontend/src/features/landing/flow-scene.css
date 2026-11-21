@@ -1,26 +1,29 @@
 .living-flow-scene {
-  margin: -20px -28px -12px -30px;
+  margin: 0;
   min-width: 0;
   align-self: center;
   position: relative;
   view-transition-name: flow-scene;
   pointer-events: none;
 }
+
 .flow-theatre {
   position: relative;
   width: 100%;
   aspect-ratio: 800 / 640;
   isolation: isolate;
 }
+
 .flow-artwork {
   display: block;
   width: 100%;
   height: 100%;
   overflow: visible;
 }
+
 .idea-seed {
   display: block;
-  width: 4.2%;
+  width: 2.75%;
   aspect-ratio: 1;
   position: absolute;
   transform: translate(-50%, -50%);
@@ -28,62 +31,65 @@
   z-index: 2;
   border-radius: 50%;
   pointer-events: none;
-  border: 1px solid #d2b57b80;
-  background: #f3e7bd18;
+  border: 1.5px solid rgba(224, 141, 48, 0.72);
+  background: radial-gradient(circle, rgba(255, 246, 224, 0.96), rgba(242, 169, 75, 0.36) 72%);
+  box-shadow: 0 0 14px rgba(224, 141, 48, 0.36);
 }
+
 .idea-seed::after {
   content: "";
   position: absolute;
-  inset: -23%;
-  border: 1px solid #cfad7228;
+  inset: -28%;
+  border: 1px solid rgba(224, 141, 48, 0.24);
   border-radius: inherit;
 }
+
 .seed-core {
   display: block;
   position: absolute;
-  width: 24%;
-  height: 24%;
-  left: 38%;
-  top: 38%;
+  width: 44%;
+  height: 44%;
+  left: 28%;
+  top: 28%;
   border-radius: 50%;
-  background: #d5b36e;
-  box-shadow: 0 0 9px 3px #efd3a04d;
+  background: radial-gradient(circle at 35% 35%, #fff9e8, #f0a43b 62%, #cc7418 100%);
+  box-shadow: 0 0 8px 1px rgba(242, 169, 75, 0.55);
 }
+
 .living-flow-scene figcaption {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 16px;
   font-size: 11px;
-  letter-spacing: .14em;
+  letter-spacing: 0.14em;
   color: var(--ks-muted);
   margin-top: -3px;
 }
+
 .living-flow-scene figcaption span {
   width: 25px;
   height: 1px;
-  background: #cfad7280;
+  background: rgba(224, 141, 48, 0.5);
 }
+
 ::view-transition-old(flow-scene) {
-  animation: flow-gather .42s cubic-bezier(.4, 0, .8, .3) both;
+  animation: flow-gather 0.42s cubic-bezier(0.4, 0, 0.8, 0.3) both;
   transform-origin: 54% 54%;
 }
+
 ::view-transition-new(flow-scene) {
-  animation: flow-return .45s ease both;
+  animation: flow-return 0.45s ease both;
 }
+
 @keyframes flow-gather {
-  to { transform: scale(.08) rotate(-18deg); opacity: 0; filter: blur(3px); }
+  to {
+    transform: scale(0.08) rotate(-18deg);
+    opacity: 0;
+    filter: blur(3px);
+  }
 }
+
 @keyframes flow-return {
   from { opacity: 0; }
-}
-@media (max-width: 900px) {
-  .living-flow-scene { margin: -8px -16px 0; }
-  .living-flow-scene figcaption { gap: 8px; font-size: 10px; letter-spacing: .03em; }
-  .living-flow-scene figcaption span { width: 12px; }
-}
-@media (max-width: 600px) {
-  .living-flow-scene { margin: -12px 0 2px; }
-  .flow-theatre { aspect-ratio: 800 / 640; }
-  .living-flow-scene figcaption { margin-top: -12px; font-size: 10px; }
 }

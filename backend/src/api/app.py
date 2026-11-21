@@ -5,7 +5,10 @@ from __future__ import annotations
 import asyncio
 import ipaddress
 import logging
+import os
+import shutil
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
@@ -192,7 +195,59 @@ def create_app(
 
     @app.get("/api/health")
     async def health():
-        return {"status": "ok"}
+        ffmpeg = bool(os.getenv("ANIMATION_FFMPEG") or shutil.which("ffmpeg"))
+        ffprobe = bool(os.getenv("ANIMATION_FFPROBE") or shutil.which("ffprobe"))
+        return {
+            "status": "ok",
+            "capabilities": {
+                "export_ready": ffmpeg and ffprobe,
+                "styles_count": 4,
+            },
+        }
+
+    @app.get("/api/projects")
+    async def list_projects(limit: int = Query(default=30, ge=1, le=100)):
+        summaries: list[dict[str, Any]] = []
+        for project, mtime in projects.list_projects(limit=limit):
+            project_id = project["project_id"]
+            user_input = project["brief"].get("user_input", {})
+            artifacts = project.get("artifacts", {})
+            has_knowledge = artifacts.get("knowledge_package") is not None
+            has_script = artifacts.get("production_script") is not None
+            preview = (
+                animation_runtime.preview(project)
+                if animation_runtime is not None and artifacts.get("animation_manifest") is not None
+                else {"status": "not_ready"}
+            )
+            has_animation = preview.get("status") == "ready"
+            latest_job = jobs.latest_for_project(project_id)
+            stage = (
+                "animation"
+                if has_animation
+                else "script"
+                if has_script
+                else "knowledge"
+                if has_knowledge
+                else "brief"
+            )
+            summaries.append(
+                {
+                    "project_id": project_id,
+                    "revision": project["revision"],
+                    "topic": user_input.get("topic", ""),
+                    "creative_mode": user_input.get("creative_mode", "auto"),
+                    "knowledge_depth": user_input.get("knowledge_depth", "balanced"),
+                    "art_style": user_input.get("art_style", ""),
+                    "stage": stage,
+                    "has_script": has_script,
+                    "has_animation": has_animation,
+                    "workbench_url": preview.get("workbench_url") if has_animation else None,
+                    "latest_job_id": latest_job.get("job_id") if latest_job else None,
+                    "latest_job_status": latest_job.get("status") if latest_job else None,
+                    "updated_at": datetime.fromtimestamp(mtime, tz=timezone.utc).isoformat(),
+                }
+            )
+        return {"projects": summaries}
 
     @app.post("/api/model/test")
     async def test_model(body: ModelTestBody):

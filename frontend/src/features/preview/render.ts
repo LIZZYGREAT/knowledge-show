@@ -1,13 +1,18 @@
 import { AnimationPlayer } from '../../animation/runtime/AnimationPlayer';
 import { createSequence } from '../../animation/runtime/resourceResolver';
 import { demoBundle } from '../../animation/scenes/pn-junction/demoBundle';
+import { worldExecuteMeDemoBundle } from '../../animation/scenes/world-execute-me/demoBundle';
 import type { AnimationBundle } from '../../animation/runtime/BundleTypes';
 declare global { interface Window { animationBridge?: AnimationPlayer & { bundle: AnimationBundle }; animationRenderError?: string } }
 async function load() {
   const query = new URLSearchParams(location.search);
   let bundle: AnimationBundle;
-  if (query.has('demo')) bundle = demoBundle(query.get('style') ?? 'precision-science', Number(query.get('revision') ?? 1));
-  else {
+  if (query.has('demo')) {
+    const demoName = query.get('demo') || 'wem';
+    const style = query.get('style') ?? 'precision-science';
+    const revision = Number(query.get('revision') ?? 1);
+    bundle = demoName === 'pn' ? demoBundle(style, revision) : worldExecuteMeDemoBundle(style, revision);
+  } else {
     const source = query.get('bundle');
     const allowed = source && (source === '/bundle.json' || /^\/api\/projects\/[A-Za-z][A-Za-z0-9_-]{0,63}\/animations\/[A-Za-z][A-Za-z0-9_-]{0,63}\/r[1-9][0-9]*\/bundle$/.test(source));
     if (!allowed) throw new Error('无效的动画资源引用。');

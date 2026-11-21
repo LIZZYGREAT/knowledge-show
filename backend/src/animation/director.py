@@ -6,18 +6,34 @@ import math
 import re
 from typing import Any
 from knowledge.config import repository_root
+from .components import compile_components
 
 ROOT = repository_root()
 PROFILES = json.loads((ROOT / 'frontend/src/animation/styles/profiles/profiles.json').read_text())
-DIRECTOR = '''You are the Animation Director for a knowledge video. Create an original, coherent SVG scene program from the exact script scene, selected art profile, knowledge constraints and event schedule.
-Return JSON {"objects": [...], "anchor_times_ms": [...]}. No HTML, JS, URLs, network, secrets or external assets.
-Use 1600x900 logical coordinates. Each object needs: id (stable EL_... or exact timed_text ID), label, shape (circle/rect/path/text), x,y,width,height,radius,path,text,fill (#RRGGBB), keyframes. Every fill and stroke must be a six-digit hex color such as #4986A3; prefer the exact values in style_profile.palette. Never use color names, #RGB, rgb()/rgba(), hsl(), transparent, gradients or other CSS color syntax.
-Keyframes need time_ms,x,y,opacity (0..1),scale (>0),rotation. Sorted, include time 0 and scene duration. Values interpolate smoothly and deterministically.
-Optional appearance fields: stroke (#RRGGBB), strokeWidth (0..30), cornerRadius (0..500, rect), fillOpacity (0..1), lineCap (butt/round/square), materialKey (flat/paper-layer/frosted/ink-print), fontSize (8..160), fontWeight (100..900), textAnchor (start/middle/end), zIndex (-100..100). Materials are rendered as safe SVG: paper-layer has fibers and a soft raised edge, frosted uses translucent highlights, ink-print uses halftone dots, flat is a solid graphic. Use them selectively on meaningful actors; do not place textures on every label. Text may include newline breaks; no markup. Keep subtitles inside the frame with readable spacing.
-Each keyframe may have easing: smoothstep (legacy default), linear, ease-in-cubic, ease-out-cubic, ease-in-out-cubic. Easing on a frame controls the outgoing segment. Optional drawProgress (0..1, path only, default 1) reveals the stroke using normalized path length; use fillOpacity:0 for drawn lines. All properties are computed from absolute time, never live CSS animations. Example path frames: [{"time_ms":0,"x":200,"y":400,"opacity":1,"scale":1,"rotation":0,"drawProgress":0,"easing":"ease-out-cubic"},{"time_ms":9000,"x":400,"y":400,"opacity":1,"scale":1,"rotation":0,"drawProgress":1}]. Camera, groups, arbitrary CSS and custom scripts are not supported; coordinated actors can share transform trajectories while keeping their own IDs.
-Objects must be recognizable knowledge actors whose states change continuously in response to the script, not slides of titles. Do not make a field of meaningless particles or empty decorative panels. Object identity persists across keyframes. Supply every timed_text object with exact ID and exact text; its visibility is enforced by the runtime. Do not repeat a timed_text sentence in a second text object; subtitles are already rendered by the runtime.
-For every anchor:true event include its exact offset in anchor_times_ms and a keyframe at that offset. Preserve script facts, semantic constraints and all event times. Never silently rewrite upstream content.
-Use scene_context for the whole-film message, neighboring scene goals, verified facts, prior object identities and the user's visual preference. Keep the facts and stable object meanings consistent across scenes. Respect the user's visual preference while using the art profile as a concrete material and motion reference. Art profile guides materials, light and motion, not object composition. For a local revision change only requested appearance or animation parameters and preserve object IDs and all required text. Use at most 60 objects and 64 keyframes per object. Paths use only SVG path commands and finite numbers.'''
+DIRECTOR = '''You are the Animation Director for a knowledge video. Create an original, coherent, publication-grade SVG scene program from the exact script scene, selected art profile, knowledge constraints and event schedule.
+Return JSON {"components": [...], "objects": [...], "anchor_times_ms": [...]}. ("components" is optional; you may combine high-level components with custom objects.) No HTML, JS, URLs, network, secrets or external assets.
+
+1. STRICT 1600x900 THREE-ZONE SAFE LAYOUT (ZERO OVERLAP):
+- Header Zone (y: 55..145): optional short scene title only. Never put moving shapes here.
+- Main Mechanism Stage (x: 100..1500, y: 185..710): all visual actors, chambers, charts, waves, networks and short pinned labels. NEVER place text labels inside a moving-particle region—place labels cleanly above or below containers!
+- Subtitle Safe Zone (x: 800, y: 815, textAnchor: "middle"): reserve y >= 760 exclusively for timed_text subtitles so captions never collide with diagrams.
+
+2. HIGH-LEVEL REUSABLE COMPONENTS (STRONGLY RECOMMENDED FOR CLEAN MECHANISMS):
+You may include up to 4 entries in "components", compiled deterministically with the exact style_profile palette & zero text overlap:
+- {"type":"bar_chart","id_prefix":"PROB","x":140,"y":230,"width":620,"height":360,"bars":[{"label":"2","value":1},{"label":"7","value":6,"highlight":true}],"reveal_start_ms":800,"reveal_end_ms":4200}
+- {"type":"carrier_chamber","id_prefix":"CH","x":140,"y":290,"width":640,"height":240,"left_label":"P区","right_label":"N区","mode":"flip","flip_ms":6000,"particle_count":10}
+- {"type":"wave_band","id_prefix":"WV","x":160,"y":270,"width":620,"waves":[{"label":"长波","frequency":1.0,"color_role":"red"},{"label":"短波","frequency":2.4,"color_role":"blue"}]}
+- {"type":"analog_gauge","id_prefix":"GA","x":1220,"y":410,"radius":92,"label":"电流强度","readings":[{"time_ms":0,"value":0.1},{"time_ms":5000,"value":0.92},{"time_ms":10000,"value":0.08}]}
+- {"type":"concept_network","id_prefix":"NET","x":220,"y":240,"width":580,"height":320,"nodes":[{"label":"词A","color_role":"red"},{"label":"词B","color_role":"blue"}],"edges":[[0,1,true]]}
+- {"type":"orbit_model","id_prefix":"ORB","x":500,"y":440,"core_label":"引力源","orbits":[{"radius":92,"turns":2,"color_role":"red"},{"radius":156,"turns":1,"color_role":"blue"}]}
+
+3. CUSTOM OBJECTS & MOTION CONTINUITY:
+Each custom object in "objects" needs: id (stable EL_... or exact timed_text ID), label, shape (circle/rect/path/text), x,y,width,height,radius,path,text,fill (#RRGGBB), keyframes. Every fill and stroke must be a six-digit hex color (#RRGGBB), strictly preferring style_profile.palette. Never use color names, #RGB, rgb()/rgba(), hsl(), transparent, gradients or CSS syntax.
+Keyframes need time_ms,x,y,opacity (0..1),scale (>0),rotation. Sorted, include time 0 and scene duration. Optional fields: stroke, strokeWidth (0..30), cornerRadius (0..500), fillOpacity (0..1), lineCap (butt/round/square), materialKey (flat/paper-layer/frosted/ink-print), fontSize (8..160), fontWeight (100..900), textAnchor (start/middle/end), zIndex (-100..100), easing (smoothstep/linear/ease-in-cubic/ease-out-cubic/ease-in-out-cubic), drawProgress (0..1, path only, use fillOpacity:0 for drawn strokes).
+Use scene_context.previous_ending_actors to smoothly continue recurring visual actors from their exact ending coordinates/colors in the previous scene instead of abruptly resetting the stage.
+NON-PPT RULE: At least several non-text visual actors must exhibit real, causal continuous motion (position, scale, rotation, or path drawProgress) tied to the script's knowledge mechanism—never return static text cards!
+Supply every timed_text object in "objects" with exact ID and exact text (placed in the bottom subtitle safe zone y: 810..845 unless it is a title in y: 85..135). Do not repeat timed_text in a second text object.
+For every anchor:true event include its exact offset in anchor_times_ms and a keyframe at that offset. Preserve script facts and event times. Total compiled objects (components + objects) must be 1..60, max 64 keyframes per object.'''
 
 
 def automatic_profile_id(script: dict[str, Any]) -> str:
@@ -38,6 +54,8 @@ def preferred_profile_id(preference: str, script: dict[str, Any]) -> str:
     normalized=preference.strip().lower()
     exact=next((profile['id'] for profile in PROFILES if normalized in {profile['id'].lower(),profile['name'].lower()}),None)
     if exact: return exact
+    prefixed=next((profile['id'] for profile in PROFILES if profile['id'].lower() in normalized or profile['name'].lower() in normalized),None)
+    if prefixed: return prefixed
     if re.search(r'纸|纸艺|纸张|编辑|剪贴|拼贴|手作',preference):
         return 'narrative-collage' if re.search(r'剪贴|拼贴|手作|复古',preference) else 'paper-editorial'
     if re.search(r'现代|图形|扁平|几何|鲜艳|海报',preference): return 'modern-graphic'
@@ -128,14 +146,48 @@ class SceneProgramError(ValueError):
     """The model returned a scene program that failed local contract checks."""
 
 
-async def direct_scene(client: Any, scene: dict[str,Any], profile: dict[str,Any], *, previous: dict[str,Any] | None=None, feedback: str | None=None, scene_context: dict[str,Any] | None=None, format_feedback: str | None=None) -> dict[str,Any]:
+def has_real_visual_motion(objects: list[dict[str, Any]]) -> bool:
+    for obj in objects:
+        if obj.get('shape') == 'text':
+            continue
+        frames = obj.get('keyframes', [])
+        if len(frames) < 2:
+            continue
+        first = frames[0]
+        for frame in frames[1:]:
+            if (
+                abs(frame['x'] - first['x']) > 4
+                or abs(frame['y'] - first['y']) > 4
+                or abs(frame['scale'] - first['scale']) > 0.04
+                or abs(frame['rotation'] - first['rotation']) > 2
+                or abs(frame.get('drawProgress', 1) - first.get('drawProgress', 1)) > 0.05
+            ):
+                return True
+    return False
+
+
+async def direct_scene(client: Any, scene: dict[str,Any], profile: dict[str,Any], *, previous: dict[str,Any] | None=None, feedback: str | None=None, scene_context: dict[str,Any] | None=None, format_feedback: str | None=None, require_motion: bool | None=None) -> dict[str,Any]:
     instructions=DIRECTOR
     if format_feedback:
-        instructions += '\nCorrect this format/validation error and return one complete valid JSON scene program: ' + format_feedback + '. Every fill and stroke must be a six-digit hex color (#RRGGBB), preferably a value from style_profile.palette. Do not repeat timed_text in other text objects. Do not change script facts or event times.'
+        instructions += '\nCorrect this format/validation error and return one complete valid JSON scene program: ' + format_feedback + '. Every fill and stroke must be a six-digit hex color (#RRGGBB), preferably a value from style_profile.palette. Do not repeat timed_text in other text objects. Ensure non-text actors exhibit real continuous motion. Do not change script facts or event times.'
     response=await client.generate_json(instructions=instructions,data={'scene':scene,'scene_context':scene_context or {},'style_profile':profile,'previous_resource':previous,'feedback':feedback,'format_feedback':format_feedback},max_output_tokens=14000)
     program=response.value
+    enforce_motion = require_motion if require_motion is not None else type(client).__name__ in {'DeepSeekScriptClient', 'DeepSeekClient'}
     try:
+        if isinstance(program, dict) and isinstance(program.get('components'), list) and program['components']:
+            compiled = compile_components(program['components'], profile, int(scene['duration_ms']))
+            raw_objects = list(program.get('objects') or [])
+            existing_ids = {obj.get('id') for obj in raw_objects if isinstance(obj, dict)}
+            merged = [obj for obj in compiled if obj['id'] not in existing_ids] + raw_objects
+            program = {
+                'objects': merged[:60],
+                'anchor_times_ms': program.get('anchor_times_ms', []),
+            }
+        elif isinstance(program, dict) and 'components' in program:
+            program = {k: v for k, v in program.items() if k != 'components'}
         objects=validate_program(scene,program)
+        if enforce_motion and not previous and not has_real_visual_motion(objects):
+            raise ValueError('场景缺少真实的动态视觉变化（不能只放置静止图形或文字卡片）。')
         if previous and {o['id'] for o in previous.get('objects',[])} != {o['id'] for o in objects}: raise ValueError('局部修订不得替换对象身份。')
     except ValueError as error:
         raise SceneProgramError(str(error)) from error

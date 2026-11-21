@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { resolveStyleIdFromPreference } from "../../common/api";
 
 type Preview = {
   status: string;
@@ -117,7 +118,7 @@ export function AnimationHandoff({
       const handoff = await call(`/api/projects/${projectId}/handoff/animation`);
       const started = await call(`/api/projects/${projectId}/animations`, {
         expected_project_revision: handoff.project_revision,
-        style_id: "auto",
+        style_id: resolveStyleIdFromPreference(artPreference),
         api_key: apiKey,
         ...(artPreference !== undefined ? { art_preference: artPreference } : {}),
       });
@@ -220,8 +221,14 @@ export function AnimationHandoff({
 
   const canRetry = hasApiKey && Boolean(apiKey);
   return (
-    <section aria-label="动画制作" style={{ margin: "24px auto", maxWidth: 760 }}>
-      <p role="status">{message}</p>
+    <section
+      aria-label="动画制作"
+      className={`handoff-card handoff-${phase}`}
+    >
+      <p className="handoff-status" role="status">
+        <span className="handoff-dot" aria-hidden="true" />
+        {message}
+      </p>
       <div className="progress-actions">
         {preview?.status === "ready" && preview.workbench_url ? (
           <>

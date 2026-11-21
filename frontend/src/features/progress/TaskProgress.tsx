@@ -1,5 +1,10 @@
 import { AnimationHandoff, type AnimationPhase } from './AnimationHandoff';
 import { useEffect, useRef, useState } from "react";
+import {
+  GraduatedStageBar,
+  computeFineProgress,
+  type StageState,
+} from "./GraduatedStageBar";
 import { ProgressEventScene, type ProgressSceneStatus } from "./ProgressEventScene";
 import {
   getJob,
@@ -11,13 +16,11 @@ import {
   adaptDisplayEvents,
   displayEventsAfter,
   latestDisplayEventSeq,
-  stageNames,
-  stageOrder,
   type ProgressSceneEvent,
   type Stage,
 } from "../../common/progress";
 
-const stageCopy: Record<string, string> = {
+const stageCopy: Record<StageState, string> = {
   pending: "尚未开始",
   running: "正在进行",
   completed: "已准备",
@@ -171,110 +174,138 @@ export function TaskProgress({
       || job?.message
       || "正在读取任务状态。";
 
+  const resolvedStages: Record<Stage, StageState> = {
+    knowledge: (["pending", "running", "completed", "failed"].includes(job?.stages.knowledge ?? "")
+      ? job?.stages.knowledge
+      : "pending") as StageState,
+    script: (["pending", "running", "completed", "failed"].includes(job?.stages.script ?? "")
+      ? job?.stages.script
+      : "pending") as StageState,
+    animation: ready
+      ? animationReady
+        ? "completed"
+        : animationRunning
+          ? "running"
+          : animationFailed
+            ? "failed"
+            : "pending"
+      : ((["pending", "running", "completed", "failed"].includes(job?.stages.animation ?? "")
+          ? job?.stages.animation
+          : "pending") as StageState),
+  };
+
+  const eventCounts = incomingDisplayEvents.reduce<Partial<Record<Stage, number>>>(
+    (acc, item) => {
+      if (item.stage) acc[item.stage] = (acc[item.stage] ?? 0) + 1;
+      return acc;
+    },
+    {},
+  );
+  const fineProgress = computeFineProgress(resolvedStages, eventCounts);
+
   return (
     <main className="generation page-enter">
-      <p className="eyebrow">A STORY IN THE MAKING</p>
-      <h1>
-        {failed
-          ? "我们在这里停一下。"
-          : ready
-            ? animationReady
-              ? "预览已经准备好。"
-              : animationRunning
-                ? "动画正在制作。"
-                : "讲述主线已经准备好。"
-            : "正在把你的问题理清楚。"}
-      </h1>
-      <p className="generation-topic">{topic || "你的创作项目"}</p>
-      <ol className="creation-timeline">
-        {stageOrder.map((stage, index) => {
-          const state = stage === "animation" && ready
-            ? animationReady ? "completed" : animationRunning ? "running" : animationFailed ? "failed" : "pending"
-            : job?.stages[stage] ?? "pending";
-          return (
-            <li
-              key={stage}
-              className={state}
-              aria-current={state === "running" ? "step" : undefined}
-            >
-              <span className="stage-node">
-                {state === "completed" ? "✓" : String(index + 1).padStart(2, "0")}
-              </span>
-              <div>
-                <h2>{stageNames[stage]}</h2>
-                <p>
-                  {stage === "animation" && ready
-                    ? animationMessage
-                    : stageCopy[state] ?? "尚未开始"}
-                </p>
-              </div>
-            </li>
-          );
-        })}
-      </ol>
+      <div className="generation-header-wrap">
+        <p className="eyebrow">A STORY IN THE MAKING</p>
+        <h1>
+          {failed
+            ? "我们在这里停一下。"
+            : ready
+              ? animationReady
+                ? "预览已经准备好。"
+                : animationRunning
+                  ? "动画正在制作。"
+                  : "讲述主线已经准备好。"
+              : "正在把你的问题理清楚。"}
+        </h1>
+        <p className="generation-topic">{topic || "你的创作项目"}</p>
+        <GraduatedStageBar
+          stages={resolvedStages}
+          progress={fineProgress}
+          statusCopy={stageCopy}
+          animationDetail={ready ? animationMessage : undefined}
+        />
+      </div>
+
       <ProgressEventScene
         stage={sceneStage}
         status={sceneStatus}
+        fineProgress={fineProgress}
         streamKey={jobId}
         recentEvents={recentDisplayEvents}
         incomingEvents={incomingDisplayEvents}
       />
-      <p className="current-action" role="status">
-        {currentMessage}
-      </p>
-      {ready && script && (
-        <section className="script-overview" aria-label="脚本概览">
-          <p className="eyebrow">SCRIPT OVERVIEW</p>
-          <h2>{script.core_message}</h2>
-          <p>
-            {script.scenes.length} 个场景 · {Math.round(script.total_duration_ms / 1000)} 秒
-          </p>
-        </section>
-      )}
-      {ready && job && (
-        <AnimationHandoff
-          projectId={job.project_id}
-          apiKey={apiKey}
-          hasApiKey={hasApiKey}
-          continueToPreview={continueToPreview}
-          artPreference={artPreference}
-          styleChangePending={styleChangePending}
-          animationJobId={animationJobId}
-          onOpenSettings={onOpenSettings}
-          onJobCreated={onAnimationJobCreated}
-          onState={(phase, message) => {
-            setAnimationPhase(phase);
-            setAnimationMessage(message);
-          }}
-        />
-      )}
-      <div className="progress-actions">
-        <button className="secondary" onClick={onBack}>
-          {failed ? "返回修改" : "返回创作页"}
-        </button>
-        {failed ? (
-          hasApiKey ? (
-            <button className="primary" onClick={onRetry}>
-              重试未完成步骤 →
-            </button>
-          ) : (
-            <button className="primary" onClick={onOpenSettings}>
-              重新配置 API Key →
-            </button>
-          )
-        ) : ready && scriptError ? (
-          <button
-            className="secondary"
-            onClick={() => setScriptReadAttempt((attempt) => attempt + 1)}
-            disabled={loadingScript}
-          >
-            {loadingScript ? "正在读取脚本…" : "重新读取脚本"}
+
+      <div className="generation-footer-wrap">
+        <p className="current-action" role="status">
+          {currentMessage}
+        </p>
+        {ready && script && (
+          <section className="script-overview" aria-label="脚本概览">
+            <div className="script-overview-head">
+              <p className="eyebrow">SCRIPT STORYBOARD</p>
+              <span className="script-meta-pill">
+                {script.scenes.length} 个场景 · {Math.round(script.total_duration_ms / 1000)} 秒
+              </span>
+            </div>
+            <h2>{script.core_message}</h2>
+            {script.scenes.length > 0 && (
+              <ol className="script-scenes" aria-label="分幕主线">
+                {script.scenes.map((scene) => (
+                  <li key={scene.scene_id} className="script-scene-item">
+                    <span className="script-scene-id">{scene.scene_id}</span>
+                    <span className="script-scene-objective">{scene.objective}</span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </section>
+        )}
+        {ready && job && (
+          <AnimationHandoff
+            projectId={job.project_id}
+            apiKey={apiKey}
+            hasApiKey={hasApiKey}
+            continueToPreview={continueToPreview}
+            artPreference={artPreference}
+            styleChangePending={styleChangePending}
+            animationJobId={animationJobId}
+            onOpenSettings={onOpenSettings}
+            onJobCreated={onAnimationJobCreated}
+            onState={(phase, message) => {
+              setAnimationPhase(phase);
+              setAnimationMessage(message);
+            }}
+          />
+        )}
+        <div className="progress-actions">
+          <button className="secondary" onClick={onBack}>
+            {failed ? "返回修改" : "返回创作页"}
           </button>
-        ) : active && jobError ? (
-          <button className="secondary" onClick={() => window.location.reload()}>
-            重新连接任务
-          </button>
-        ) : null}
+          {failed ? (
+            hasApiKey ? (
+              <button className="primary" onClick={onRetry}>
+                重试未完成步骤 →
+              </button>
+            ) : (
+              <button className="primary" onClick={onOpenSettings}>
+                重新配置 API Key →
+              </button>
+            )
+          ) : ready && scriptError ? (
+            <button
+              className="secondary"
+              onClick={() => setScriptReadAttempt((attempt) => attempt + 1)}
+              disabled={loadingScript}
+            >
+              {loadingScript ? "正在读取脚本…" : "重新读取脚本"}
+            </button>
+          ) : active && jobError ? (
+            <button className="secondary" onClick={() => window.location.reload()}>
+              重新连接任务
+            </button>
+          ) : null}
+        </div>
       </div>
     </main>
   );

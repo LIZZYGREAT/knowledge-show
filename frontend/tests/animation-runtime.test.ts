@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { pnState } from '../src/animation/scenes/pn-junction/PnScenes';
 import { demoBundle } from '../src/animation/scenes/pn-junction/demoBundle';
+import { worldExecuteMeDemoBundle } from '../src/animation/scenes/world-execute-me/demoBundle';
 import { validateBundle } from '../src/animation/runtime/validateBundle';
 import { resolveStyle } from '../src/animation/styles/resolveStyle';
 
@@ -65,4 +66,15 @@ it('rejects non-finite coordinates hidden in SVG path exponents', () => {
   const bundle = structuredClone(soap) as AnimationBundle;
   Object.values(bundle.resources)[0].objects!.find(o => o.shape === 'path')!.path = 'M1e999 0L10 10Z';
   expect(() => validateBundle(bundle)).toThrow('有限');
+});
+
+it('builds a valid 14-scene world.execute(me) workbench reference bundle across all 4 styles', () => {
+  for (const style of ['precision-science', 'paper-editorial', 'modern-graphic', 'narrative-collage']) {
+    const bundle = worldExecuteMeDemoBundle(style, 1);
+    expect(validateBundle(bundle)).toBe(bundle);
+    expect(bundle.script.scenes).toHaveLength(14);
+    expect(bundle.manifest.clips).toHaveLength(14);
+    expect(bundle.manifest.total_duration_ms).toBe(212000);
+    expect(bundle.manifest.selectable_elements.length).toBeGreaterThanOrEqual(22);
+  }
 });

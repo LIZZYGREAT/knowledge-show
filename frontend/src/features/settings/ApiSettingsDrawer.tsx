@@ -145,7 +145,9 @@ export function ApiSettingsDrawer({
           </button>
         </div>
         <p
-          className={`connection-status ${status === "failed" ? "error" : ""}`}
+          className={`connection-status ${
+            status === "failed" ? "error" : status === "connected" ? "is-connected" : ""
+          }`}
           role="status"
         >
           连接状态：
@@ -171,7 +173,7 @@ export function ApiSettingsDrawer({
           </button>
         )}
         <aside className="integration-hint">
-          本地创作 API 已接入。脚本完成后会等待动画制作；当前尚无真实视频预览。
+          本地创作 API 已接入。密钥仅保存在当前页面会话内存中，刷新后需重新连接，不会写入浏览器本地存储。
         </aside>
       </div>
     </Modal>

@@ -2,12 +2,16 @@ import type { AnimationBundle, SceneResource } from './BundleTypes';
 import type { SceneDefinition, SceneHandle, SelectableElement } from './SceneTypes';
 import { createPnS01 } from '../scenes/pn-junction/S01';
 import { createPnScene } from '../scenes/pn-junction/PnScenes';
+import { createWorldExecuteMeSequence } from '../scenes/world-execute-me/WorldExecuteMeScene';
 import { createVectorScene } from './VectorScene';
 
 export { validateBundle } from './validateBundle';
 import { validateBundle } from './validateBundle';
 export function createSequence(bundle: AnimationBundle): SceneDefinition {
   validateBundle(bundle);
+  if (Object.values(bundle.resources).every(r => r.kind === 'wem-scene')) {
+    return createWorldExecuteMeSequence(bundle);
+  }
   return { sceneId: bundle.manifest.artifact_id, durationMs: bundle.manifest.total_duration_ms, mount(host) {
     let active: SceneHandle | null = null, reference = '', destroyed = false;
     const registered = new Map<string, SelectableElement>();
