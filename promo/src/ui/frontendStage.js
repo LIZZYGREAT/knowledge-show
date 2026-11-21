@@ -16,8 +16,8 @@ export const UI_GEOMETRY = {
   composer: {
     cardRect: { x: 350, y: 120, w: 1220, h: 820 },
     cursorStart: { x: 434, y: 404 }, // 与第一幕光标落平无缝对齐（中央经相机平移对齐）
-    modeVisualCenter: { x: 1094, y: 656 },
-    submitBtnCenter: { x: 1396, y: 868 },
+    modeVisualCenter: { x: 1388, y: 568 }, // 「直观看懂」按钮正中
+    submitBtnCenter: { x: 1416, y: 750 }, // 「开始探索与创作 →」按钮正中
   },
   // 第二幕 GraduatedStageBar 关键坐标
   stageBar: {

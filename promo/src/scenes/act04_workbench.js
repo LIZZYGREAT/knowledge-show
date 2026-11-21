@@ -249,16 +249,20 @@ export function renderAct04({ worldCtx, overlayCtx, camera, ui, t }) {
   // 6. Layer 3 Overlay：柔焦遮罩 + 框内暖杏水墨涟漪 + 描图纸对比竖线 + 「棱片」主角
   const selScreen = camera.worldRectToScreen(activeSelectionWorld);
 
-  // 温和降焦蒙版（聚焦在选框与右侧修订区之间，不生硬遮黑）
+  // 温和降焦蒙版（仅限工作台左侧视频画幅内压暗未选中区，保持右侧 Co-Director 输入区清晰明亮！）
   if (focusAmt > 0.02 && t < 118.6) {
-    const dim = focusAmt * 0.16 * (1 - easeEditorialOut(segProgress(t, 117.6, 118.6)));
-    // 保留整个选框高亮
+    const dim = focusAmt * 0.14 * (1 - easeEditorialOut(segProgress(t, 117.6, 118.6)));
+    const frameScreen = camera.worldRectToScreen(curFrameRect);
+    overlayCtx.save();
+    roundRectPath(overlayCtx, frameScreen.x, frameScreen.y, frameScreen.w, frameScreen.h, 12);
+    overlayCtx.clip();
     drawFocusMask(
       overlayCtx,
       { active: true, rect: selScreen, dimAlpha: dim, radius: 10 },
       STAGE_W,
       STAGE_H
     );
+    overlayCtx.restore();
   }
 
   // 框内暖杏水墨纸纹涟漪（严格裁切在 selScreen 选框内，0.9s 焕新，零转圈 Loading！）

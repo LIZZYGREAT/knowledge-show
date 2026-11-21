@@ -122,10 +122,10 @@ function drawMicroRefraction(ctx, t, alpha) {
       const glassLambda = lerp(96, 42, i / 6); // 红步幅大，紫步幅紧促！
       const glassAmp = lerp(12.0, 14.5, i / 6);
 
-      // 柔和底光带
+      // 柔和底光带（高密度采样保证紫光短波圆润顺滑）
       ctx.beginPath();
-      for (let k = 0; k <= 120; k++) {
-        const s = (k / 120) * glassLen;
+      for (let k = 0; k <= 340; k++) {
+        const s = (k / 340) * glassLen;
         const w = Math.sin((TAU * s) / glassLambda - omega * t + band.phase) * glassAmp;
         const px = xHit + rDx * s + rNx * w;
         const py = yHit + rDy * s + rNy * w;
@@ -172,18 +172,26 @@ function drawMicroRefraction(ctx, t, alpha) {
     ctx.fillStyle = "#B5464B";
     ctx.fillText("红光 · 长波舒展 · 微折", 1272, 266);
 
-    // 紫光短步幅标尺
+    // 紫光短步幅标尺（暖纸底托避免与靛蓝波线重叠）
+    drawPaperCard(ctx, 1112, 930, 294, 44, {
+      radius: 22,
+      fill: "rgba(255, 253, 249, 0.92)",
+      stroke: "rgba(142, 108, 187, 0.36)",
+      lineWidth: 1.2,
+      shadowBlur: 12,
+      shadowOffsetY: 4,
+    });
     ctx.strokeStyle = "#7D5BA8";
     ctx.beginPath();
-    ctx.moveTo(1060, 956);
-    ctx.lineTo(1102, 956);
-    ctx.moveTo(1060, 948);
-    ctx.lineTo(1060, 964);
-    ctx.moveTo(1102, 948);
-    ctx.lineTo(1102, 964);
+    ctx.moveTo(1132, 952);
+    ctx.lineTo(1174, 952);
+    ctx.moveTo(1132, 944);
+    ctx.lineTo(1132, 960);
+    ctx.moveTo(1174, 944);
+    ctx.lineTo(1174, 960);
     ctx.stroke();
     ctx.fillStyle = "#694A91";
-    ctx.fillText("紫光 · 短波紧促 · 急折", 1118, 962);
+    ctx.fillText("紫光 · 短波紧促 · 急折", 1190, 958);
 
     ctx.restore();
   }

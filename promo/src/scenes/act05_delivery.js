@@ -79,13 +79,13 @@ function drawExportSweepRuler(ctx, sweepX, sweepProgress, alpha) {
   ctx.save();
   ctx.globalAlpha = clamp(alpha);
 
-  // 标尺扫过尾迹的柔和空气光晕
-  const trailGrad = ctx.createLinearGradient(sweepX - 110, 0, sweepX, 0);
+  // 标尺扫过尾迹的极轻暖杏空气光晕（不遮挡刚显现的满屏精修彩虹）
+  const trailGrad = ctx.createLinearGradient(sweepX - 72, 0, sweepX, 0);
   trailGrad.addColorStop(0, "rgba(18, 148, 141, 0)");
-  trailGrad.addColorStop(0.72, "rgba(18, 148, 141, 0.08)");
-  trailGrad.addColorStop(1, "rgba(242, 153, 74, 0.16)");
+  trailGrad.addColorStop(0.76, "rgba(18, 148, 141, 0.04)");
+  trailGrad.addColorStop(1, "rgba(242, 153, 74, 0.11)");
   ctx.fillStyle = trailGrad;
-  ctx.fillRect(sweepX - 110, 0, 110, STAGE_H);
+  ctx.fillRect(sweepX - 72, 0, 72, STAGE_H);
 
   // 纤细双色主标尺线
   const lineGrad = ctx.createLinearGradient(sweepX, 0, sweepX, STAGE_H);

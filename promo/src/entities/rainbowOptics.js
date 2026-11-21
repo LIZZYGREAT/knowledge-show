@@ -196,11 +196,15 @@ function drawPrismBody(ctx, geom, { popup = 1, alpha = 1, styleId = "paper-edito
   }
 
   // 3. 主正面磨砂棱镜面
-  ctx.beginPath();
-  ctx.moveTo(top.x, top.y);
-  ctx.lineTo(right.x, right.y);
-  ctx.lineTo(left.x, left.y);
-  ctx.closePath();
+  const tracePrismFace = () => {
+    ctx.beginPath();
+    ctx.moveTo(top.x, top.y);
+    ctx.lineTo(right.x, right.y);
+    ctx.lineTo(left.x, left.y);
+    ctx.closePath();
+  };
+
+  tracePrismFace();
 
   if (styleId === "modern-graphic") {
     ctx.fillStyle = style.prismFill;
@@ -216,6 +220,8 @@ function drawPrismBody(ctx, geom, { popup = 1, alpha = 1, styleId = "paper-edito
     ctx.closePath();
     ctx.fill();
     ctx.restore();
+    // 重新描绘棱镜主轮廓再描边（restore 不恢复路径）
+    tracePrismFace();
     ctx.strokeStyle = style.ink;
     ctx.lineWidth = 3.2;
     ctx.lineJoin = "round";
@@ -236,8 +242,10 @@ function drawPrismBody(ctx, geom, { popup = 1, alpha = 1, styleId = "paper-edito
     }
     ctx.restore();
     // 手绘双层墨线轮廓
+    tracePrismFace();
     ctx.strokeStyle = style.prismStroke;
     ctx.lineWidth = 2.4;
+    ctx.lineJoin = "round";
     ctx.stroke();
     ctx.strokeStyle = "rgba(182, 120, 62, 0.35)";
     ctx.lineWidth = 1.1;
@@ -253,14 +261,14 @@ function drawPrismBody(ctx, geom, { popup = 1, alpha = 1, styleId = "paper-edito
     ctx.fillStyle = faceGrad;
     ctx.fill();
 
-    // 内部柔和折光高光条
+    // 内部柔和折光高光条（无描边）
     if (popup > 0.25 && internalGlow > 0.05) {
       ctx.save();
       ctx.clip();
       const glint = ctx.createLinearGradient(top.x - 40, top.y, geom.cx + 30, right.y);
-      glint.addColorStop(0, "rgba(255, 255, 255, 0.65)");
+      glint.addColorStop(0, "rgba(255, 255, 255, 0.58)");
       glint.addColorStop(0.5, "rgba(255, 255, 255, 0.08)");
-      glint.addColorStop(1, "rgba(242, 153, 74, 0.08)");
+      glint.addColorStop(1, "rgba(242, 153, 74, 0.06)");
       ctx.fillStyle = glint;
       ctx.beginPath();
       ctx.moveTo(top.x - 10, top.y);
@@ -272,7 +280,8 @@ function drawPrismBody(ctx, geom, { popup = 1, alpha = 1, styleId = "paper-edito
       ctx.restore();
     }
 
-    // 精细边界线（popup=0 时为呆板灰线，popup=1 时为清润青灰玻璃边）
+    // 精细边界线（必须重新追踪主三角形路径）
+    tracePrismFace();
     ctx.strokeStyle = popup < 0.15 ? "rgba(91, 107, 115, 0.55)" : "rgba(28, 42, 48, 0.24)";
     ctx.lineWidth = lerp(1.5, 2.0, popup);
     ctx.lineJoin = "round";
@@ -443,7 +452,7 @@ export function drawRainbowOptics(ctx, opts = {}) {
       if (styleId === "modern-graphic") {
         // 现代图形风：粗细明快的单实心几何波带 + 清晰中心线
         ctx.beginPath();
-        const steps = 90;
+        const steps = 240;
         for (let k = 0; k <= steps; k++) {
           const s = (k / steps) * curLen;
           const env = smoothstep(0, 65, s);
@@ -471,7 +480,7 @@ export function drawRainbowOptics(ctx, opts = {}) {
 
         // 淡淡的水彩底色柔晕带
         ctx.beginPath();
-        const haloSteps = 60;
+        const haloSteps = 160;
         for (let k = 0; k <= haloSteps; k++) {
           const s = (k / haloSteps) * curLen;
           const env = smoothstep(0, 75, s);
@@ -488,7 +497,7 @@ export function drawRainbowOptics(ctx, opts = {}) {
 
         for (const sub of subStrands) {
           ctx.beginPath();
-          const steps = 110;
+          const steps = 260;
           for (let k = 0; k <= steps; k++) {
             const s = (k / steps) * curLen;
             const env = smoothstep(0, 68, s);
@@ -516,24 +525,33 @@ export function drawRainbowOptics(ctx, opts = {}) {
     ctx.restore();
   }
 
-  // 4. 第一幕紫光拨动时的手绘铅笔标注（仅 violetTweak > 0.05 时浮现）
+  // 4. 第一幕紫光拨动时的手绘铅笔标注（避开选框边角，配柔暖纸签底托）
   if (violetTweak > 0.05 && effDisp > 0.4) {
     ctx.save();
     ctx.globalAlpha = clamp(alpha * smoothstep(0.05, 0.45, violetTweak));
-    const ax = violetAnchor.x + 12;
-    const ay = violetAnchor.y + 42;
-    ctx.strokeStyle = rgba(COLORS.inkPrimary, 0.58);
+    const ax = violetAnchor.x - 240;
+    const ay = violetAnchor.y + 84;
+    ctx.strokeStyle = rgba(COLORS.inkPrimary, 0.56);
     ctx.lineWidth = 1.4;
     ctx.beginPath();
-    ctx.moveTo(violetAnchor.x, violetAnchor.y + 10);
-    ctx.quadraticCurveTo(violetAnchor.x - 10, ay - 6, ax + 14, ay);
+    ctx.moveTo(violetAnchor.x - 6, violetAnchor.y + 12);
+    ctx.quadraticCurveTo(violetAnchor.x - 42, ay, ax + 196, ay);
     ctx.stroke();
 
     const curNm = Math.round(lerp(405, 388, violetTweak));
     const curDeg = lerp(33.6, 39.4, violetTweak).toFixed(1);
-    ctx.font = `500 17px ${FONTS.mono}`;
+    const label = `λ = ${curNm}nm · θ = ${curDeg}°`;
+    ctx.fillStyle = "rgba(255, 253, 249, 0.92)";
+    ctx.strokeStyle = "rgba(142, 108, 187, 0.42)";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.roundRect(ax - 12, ay - 18, 214, 36, 18);
+    ctx.fill();
+    ctx.stroke();
+    ctx.font = `600 15.5px ${FONTS.mono}`;
     ctx.fillStyle = COLORS.inkPrimary;
-    ctx.fillText(`λ = ${curNm}nm · θ = ${curDeg}°`, ax + 22, ay + 5);
+    ctx.textBaseline = "middle";
+    ctx.fillText(label, ax + 4, ay);
     ctx.restore();
   }
 
@@ -588,18 +606,26 @@ export function drawRainbowOptics(ctx, opts = {}) {
         ctx.stroke();
       }
 
-      // 手绘刊物小标：θ_red < θ_violet
-      ctx.font = `600 18px ${FONTS.mono}`;
-      ctx.fillStyle = COLORS.inkPrimary;
-      ctx.fillText("θ_red < θ_violet", ox + 220, oy + 62);
-      ctx.font = `500 14px ${FONTS.sans}`;
-      ctx.fillStyle = COLORS.inkSecondary;
-      ctx.fillText("长波舒展 · 短波急折", ox + 220, oy + 84);
+      // 手绘刊物小标：暖纸浅卡轻垫确保清晰可读
+      ctx.fillStyle = "rgba(255, 253, 249, 0.92)";
+      ctx.strokeStyle = "rgba(28, 42, 48, 0.16)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.roundRect(ox + 208, oy - 76, 198, 56, 12);
+      ctx.fill();
+      ctx.stroke();
 
-      // 红波 / 紫波端点波长小注
-      ctx.font = `500 13px ${FONTS.mono}`;
+      ctx.font = `600 17.5px ${FONTS.mono}`;
+      ctx.fillStyle = COLORS.inkPrimary;
+      ctx.fillText("θ_red < θ_violet", ox + 222, oy - 50);
+      ctx.font = `500 13.5px ${FONTS.sans}`;
+      ctx.fillStyle = COLORS.inkSecondary;
+      ctx.fillText("长波舒展 · 短波急折", ox + 222, oy - 30);
+
+      // 红波 / 紫波端点波长小注（避开角度标签卡）
+      ctx.font = `600 13.5px ${FONTS.mono}`;
       ctx.fillStyle = "#C64B50";
-      ctx.fillText("λ_red 680nm", red.ep.x + 310, red.ep.y + 42);
+      ctx.fillText("λ_red 680nm", red.ep.x + 392, red.ep.y + 42);
       ctx.fillStyle = "#6F4E9E";
       ctx.fillText("λ_violet 405nm", violet.ep.x + 250, violet.ep.y + 236);
 
