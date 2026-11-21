@@ -1316,30 +1316,30 @@ function act03PrismPath(time) {
     const u = easeEditorialInOut(segProgress(time, 78.7, 80.9));
     return { x: lerp(1904, 18, u), y: 540 };
   }
-  // 80.9 – 83.2s：从左缘 (18, 540) 平滑弧线飞回右上巡航位 (1660, 210)
+  // 80.9 – 83.2s：从左缘 (18, 540) 平滑弧线飞至左上守望位 (215, 178)（绝不遮挡右侧发光灯丝泡！）
   if (time < 83.2) {
     const u = easeEditorialInOut(segProgress(time, 80.9, 83.2));
     return bezierPoint(
       { x: 18, y: 540 },
-      { x: 340, y: 130 },
-      { x: 1340, y: 120 },
-      { x: 1660, y: 210 },
+      { x: 48, y: 290 },
+      { x: 110, y: 170 },
+      { x: 215, y: 178 },
       u
     );
   }
-  // 83.2 – 90.4s：伴随三大跨主题奇观柔和巡航
+  // 83.2 – 90.4s：伴随三大跨主题奇观于左上空域柔和巡航
   if (time < 90.4) {
     return {
-      x: 1660 + Math.sin((time - 83.2) * 1.1) * 18,
-      y: 210 + Math.cos((time - 83.2) * 1.4) * 26,
+      x: 215 + Math.sin((time - 83.2) * 1.1) * 18,
+      y: 178 + Math.cos((time - 83.2) * 1.4) * 22,
     };
   }
-  // 90.4 – 92.0s：平滑刹车悬停至第四幕精确起点 (1080, 460)（0.0px 无缝交接！）
+  // 90.4 – 92.0s：平滑弧线俯冲并刹车悬停至第四幕精确起点 (1080, 460)（0.0px 无缝交接！）
   const u = easeEditorialInOut(segProgress(time, 90.4, 92.0));
   return bezierPoint(
-    { x: 1660, y: 210 },
-    { x: 1480, y: 260 },
-    { x: 1240, y: 380 },
+    { x: 215, y: 178 },
+    { x: 620, y: 140 },
+    { x: 960, y: 260 },
     { x: 1080, y: 460 },
     u
   );
