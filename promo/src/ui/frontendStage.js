@@ -267,15 +267,15 @@ export class FrontendStage {
 
             <div class="wb-inspector" id="wb-inspector" style="opacity:0">
               <div class="wb-insp-top">
-                <span class="wb-insp-title">prism-spectrum-waves</span>
-                <span class="wb-insp-lock">其余 6 项已锁定</span>
+                <span class="wb-insp-title" id="wb-insp-title">~ prism-spectrum-waves</span>
+                <span class="wb-insp-lock" id="wb-insp-lock">其余 6 项已锁定</span>
               </div>
-              <div class="wb-insp-meta">红紫折射波束 · 7 股水彩波列</div>
+              <div class="wb-insp-meta" id="wb-insp-meta">红紫折射波束 · 7 股水彩波列</div>
               <div class="wb-insp-scopes">
                 <span class="wb-scope">当前幕</span>
                 <span class="wb-scope is-on">连续多帧</span>
                 <span class="wb-scope">当前时刻</span>
-                <span class="wb-scope is-attach">已引用 ✓</span>
+                <span class="wb-scope is-attach" id="wb-insp-attach">已引用 ✓</span>
               </div>
             </div>
 
@@ -325,6 +325,10 @@ export class FrontendStage {
       wbTrackParam: this.root.querySelector("#wb-track-param"),
       wbPlayhead: this.root.querySelector("#wb-playhead"),
       wbInspector: this.root.querySelector("#wb-inspector"),
+      wbInspTitle: this.root.querySelector("#wb-insp-title"),
+      wbInspMeta: this.root.querySelector("#wb-insp-meta"),
+      wbInspLock: this.root.querySelector("#wb-insp-lock"),
+      wbInspAttach: this.root.querySelector("#wb-insp-attach"),
       wbInput: this.root.querySelector("#wb-chat-input"),
       wbInputChip: this.root.querySelector("#wb-input-chip"),
       wbInputText: this.root.querySelector("#wb-input-text"),
@@ -420,10 +424,13 @@ export class FrontendStage {
     chromeReveal = 1, // [0, 1] 四周面板顺着纸缘浮现
     sweepClipX = 0, // [0, 1920] 第五幕标尺自左向右拂过，隐去工作台外壳
     version = "v1",
+    versionLabel = null,
     versionFlip = 0, // [0, 1] v1 -> v2 清脆翻转
     selected = false,
+    selectedObject = null, // { title, meta, lockText, attachText, tlChipText }
     inspectorAlpha = 0,
     inputChip = false,
+    inputChipLabel = "~ prism-spectrum-waves ×",
     inputText = "",
     inputCaret = false,
     inputFocused = false,
@@ -434,7 +441,7 @@ export class FrontendStage {
     kfNodePct = 44,
     timeCode = "01:36 / 02:45",
     exportPressed = false,
-    statusText = "选择框仅用于编辑定位，不进入最终导出画面。",
+    statusText = "矢量对象轮廓仅用于编辑定位，不进入最终导出画面。",
   } = {}) {
     if (!visible || alpha <= 0.005) {
       this.el.workbench.style.display = "none";
@@ -460,30 +467,43 @@ export class FrontendStage {
     this.el.wbChat.style.opacity = cr.toFixed(4);
     this.el.wbStageShell.style.opacity = cr.toFixed(4);
 
-    // 版本号纸签翻转
-    const isV2 = version === "v2";
-    this.el.wbVersionPill.textContent = isV2 ? "v2 · 局部精修" : "v1 · 纸艺编辑风";
-    this.el.wbVersionPill.classList.toggle("is-v2", isV2);
+    // 版本号纸签翻转（支持 v1 / v2 / v3 / v4）
+    const isRevised = version !== "v1";
+    this.el.wbVersionPill.textContent =
+      versionLabel || (isRevised ? `${version} · 局部精修` : "v1 · 纸艺编辑风");
+    this.el.wbVersionPill.classList.toggle("is-v2", isRevised);
     if (versionFlip > 0 && versionFlip < 1) {
       const sy = Math.abs(Math.cos(versionFlip * Math.PI));
       this.el.wbVersionPill.style.transform = `scaleY(${Math.max(0.08, sy).toFixed(3)})`;
     } else {
       this.el.wbVersionPill.style.transform = "none";
     }
-    this.el.wbFrameVer.textContent = isV2 ? "v2" : "v1";
+    this.el.wbFrameVer.textContent = version;
     this.el.wbTimeCode.textContent = timeCode;
 
     // 选中状态与时间轴高亮
     this.el.wbTlChip.style.opacity = selected ? "1" : "0";
+    if (selectedObject && selectedObject.tlChipText) {
+      this.el.wbTlChip.textContent = selectedObject.tlChipText;
+    } else {
+      this.el.wbTlChip.textContent = "已选中对象 · ~ prism-spectrum-waves · 连续多帧";
+    }
     this.el.wbTrackWaves.classList.toggle("is-selected", selected);
-    this.el.wbTrackParam.classList.toggle("is-v2", isV2);
+    this.el.wbTrackParam.classList.toggle("is-v2", isRevised);
     this.el.wbPlayhead.style.left = `${clamp(playheadPct, 4, 96).toFixed(2)}%`;
     this.el.wbKfNode.style.left = `${clamp(kfNodePct, 12, 86).toFixed(2)}%`;
 
-    // 对象检视器与输入框
+    // 动态语义对象检视器（支持波浪带 / 三角棱锥 / 测角圆环实时切换）
+    if (selectedObject) {
+      this.el.wbInspTitle.textContent = selectedObject.title;
+      this.el.wbInspMeta.textContent = selectedObject.meta;
+      this.el.wbInspLock.textContent = selectedObject.lockText || "其余 6 项已锁定";
+      this.el.wbInspAttach.textContent = selectedObject.attachText || "已引用 ✓";
+    }
     this.el.wbInspector.style.opacity = clamp(inspectorAlpha).toFixed(4);
     this.el.wbInspector.style.display = inspectorAlpha > 0.02 ? "block" : "none";
     this.el.wbInputChip.style.display = inputChip ? "inline-flex" : "none";
+    this.el.wbInputChip.textContent = inputChipLabel;
     this.el.wbInputText.textContent = inputText;
     this.el.wbInputCaret.style.display = inputCaret ? "inline-block" : "none";
     this.el.wbInput.classList.toggle("is-focused", inputFocused);

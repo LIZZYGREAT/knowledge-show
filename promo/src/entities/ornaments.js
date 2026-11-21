@@ -79,23 +79,33 @@ export function drawBrassGoniometer(
   cy,
   radius = 335,
   t = 0,
-  { alpha = 1, reveal = 1, redDeg = 11.5, violetDeg = 33.6, showVernier = true } = {}
+  { alpha = 1, reveal = 1, redDeg = 11.5, violetDeg = 33.6, showVernier = true, brassBoost = 0 } = {}
 ) {
   const a = clamp(alpha * reveal);
   if (a <= 0.005) return;
 
   const r = radius * lerp(0.86, 1.0, easeEditorialOut(reveal));
   const slowRot = t * 0.045;
+  const bb = clamp(brassBoost);
 
   ctx.save();
   ctx.globalAlpha = a;
   ctx.translate(cx, cy);
 
+  // v4 测角环局部精修：温润黄铜外晕光环
+  if (bb > 0.02) {
+    ctx.strokeStyle = rgba(COLORS.brandAmber, 0.24 * bb);
+    ctx.lineWidth = 10 * bb;
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, TAU);
+    ctx.stroke();
+  }
+
   // 最外层极细虚线轨道环
   ctx.save();
   ctx.rotate(-slowRot * 0.6);
-  ctx.strokeStyle = "rgba(184, 134, 72, 0.22)";
-  ctx.lineWidth = 1.15;
+  ctx.strokeStyle = rgba("#B88648", 0.22 + 0.34 * bb);
+  ctx.lineWidth = 1.15 + 0.85 * bb;
   ctx.setLineDash([5, 9]);
   ctx.beginPath();
   ctx.arc(0, 0, r + 34, 0, TAU);
@@ -107,12 +117,16 @@ export function drawBrassGoniometer(
     const ang = (k / 4) * TAU + 0.35;
     const bx = Math.cos(ang) * (r + 34);
     const by = Math.sin(ang) * (r + 34);
-    ctx.fillStyle = k % 2 === 0 ? "rgba(242, 153, 74, 0.65)" : "rgba(18, 148, 141, 0.55)";
+    const sz = 5.5 + 3.0 * bb;
+    ctx.fillStyle =
+      k % 2 === 0
+        ? rgba(COLORS.brandAmber, 0.65 + 0.32 * bb)
+        : rgba(COLORS.brandTeal, 0.55 + 0.40 * bb);
     ctx.beginPath();
-    ctx.moveTo(bx, by - 5.5);
-    ctx.lineTo(bx + 4.5, by);
-    ctx.lineTo(bx, by + 5.5);
-    ctx.lineTo(bx - 4.5, by);
+    ctx.moveTo(bx, by - sz);
+    ctx.lineTo(bx + sz * 0.82, by);
+    ctx.lineTo(bx, by + sz);
+    ctx.lineTo(bx - sz * 0.82, by);
     ctx.closePath();
     ctx.fill();
   }
@@ -121,14 +135,14 @@ export function drawBrassGoniometer(
   // 主黄铜精细刻度环（72 刻度 + 12 主刻度 + 度数小字）
   ctx.save();
   ctx.rotate(slowRot * 0.22);
-  ctx.strokeStyle = "rgba(176, 128, 66, 0.28)";
-  ctx.lineWidth = 1.4;
+  ctx.strokeStyle = rgba("#B08042", 0.28 + 0.54 * bb);
+  ctx.lineWidth = 1.4 + 1.4 * bb;
   ctx.beginPath();
   ctx.arc(0, 0, r, 0, TAU);
   ctx.stroke();
 
-  ctx.strokeStyle = "rgba(28, 42, 48, 0.10)";
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = bb > 0.05 ? rgba(COLORS.brandTeal, 0.14 + 0.38 * bb) : "rgba(28, 42, 48, 0.10)";
+  ctx.lineWidth = 1 + 0.7 * bb;
   ctx.beginPath();
   ctx.arc(0, 0, r - 14, 0, TAU);
   ctx.stroke();
@@ -137,12 +151,12 @@ export function drawBrassGoniometer(
     const ang = (i / 72) * TAU;
     const isMajor = i % 6 === 0;
     const isMid = i % 3 === 0;
-    const r0 = r - (isMajor ? 14 : isMid ? 9 : 5);
+    const r0 = r - (isMajor ? 14 + 5 * bb : isMid ? 9 + 3 * bb : 5 + 2 * bb);
     const r1 = r;
     ctx.strokeStyle = isMajor
-      ? "rgba(162, 110, 48, 0.48)"
-      : "rgba(28, 42, 48, 0.16)";
-    ctx.lineWidth = isMajor ? 1.6 : 0.9;
+      ? rgba("#A26E30", 0.48 + 0.46 * bb)
+      : rgba("#1C2A30", 0.16 + 0.26 * bb);
+    ctx.lineWidth = isMajor ? 1.6 + 1.0 * bb : 0.9 + 0.45 * bb;
     ctx.beginPath();
     ctx.moveTo(Math.cos(ang) * r0, Math.sin(ang) * r0);
     ctx.lineTo(Math.cos(ang) * r1, Math.sin(ang) * r1);
@@ -150,13 +164,13 @@ export function drawBrassGoniometer(
 
     if (isMajor && showVernier && i % 12 === 0) {
       const deg = (i * 5) % 360;
-      const tx = Math.cos(ang) * (r + 17);
-      const ty = Math.sin(ang) * (r + 17);
+      const tx = Math.cos(ang) * (r + 17 + 4 * bb);
+      const ty = Math.sin(ang) * (r + 17 + 4 * bb);
       ctx.save();
       ctx.translate(tx, ty);
       ctx.rotate(ang + Math.PI * 0.5);
-      ctx.font = `500 11px ${FONTS.mono}`;
-      ctx.fillStyle = "rgba(138, 96, 44, 0.55)";
+      ctx.font = `${bb > 0.3 ? 700 : 500} ${(11 + 2 * bb).toFixed(1)}px ${FONTS.mono}`;
+      ctx.fillStyle = rgba("#8A602C", 0.55 + 0.42 * bb);
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(`${deg}°`, 0, 0);

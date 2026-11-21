@@ -156,7 +156,7 @@ function drawSunbeam(ctx, geom, { t = 0, beamProgress = 1, alpha = 1, styleId = 
 /**
  * 绘制立体磨砂玻璃三棱镜（带内部晶体多面折射高光与完整外轮廓）
  */
-function drawPrismBody(ctx, geom, { popup = 1, alpha = 1, styleId = "paper-editorial", internalGlow = 1, t = 0 }) {
+function drawPrismBody(ctx, geom, { popup = 1, alpha = 1, styleId = "paper-editorial", internalGlow = 1, prismGlowBoost = 0, t = 0 }) {
   const style = STYLE_PROFILES[styleId] || STYLE_PROFILES["paper-editorial"];
   const { top, left, right, backTop, backRight } = geom;
 
@@ -315,17 +315,61 @@ function drawPrismBody(ctx, geom, { popup = 1, alpha = 1, styleId = "paper-edito
 
       // 底棱微弱虹彩反光边
       const baseRef = ctx.createLinearGradient(left.x, left.y, right.x, right.y);
-      baseRef.addColorStop(0, "rgba(18, 148, 141, 0.16)");
-      baseRef.addColorStop(0.5, "rgba(242, 153, 74, 0.14)");
-      baseRef.addColorStop(1, "rgba(142, 108, 187, 0.16)");
+      baseRef.addColorStop(0, rgba(COLORS.brandTeal, 0.16 + 0.24 * prismGlowBoost));
+      baseRef.addColorStop(0.5, rgba(COLORS.brandAmber, 0.14 + 0.30 * prismGlowBoost));
+      baseRef.addColorStop(1, rgba("#8E6CBB", 0.16 + 0.24 * prismGlowBoost));
       ctx.fillStyle = baseRef;
-      ctx.fillRect(left.x, left.y - 12, right.x - left.x, 12);
+      ctx.fillRect(left.x, left.y - (12 + 12 * prismGlowBoost), right.x - left.x, 12 + 12 * prismGlowBoost);
+
+      // v3 棱镜局部精修：暖金与青绿晶体切面折光加强（清晰可辨的高级光学晶体质感）
+      if (prismGlowBoost > 0.01) {
+        const facetGrad = ctx.createLinearGradient(left.x, top.y, right.x, right.y);
+        facetGrad.addColorStop(0, rgba("#FFF9E6", 0.42 * prismGlowBoost));
+        facetGrad.addColorStop(0.42, rgba(COLORS.brandAmber, 0.26 * prismGlowBoost));
+        facetGrad.addColorStop(0.74, rgba(COLORS.brandTeal, 0.22 * prismGlowBoost));
+        facetGrad.addColorStop(1, rgba(COLORS.brandPeriwinkle, 0.24 * prismGlowBoost));
+        ctx.fillStyle = facetGrad;
+        ctx.beginPath();
+        ctx.moveTo(top.x, top.y);
+        ctx.lineTo(geom.cx + 18, geom.cy + 10);
+        ctx.lineTo(right.x, right.y);
+        ctx.closePath();
+        ctx.fill();
+
+        const warmSlice = ctx.createLinearGradient(left.x, left.y, top.x, top.y);
+        warmSlice.addColorStop(0, rgba(COLORS.brandAmber, 0.24 * prismGlowBoost));
+        warmSlice.addColorStop(0.6, rgba("#FFFDF4", 0.38 * prismGlowBoost));
+        warmSlice.addColorStop(1, rgba(COLORS.brandTeal, 0.18 * prismGlowBoost));
+        ctx.fillStyle = warmSlice;
+        ctx.beginPath();
+        ctx.moveTo(top.x, top.y);
+        ctx.lineTo(geom.cx - 8, geom.cy + 14);
+        ctx.lineTo(left.x, left.y);
+        ctx.closePath();
+        ctx.fill();
+
+        // 精细内切面金丝折棱
+        ctx.strokeStyle = rgba("#E29A38", 0.65 * prismGlowBoost);
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(top.x, top.y);
+        ctx.lineTo(geom.cx - 8, geom.cy + 14);
+        ctx.lineTo(right.x, right.y);
+        ctx.moveTo(geom.cx - 8, geom.cy + 14);
+        ctx.lineTo(left.x, left.y);
+        ctx.stroke();
+      }
       ctx.restore();
     }
 
     tracePrismFace();
-    ctx.strokeStyle = popup < 0.15 ? "rgba(91, 107, 115, 0.55)" : "rgba(28, 42, 48, 0.28)";
-    ctx.lineWidth = lerp(1.5, 2.2, popup);
+    ctx.strokeStyle =
+      prismGlowBoost > 0.02
+        ? rgba("#12948D", lerp(0.32, 0.72, prismGlowBoost))
+        : popup < 0.15
+          ? "rgba(91, 107, 115, 0.55)"
+          : "rgba(28, 42, 48, 0.28)";
+    ctx.lineWidth = lerp(1.5, 2.2, popup) + prismGlowBoost * 1.1;
     ctx.lineJoin = "round";
     ctx.stroke();
 
@@ -334,8 +378,8 @@ function drawPrismBody(ctx, geom, { popup = 1, alpha = 1, styleId = "paper-edito
       ctx.beginPath();
       ctx.moveTo(top.x, top.y + 5);
       ctx.lineTo(left.x + 8, left.y - 4);
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.90)";
-      ctx.lineWidth = 1.8;
+      ctx.strokeStyle = prismGlowBoost > 0.1 ? "rgba(255, 252, 238, 0.98)" : "rgba(255, 255, 255, 0.90)";
+      ctx.lineWidth = 1.8 + prismGlowBoost * 1.2;
       ctx.stroke();
 
       // 棱镜顶点精致星芒反光
@@ -344,12 +388,16 @@ function drawPrismBody(ctx, geom, { popup = 1, alpha = 1, styleId = "paper-edito
           ctx,
           top.x,
           top.y,
-          12 * (0.85 + 0.15 * Math.sin(t * 3.1)),
+          (12 + prismGlowBoost * 12) * (0.85 + 0.15 * Math.sin(t * 3.1)),
           "#FFFFFF",
-          COLORS.brandTeal,
-          0.72 * popup,
-          0.2
+          prismGlowBoost > 0.2 ? COLORS.brandAmber : COLORS.brandTeal,
+          clamp((0.72 + prismGlowBoost * 0.26) * popup),
+          0.2 + prismGlowBoost * 0.15
         );
+        if (prismGlowBoost > 0.15) {
+          drawStarlightGlint(ctx, right.x, right.y, 13 * prismGlowBoost, "#FFFFFF", COLORS.brandTeal, 0.8 * prismGlowBoost, 0.6);
+          drawStarlightGlint(ctx, left.x, left.y, 11 * prismGlowBoost, "#FFFFFF", COLORS.brandAmber, 0.72 * prismGlowBoost, 1.1);
+        }
       }
     }
   }
@@ -373,6 +421,7 @@ export function drawRainbowOptics(ctx, opts = {}) {
     violetTweak = 0,
     v2Factor = 0,
     saturationBoost = 0,
+    prismGlowBoost = 0,
     styleId = "paper-editorial",
     alpha = 1,
     showAngleAnnotation = false,
@@ -416,6 +465,7 @@ export function drawRainbowOptics(ctx, opts = {}) {
     alpha,
     styleId,
     internalGlow: effDisp,
+    prismGlowBoost,
     t,
   });
 
@@ -762,5 +812,5 @@ export function drawRainbowOptics(ctx, opts = {}) {
     h: 348,
   };
 
-  return { geom, hit, violetAnchor, waveSelectionRect };
+  return { geom, hit, violetAnchor, waveSelectionRect, bandMeta };
 }

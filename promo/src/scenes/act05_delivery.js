@@ -230,7 +230,7 @@ export function renderAct05({ worldCtx, overlayCtx, camera, ui, t }) {
   const pFinalFade = easeEditorialInOut(segProgress(t, 163.8, 165.0));
 
   const sweepX = lerp(-24, STAGE_W + 24, pSweep);
-  const waveT = 92 + (t - 92) * 0.5;
+  const waveT = 92.0 + (t - 92.0) * 0.45;
 
   // 1. 始终保持统一连贯的底层暖纸与午后斜阳（绝不因分枝切换产生色差或闪烁）
   drawPaperBase(worldCtx, STAGE_W, STAGE_H, {
@@ -249,7 +249,9 @@ export function renderAct05({ worldCtx, overlayCtx, camera, ui, t }) {
     drawRainbowInRect(worldCtx, wbRect, {
       t: waveT,
       v2Factor: 1,
-      saturationBoost: 1,
+      saturationBoost: 0.45,
+      prismGlowBoost: 1,
+      brassBoost: 1,
     });
     worldCtx.restore();
 
@@ -258,20 +260,21 @@ export function renderAct05({ worldCtx, overlayCtx, camera, ui, t }) {
       alpha: 1,
       chromeReveal: 1,
       sweepClipX: Math.max(0, sweepX),
-      version: "v2",
+      version: "v4",
+      versionLabel: "v4 · 测角环精修",
       selected: false,
       inspectorAlpha: 0,
       showUserMsg: true,
       showAiDoneMsg: true,
-      playheadPct: 75,
-      kfNodePct: 58,
-      timeCode: "02:20 / 02:45",
+      playheadPct: 74,
+      kfNodePct: 62,
+      timeCode: "01:44 / 02:45",
       exportPressed: t < 140.5,
       statusText: "正在按确定性时间轴同步导出 1080P 60fps 成片…",
     });
   }
 
-  // 3. 扫屏左侧（及扫屏完成后）：100% 满屏精修 v2 彩虹的分层丝滑淡出与溶解演进！
+  // 3. 扫屏左侧（及扫屏完成后）：100% 满屏精修 v4 彩虹的分层丝滑淡出与溶解演进！
   if (sweepX > 0 && rainbowAlphaOut > 0.004) {
     worldCtx.save();
     if (sweepX < STAGE_W) {
@@ -288,6 +291,7 @@ export function renderAct05({ worldCtx, overlayCtx, camera, ui, t }) {
         reveal: 1,
         redDeg: 9.1,
         violetDeg: 37.8,
+        brassBoost: ornamentFadeOut,
       });
     }
 
@@ -302,7 +306,8 @@ export function renderAct05({ worldCtx, overlayCtx, camera, ui, t }) {
       dispersionProgress: 1,
       rewindProgress: rainbowRewindGentle,
       v2Factor: ornamentFadeOut, // 角度标尺随外饰先温柔隐退，不生硬残留
-      saturationBoost: ornamentFadeOut,
+      saturationBoost: 0.45 * ornamentFadeOut,
+      prismGlowBoost: ornamentFadeOut,
       showAngleAnnotation: ornamentFadeOut > 0.05,
       showWaveBeads: ornamentFadeOut > 0.08,
       styleId: "paper-editorial",
