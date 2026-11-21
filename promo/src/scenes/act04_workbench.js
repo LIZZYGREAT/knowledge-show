@@ -476,17 +476,27 @@ export function renderAct04({ worldCtx, overlayCtx, camera, ui, t }) {
         u
       );
     }
-    // 136.8 – 140.0：衔接机关 ③，优雅飞落右上角真实「导出 MP4」按钮轻点确认
-    const u = easeEditorialInOut(segProgress(time, 136.8, 138.8));
-    const p = bezierPoint(
-      { x: 1080, y: 390 },
-      { x: 1420, y: 260 },
-      { x: expBtn.x - 90, y: expBtn.y + 90 },
+    // 136.8 – 140.0：衔接机关 ③，飞落右上角「导出 MP4」轻点后化作流光弧线掠向左缘展开第五幕标尺！
+    if (time < 139.25) {
+      const u = easeEditorialInOut(segProgress(time, 136.8, 138.8));
+      const p = bezierPoint(
+        { x: 1080, y: 390 },
+        { x: 1420, y: 260 },
+        { x: expBtn.x - 90, y: expBtn.y + 90 },
+        { x: expBtn.x - 8, y: expBtn.y + 8 },
+        u
+      );
+      const press = time >= 138.8 && time < 139.2 ? 6 : 0;
+      return { x: p.x, y: p.y + press };
+    }
+    const uFlyLeft = easeEditorialInOut(segProgress(time, 139.25, 140.0));
+    return bezierPoint(
       { x: expBtn.x - 8, y: expBtn.y + 8 },
-      u
+      { x: 1200, y: 90 },
+      { x: 460, y: 180 },
+      { x: 0, y: 540 },
+      uFlyLeft
     );
-    const press = time >= 138.8 && time < 139.4 ? 6 : 0;
-    return { x: p.x, y: p.y + press };
   };
 
   const posW = flightPath(t);
@@ -498,13 +508,16 @@ export function renderAct04({ worldCtx, overlayCtx, camera, ui, t }) {
   const hideForCompareLine = compareActive ? 1 - pCompareIn * (1 - pCompareOut) : 1;
 
   if (hideForCompareLine > 0.02) {
+    // 92s 精确承接第三幕尺寸 38 -> 退镜时柔和缩放至 34；139.2–140.0s 轻点导出后化作流光滑向第五幕左缘标尺
+    const startSize = lerp(38, 34, pPullback);
+    const exportVanish = 1 - easeEditorialInOut(segProgress(t, 139.35, 140.0));
     drawPrismFold(overlayCtx, {
       x: posS.x,
       y: posS.y,
       mode: bracketBlend > 0.05 ? "BRACKET" : "GLIDE",
-      size: 34 * camera.zoom,
-      angle: t < 93.4 ? 0.16 : 0,
-      alpha: hideForCompareLine,
+      size: startSize * camera.zoom,
+      angle: lerp(0.16, 0, easeEditorialOut(segProgress(t, 92.8, 94.0))),
+      alpha: hideForCompareLine * exportVanish,
       t,
       bracketBlend,
       bracketRect: selScreen,
