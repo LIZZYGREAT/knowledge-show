@@ -20,6 +20,12 @@ import { drawPaperBase, drawPaperCard } from "../core/paper.js";
 import { drawPrismFold, sampleTrailFromPath } from "../entities/prismFold.js";
 import { drawBrandMark, drawBrandWordmark } from "../entities/brandLogo.js";
 import { drawRainbowInRect } from "./act04_workbench.js";
+import {
+  drawDappledSunlight,
+  drawStarlightGlint,
+  drawOrigamiConfettiBurst,
+  drawEditorialPrintMarks,
+} from "../entities/ornaments.js";
 import { UI_GEOMETRY } from "../ui/frontendStage.js";
 
 /**
@@ -110,6 +116,21 @@ function drawExportSweepRuler(ctx, sweepX, sweepProgress, alpha) {
     ctx.lineTo(sweepX - len, y);
     ctx.stroke();
   }
+
+  // 沿标尺前沿滑行的 3 枚四芒折光星芒（强化“所见即成片”的精工质感）
+  [0.24, 0.52, 0.78].forEach((ry, idx) => {
+    const sy = STAGE_H * ry + Math.sin(sweepProgress * 12 + idx * 2) * 18;
+    drawStarlightGlint(
+      ctx,
+      sweepX,
+      sy,
+      11 + 3 * Math.sin(sweepProgress * 16 + idx),
+      "#FFFFFF",
+      idx === 1 ? COLORS.brandAmber : COLORS.brandTeal,
+      0.88,
+      sweepProgress * 2 + idx
+    );
+  });
 
   // 实时帧号微标（无弹窗、无进度条，仅轻盈浮于标尺上方）
   const frameNum = Math.min(9900, Math.round(sweepProgress * 9900));
@@ -235,12 +256,13 @@ export function renderAct05({ worldCtx, overlayCtx, camera, ui, t }) {
     return;
   }
 
-  // 2. 2:31 – 2:45（回归纯粹暖纸 -> 七彩编织为双股流纹丝带 -> 棱片归位拼合完整 BrandLogo）
+  // 2. 2:31 – 2:45（回归纯粹暖纸 -> 午后斜阳浮尘 -> 双股流纹丝带 -> 旋转星盘细环与棱片归位拼合 BrandLogo）
   drawPaperBase(worldCtx, STAGE_W, STAGE_H, {
     tealGlow: 1.0,
     amberGlow: 1.0,
     dotGridAlpha: 0.024,
   });
+  drawDappledSunlight(worldCtx, STAGE_W, STAGE_H, t, (1 - pFinalFade) * 0.92);
 
   // 彩虹收势柔和淡出，同时双股品牌流纹丝带自然展开托起暖白纸页
   const rainbowFadeOut = 1 - easeEditorialInOut(segProgress(t, 151.6, 154.6));
@@ -257,6 +279,63 @@ export function renderAct05({ worldCtx, overlayCtx, camera, ui, t }) {
 
   // 过渡编织七彩丝带 -> 汇聚为标志上下双股青绿/湖蓝/暖杏流动丝带
   drawSignatureFlowRibbons(worldCtx, t, easeEditorialOut(segProgress(t, 152.0, 156.4)), 1 - pFinalFade);
+
+  // 围绕 BrandLogo 中心的极轻暖金青绿轨道细弧与柔和棱镜虹彩光晕
+  const markCx = 960;
+  const markCy = 418;
+  const haloReveal = easeEditorialOut(segProgress(t, 157.8, 160.6)) * (1 - pFinalFade);
+  if (haloReveal > 0.01) {
+    worldCtx.save();
+    worldCtx.globalAlpha = haloReveal;
+
+    // 柔和暖杏青绿晨曦光晕
+    const rg = worldCtx.createRadialGradient(markCx, markCy, 24, markCx, markCy, 290);
+    rg.addColorStop(0, "rgba(255, 251, 240, 0.78)");
+    rg.addColorStop(0.45, "rgba(242, 153, 74, 0.12)");
+    rg.addColorStop(0.78, "rgba(18, 148, 141, 0.07)");
+    rg.addColorStop(1, "rgba(18, 148, 141, 0)");
+    worldCtx.fillStyle = rg;
+    worldCtx.beginPath();
+    worldCtx.arc(markCx, markCy, 290, 0, TAU);
+    worldCtx.fill();
+
+    // 缓慢旋转的极细刊物同心装饰弧
+    worldCtx.translate(markCx, markCy);
+    worldCtx.rotate(t * 0.08);
+    worldCtx.strokeStyle = "rgba(18, 148, 141, 0.18)";
+    worldCtx.lineWidth = 1.2;
+    worldCtx.setLineDash([4, 10]);
+    worldCtx.beginPath();
+    worldCtx.arc(0, 0, 152, 0, TAU);
+    worldCtx.stroke();
+    worldCtx.setLineDash([]);
+
+    worldCtx.strokeStyle = "rgba(242, 153, 74, 0.28)";
+    worldCtx.lineWidth = 1.4;
+    worldCtx.beginPath();
+    worldCtx.arc(0, 0, 178, -0.5, 0.85);
+    worldCtx.stroke();
+    worldCtx.beginPath();
+    worldCtx.arc(0, 0, 178, Math.PI - 0.5, Math.PI + 0.85);
+    worldCtx.stroke();
+    worldCtx.restore();
+  }
+
+  // 棱片归位瞬间绽放的一小簇克制折纸金青星屑（159.3 – 161.4s）
+  const pLockBurst = segProgress(t, 159.3, 161.4);
+  if (pLockBurst > 0.01 && pLockBurst < 0.99) {
+    drawOrigamiConfettiBurst(worldCtx, markCx + 18, markCy, pLockBurst, {
+      seed: 15930,
+      count: 20,
+      spread: 210,
+      alpha: 0.78 * (1 - pFinalFade),
+    });
+  }
+
+  drawEditorialPrintMarks(overlayCtx, STAGE_W, STAGE_H, {
+    alpha: 0.36 * (1 - pFinalFade),
+    issue: "KNOWLEDGE.SHOW(ME) · EDITION",
+  });
 
   // 仍短暂保留的右上角印章淡出
   const stampAlpha = 1 - pStampOut;
@@ -285,8 +364,6 @@ export function renderAct05({ worldCtx, overlayCtx, camera, ui, t }) {
   }
 
   // 3. 画面正中：青绿竖线自上而下优雅画出 + 棱片归位拼合为完整 Knowledge.Show(me) 图标
-  const markCx = 960;
-  const markCy = 418;
   const markSize = 152;
   // BrandLogo 右侧棱晶几何中心大约在 cx + size * 0.115
   const homeX = markCx + markSize * 0.115;

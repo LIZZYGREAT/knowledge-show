@@ -20,6 +20,12 @@ import { drawPaperBase, drawFocusMask, drawPaperCard, roundRectPath } from "../c
 import { drawPrismFold, sampleTrailFromPath } from "../entities/prismFold.js";
 import { drawRainbowOptics } from "../entities/rainbowOptics.js";
 import { drawBoxedInkRipple } from "../entities/inkRipple.js";
+import {
+  drawDappledSunlight,
+  drawBrassGoniometer,
+  drawPopupPaperDiorama,
+  drawStarlightGlint,
+} from "../entities/ornaments.js";
 import { UI_GEOMETRY } from "../ui/frontendStage.js";
 
 const REV_PROMPT = "拉大红光与紫光的波长起伏对比，并在折射边界补上手绘角度刻度";
@@ -48,6 +54,14 @@ export function drawRainbowInRect(
       amberGlow: 1.0,
       dotGridAlpha: 0.024,
     });
+    drawDappledSunlight(ctx, STAGE_W, STAGE_H, t, 0.85);
+    drawPopupPaperDiorama(ctx, 660, 560, 1, 0.85);
+    drawBrassGoniometer(ctx, 640, 540, 365, t, {
+      alpha: 0.88,
+      reveal: 1,
+      redDeg: 11.5 - 2.4 * passV2,
+      violetDeg: 33.6 + 4.2 * passV2,
+    });
     return drawRainbowOptics(ctx, {
       cx: 640,
       cy: 540,
@@ -59,8 +73,9 @@ export function drawRainbowInRect(
       v2Factor: passV2,
       saturationBoost: passSat,
       showAngleAnnotation: passV2 > 0.1,
+      showWaveBeads: true,
       styleId: "paper-editorial",
-      ribbonLen: 1120,
+      ribbonLen: 1140,
     });
   };
 
@@ -268,6 +283,40 @@ export function renderAct04({ worldCtx, overlayCtx, camera, ui, t }) {
   // 框内暖杏水墨纸纹涟漪（严格裁切在 selScreen 选框内，0.9s 焕新，零转圈 Loading！）
   if (pRipple > 0.005 && pRipple < 0.995) {
     drawBoxedInkRipple(overlayCtx, selScreen, pRipple, { alpha: 1 });
+  }
+
+  // 选框咬合瞬间的磁吸卡尺微标签与扩散环（强化“外科手术级局部精准锁定”）
+  if (pBracketSnap > 0.25 && pBracketOff < 0.85) {
+    const tagA = clamp(Math.min(1, (pBracketSnap - 0.25) * 2) * (1 - pBracketOff));
+    overlayCtx.save();
+    overlayCtx.globalAlpha = tagA;
+    // 顶部精细尺寸卡尺标签
+    drawPaperCard(overlayCtx, selScreen.x, selScreen.y - 34, 248, 28, {
+      radius: 14,
+      fill: "rgba(255, 253, 249, 0.94)",
+      stroke: rgba(COLORS.brandTeal, 0.48),
+      lineWidth: 1.2,
+      shadowBlur: 10,
+      shadowOffsetY: 3,
+    });
+    overlayCtx.fillStyle = COLORS.brandTeal;
+    overlayCtx.beginPath();
+    overlayCtx.arc(selScreen.x + 14, selScreen.y - 20, 4, 0, Math.PI * 2);
+    overlayCtx.fill();
+    overlayCtx.font = `600 11.5px ${FONTS.mono}`;
+    overlayCtx.fillStyle = COLORS.brandTealDark;
+    overlayCtx.textBaseline = "middle";
+    overlayCtx.fillText("prism-spectrum-waves · 局部锁定", selScreen.x + 26, selScreen.y - 20);
+
+    // 咬合瞬间扩散一次的细腻青绿冲击波环
+    const snapWave = segProgress(t, 101.9, 103.1);
+    if (snapWave > 0.01 && snapWave < 0.99) {
+      const pad = lerp(0, 32, easeEditorialOut(snapWave));
+      overlayCtx.strokeStyle = rgba(COLORS.brandTeal, (1 - snapWave) * 0.55);
+      overlayCtx.lineWidth = 2;
+      overlayCtx.strokeRect(selScreen.x - pad, selScreen.y - pad, selScreen.w + pad * 2, selScreen.h + pad * 2);
+    }
+    overlayCtx.restore();
   }
 
   // 描图纸对比竖线（124.0 – 129.1s）
