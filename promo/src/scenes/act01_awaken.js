@@ -7,12 +7,13 @@
  * 0:19.6 – 0:22.0 衔接机关 ①（彩虹化作星芒流光倒卷收束，优雅立正为真实输入框光标）
  */
 
-import { COLORS, FONTS, STAGE_W, STAGE_H } from "../config/tokens.js";
+import { COLORS, SPECTRUM, FONTS, STAGE_W, STAGE_H } from "../config/tokens.js";
 import { segProgress } from "../config/timeline.js";
 import {
   clamp,
   lerp,
   rgba,
+  mulberry32,
   easeEditorialOut,
   easeEditorialInOut,
   springProgress,
@@ -33,111 +34,360 @@ import {
 } from "../entities/ornaments.js";
 import { UI_GEOMETRY } from "../ui/frontendStage.js";
 
+const OPENING_MOTES = (() => {
+  const r = mulberry32(202601);
+  return Array.from({ length: 22 }, (_, i) => ({
+    angle: (i / 22) * TAU + (r() - 0.5) * 0.25,
+    rBase: 36 + r() * 210,
+    speed: (r() > 0.5 ? 1 : -1) * (0.28 + r() * 0.45),
+    rad: 1.5 + r() * 2.8,
+    phase: r() * TAU,
+    hue: i % 3 === 0 ? COLORS.brandAmber : i % 3 === 1 ? COLORS.brandTeal : COLORS.brandPeriwinkle,
+  }));
+})();
+
 /**
- * 0:00 – 0:03.4 开场光点与引入光束（首帧从一粒温暖星芒光点启程，优雅绽放为完整画桌）
+ * 0:00 – 0:03.8 开场光点与精密光学星盘破晓（高定书桌苏醒序幕）
+ * 0:00 – 0:00.9 暖白棉纸中央一粒棱晶星芒苏醒 + 呼吸黄铜准星 + 环绕金青微尘
+ * 0:00.35 – 0:02.2 18° 斜阳金青光束携柔和七彩微色散光晕划开纸面 + 双层精密黄铜测角星盘弧线舒展
+ * 0:00.85 – 0:02.85 扩张的暖金日光光环沿圆弧边沿将精装书桌徐徐“照亮显影”
+ * 0:01.85 – 0:03.30 星芒沿优雅 S 形贝塞尔弧线拖曳流光金青丝带轻落书页句号，唤醒整部动画！
  */
-function drawOpeningLightSeed(ctx, t, dotTarget) {
+function drawOpeningLightSeed(ctx, t, dotTarget, bookRevealProg = 0) {
   if (t > 4.2) return;
 
+  const cx = STAGE_W * 0.5;
+  const cy = STAGE_H * 0.5;
+
   const pPulse = easeEditorialOut(segProgress(t, 0.0, 0.85));
-  const pBeam = easeEditorialInOut(segProgress(t, 0.35, 1.55));
-  const pIris = easeEditorialInOut(segProgress(t, 0.85, 2.75));
-  const pTravelToDot = easeEditorialInOut(segProgress(t, 1.85, 3.15));
-  const pFade = 1 - easeEditorialOut(segProgress(t, 3.15, 3.85));
+  const pAstrolabe = easeEditorialOut(segProgress(t, 0.12, 1.45));
+  const pBeam = easeEditorialInOut(segProgress(t, 0.32, 1.58));
+  const pIris = easeEditorialInOut(segProgress(t, 0.85, 2.85));
+  const pTravelToDot = easeEditorialInOut(segProgress(t, 1.85, 3.25));
+  const pFade = 1 - easeEditorialOut(segProgress(t, 3.25, 3.95));
 
   if (pFade <= 0.005) return;
 
-  const sx = lerp(STAGE_W * 0.5, dotTarget.x - 2, pTravelToDot);
-  const sy = lerp(STAGE_H * 0.5, dotTarget.y - 4, pTravelToDot);
+  // 星芒落向句号的优雅 S 形贝塞尔轨迹
+  const sparkPath = (u) =>
+    bezierPoint(
+      { x: cx, y: cy },
+      { x: cx - 55, y: cy - 145 },
+      { x: dotTarget.x + 110, y: dotTarget.y - 120 },
+      { x: dotTarget.x - 2, y: dotTarget.y - 4 },
+      clamp(u)
+    );
+
+  const curSpark = pTravelToDot > 0.001 ? sparkPath(pTravelToDot) : { x: cx, y: cy };
+  const centerElementsFade = clamp(1 - pTravelToDot * 1.35) * clamp(1 - Math.max(0, (pIris - 0.55) / 0.45));
 
   ctx.save();
   ctx.globalAlpha = clamp(pFade);
 
-  // 1. 首帧极简优雅的同心探索细环（自中心一点向外舒展）
-  if (pPulse > 0.01 && pIris < 0.98) {
-    const ringAlpha = (1 - pIris * 0.85) * 0.45;
-    for (let k = 0; k < 3; k++) {
-      const u = clamp((pBeam - k * 0.14) / 0.86);
-      if (u <= 0) continue;
-      const rr = lerp(10, 140 + k * 140, easeEditorialOut(u));
-      ctx.strokeStyle =
-        k === 0
-          ? rgba(COLORS.brandAmber, ringAlpha)
-          : k === 1
-            ? rgba(COLORS.brandTeal, ringAlpha * 0.85)
-            : rgba(COLORS.brandPeriwinkle, ringAlpha * 0.55);
-      ctx.lineWidth = 1.8 - k * 0.4;
+  // 1. 中心温柔呼吸的晨光暖晕 + 极细光学准星草图线 + 隐约正三角光学水印
+  if (centerElementsFade > 0.01) {
+    ctx.save();
+    ctx.globalAlpha = clamp(pFade * centerElementsFade);
+
+    // 晨曦暖金-浅青空气光晕
+    const auraR = lerp(88, 340, pAstrolabe);
+    const aura = ctx.createRadialGradient(cx, cy, 4, cx, cy, auraR);
+    aura.addColorStop(0, "rgba(255, 252, 240, 0.92)");
+    aura.addColorStop(0.24, rgba(COLORS.brandAmber, 0.24 * (0.65 + 0.35 * pPulse)));
+    aura.addColorStop(0.58, rgba(COLORS.brandTeal, 0.09 * pAstrolabe));
+    aura.addColorStop(1, "rgba(249, 247, 242, 0)");
+    ctx.fillStyle = aura;
+    ctx.beginPath();
+    ctx.arc(cx, cy, auraR, 0, TAU);
+    ctx.fill();
+
+    // 精密黄铜光学取景十字细轴（随光点呼吸向外延展，带刊物微刻度）
+    const axisSpan = lerp(44, 248, pAstrolabe);
+    const axisGradH = ctx.createLinearGradient(cx - axisSpan, cy, cx + axisSpan, cy);
+    axisGradH.addColorStop(0, "rgba(176, 128, 66, 0)");
+    axisGradH.addColorStop(0.25, "rgba(176, 128, 66, 0.28)");
+    axisGradH.addColorStop(0.5, "rgba(18, 148, 141, 0.36)");
+    axisGradH.addColorStop(0.75, "rgba(176, 128, 66, 0.28)");
+    axisGradH.addColorStop(1, "rgba(176, 128, 66, 0)");
+    ctx.strokeStyle = axisGradH;
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    ctx.moveTo(cx - axisSpan, cy);
+    ctx.lineTo(cx + axisSpan, cy);
+    ctx.stroke();
+
+    const axisGradV = ctx.createLinearGradient(cx, cy - axisSpan * 0.78, cx, cy + axisSpan * 0.78);
+    axisGradV.addColorStop(0, "rgba(176, 128, 66, 0)");
+    axisGradV.addColorStop(0.5, "rgba(176, 128, 66, 0.28)");
+    axisGradV.addColorStop(1, "rgba(176, 128, 66, 0)");
+    ctx.strokeStyle = axisGradV;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - axisSpan * 0.78);
+    ctx.lineTo(cx, cy + axisSpan * 0.78);
+    ctx.stroke();
+
+    // 隐约浮现的几何三棱镜光影水印（预告全片光学母题）
+    const triR = lerp(34, 108, pAstrolabe);
+    ctx.strokeStyle = rgba(COLORS.brandTeal, 0.18 * pAstrolabe);
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([5, 6]);
+    ctx.beginPath();
+    for (let v = 0; v < 3; v++) {
+      const ang = -Math.PI * 0.5 + (v * TAU) / 3 + (1 - pAstrolabe) * 0.28;
+      const vx = cx + Math.cos(ang) * triR;
+      const vy = cy + Math.sin(ang) * triR;
+      v === 0 ? ctx.moveTo(vx, vy) : ctx.lineTo(vx, vy);
+    }
+    ctx.closePath();
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // 2. 双层反向旋转精密光学星盘（带 36 细刻度 + 分段青绿/湖蓝优雅圆弧 + 四方位微菱星）
+    const rInner = lerp(24, 126, pAstrolabe);
+    const rOuter = lerp(42, 224, pAstrolabe);
+
+    // 内层黄铜细刻度环
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(t * 0.18);
+    ctx.strokeStyle = rgba("#B88648", 0.34 * pAstrolabe);
+    ctx.lineWidth = 1.1;
+    ctx.setLineDash([3, 5]);
+    ctx.beginPath();
+    ctx.arc(0, 0, rInner, 0, TAU);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    for (let k = 0; k < 36; k++) {
+      const a = (k / 36) * TAU;
+      const major = k % 9 === 0;
+      const t0 = rInner - (major ? 9 : 4);
+      ctx.strokeStyle = major ? rgba(COLORS.brandAmber, 0.65) : rgba("#8A602C", 0.26);
+      ctx.lineWidth = major ? 1.6 : 0.9;
       ctx.beginPath();
-      ctx.arc(STAGE_W * 0.5, STAGE_H * 0.5, rr, 0, TAU);
+      ctx.moveTo(Math.cos(a) * t0, Math.sin(a) * t0);
+      ctx.lineTo(Math.cos(a) * rInner, Math.sin(a) * rInner);
       ctx.stroke();
     }
+    ctx.restore();
+
+    // 外层精工分段子午弧线（青绿 + 湖蓝双对称圆弧 + 末端微珠）
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(-t * 0.14);
+    const arcSpecs = [
+      { start: -0.65, end: 0.72, color: COLORS.brandTeal, w: 1.9, r: rOuter },
+      { start: Math.PI - 0.65, end: Math.PI + 0.72, color: COLORS.brandTeal, w: 1.9, r: rOuter },
+      { start: Math.PI * 0.5 - 0.5, end: Math.PI * 0.5 + 0.5, color: COLORS.brandPeriwinkle, w: 1.5, r: rOuter + 24 },
+      { start: Math.PI * 1.5 - 0.5, end: Math.PI * 1.5 + 0.5, color: COLORS.brandPeriwinkle, w: 1.5, r: rOuter + 24 },
+    ];
+    for (const arc of arcSpecs) {
+      const span = (arc.end - arc.start) * pAstrolabe;
+      ctx.strokeStyle = rgba(arc.color, 0.46 * pAstrolabe);
+      ctx.lineWidth = arc.w;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.arc(0, 0, arc.r, arc.start, arc.start + span);
+      ctx.stroke();
+
+      // 弧线首尾精致黄铜圆点
+      const ex = Math.cos(arc.start + span) * arc.r;
+      const ey = Math.sin(arc.start + span) * arc.r;
+      ctx.fillStyle = rgba(COLORS.brandAmber, 0.85 * pAstrolabe);
+      ctx.beginPath();
+      ctx.arc(ex, ey, 3.0, 0, TAU);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // 环绕旋转的 22 粒晨光金青微尘（随星盘徐徐呼吸浮游）
+    for (const m of OPENING_MOTES) {
+      const ang = m.angle + t * m.speed;
+      const rad = lerp(16, m.rBase, pAstrolabe) + Math.sin(t * 2.2 + m.phase) * 8;
+      const mx = cx + Math.cos(ang) * rad;
+      const my = cy + Math.sin(ang) * rad;
+      const tw = 0.45 + 0.55 * Math.sin(t * 3.4 + m.phase);
+      const rg = ctx.createRadialGradient(mx, my, 0, mx, my, m.rad * 2.6);
+      rg.addColorStop(0, rgba("#FFFDF9", 0.9 * tw));
+      rg.addColorStop(0.5, rgba(m.hue, 0.55 * tw));
+      rg.addColorStop(1, rgba(m.hue, 0));
+      ctx.fillStyle = rg;
+      ctx.beginPath();
+      ctx.arc(mx, my, m.rad * 2.6, 0, TAU);
+      ctx.fill();
+    }
+
+    ctx.restore();
   }
 
-  // 2. 划开暖白纸面的 18° 斜向金青光束 + 两条柔美引入游丝
+  // 3. 划开暖白纸面的 18° 斜向金青光束 + 细腻七彩微色散扇晕 + 双股柔弧光丝
   if (pBeam > 0.01 && pTravelToDot < 0.92) {
-    const beamFade = (1 - pTravelToDot) * Math.sin(clamp(pBeam) * Math.PI * 0.88);
-    const halfSpan = lerp(0, 1080, easeEditorialOut(pBeam));
+    const beamFade = (1 - pTravelToDot) * Math.sin(clamp(pBeam) * Math.PI * 0.90);
+    const halfSpan = lerp(0, 1140, easeEditorialOut(pBeam));
     const ang = (18 * Math.PI) / 180;
     const dx = Math.cos(ang);
     const dy = Math.sin(ang);
+    const nx = -dy;
+    const ny = dx;
 
-    const x1 = STAGE_W * 0.5 - dx * halfSpan;
-    const y1 = STAGE_H * 0.5 - dy * halfSpan;
-    const x2 = STAGE_W * 0.5 + dx * halfSpan;
-    const y2 = STAGE_H * 0.5 + dy * halfSpan;
+    const x1 = cx - dx * halfSpan;
+    const y1 = cy - dy * halfSpan;
+    const x2 = cx + dx * halfSpan;
+    const y2 = cy + dy * halfSpan;
 
-    const grad = ctx.createLinearGradient(x1, y1, x2, y2);
-    grad.addColorStop(0, "rgba(255, 250, 236, 0)");
-    grad.addColorStop(0.28, rgba(COLORS.brandTeal, 0.24 * beamFade));
-    grad.addColorStop(0.5, rgba("#FFFDF8", 0.95 * beamFade));
-    grad.addColorStop(0.72, rgba(COLORS.brandAmber, 0.34 * beamFade));
-    grad.addColorStop(1, "rgba(255, 250, 236, 0)");
-
-    ctx.strokeStyle = grad;
-    ctx.lineWidth = lerp(26, 4, pTravelToDot);
+    // 宽幅暖奶油空气散射光幕
+    const mistGrad = ctx.createLinearGradient(x1, y1, x2, y2);
+    mistGrad.addColorStop(0, "rgba(255, 250, 236, 0)");
+    mistGrad.addColorStop(0.26, rgba(COLORS.brandTeal, 0.14 * beamFade));
+    mistGrad.addColorStop(0.5, rgba("#FFFBF0", 0.72 * beamFade));
+    mistGrad.addColorStop(0.74, rgba(COLORS.brandAmber, 0.22 * beamFade));
+    mistGrad.addColorStop(1, "rgba(255, 250, 236, 0)");
+    ctx.strokeStyle = mistGrad;
+    ctx.lineWidth = lerp(48, 8, pTravelToDot);
     ctx.lineCap = "round";
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
     ctx.stroke();
 
-    // 纤细暖白光芯
-    ctx.strokeStyle = rgba("#FFFFFF", 0.92 * beamFade);
-    ctx.lineWidth = 2.2;
+    // 右侧柔和绽放的 7 色水彩微色散游丝（极克制、高雅地剧透彩虹光学主题！）
+    for (let i = 0; i < SPECTRUM.length; i++) {
+      const band = SPECTRUM[i];
+      const fanAng = ang + ((i - 3) * 1.9 * Math.PI) / 180;
+      const fx = Math.cos(fanAng);
+      const fy = Math.sin(fanAng);
+      const fanLen = halfSpan * lerp(0.52, 0.68, (6 - Math.abs(i - 3)) / 6);
+      const fg = ctx.createLinearGradient(cx, cy, cx + fx * fanLen, cy + fy * fanLen);
+      fg.addColorStop(0, rgba(band.hex, 0.34 * beamFade));
+      fg.addColorStop(0.55, rgba(band.hex, 0.18 * beamFade));
+      fg.addColorStop(1, rgba(band.hex, 0));
+      ctx.strokeStyle = fg;
+      ctx.lineWidth = 4.5;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + fx * fanLen, cy + fy * fanLen);
+      ctx.stroke();
+    }
+
+    // 纤细纯净暖白光芯 + 左右对称游丝
+    ctx.strokeStyle = rgba("#FFFFFF", 0.96 * beamFade);
+    ctx.lineWidth = 2.6;
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
     ctx.stroke();
 
-    // 伴随光束舒展的双股微弧游丝
     for (const sign of [-1, 1]) {
       ctx.beginPath();
-      for (let i = 0; i <= 60; i++) {
-        const u = i / 60;
-        const s = lerp(-halfSpan * 0.72, halfSpan * 0.72, u);
-        const bulge = Math.sin(u * Math.PI) * 34 * sign * Math.sin(t * 2.4 + sign);
-        const px = STAGE_W * 0.5 + dx * s - dy * bulge;
-        const py = STAGE_H * 0.5 + dy * s + dx * bulge;
+      for (let i = 0; i <= 72; i++) {
+        const u = i / 72;
+        const s = lerp(-halfSpan * 0.78, halfSpan * 0.78, u);
+        const bulge = Math.sin(u * Math.PI) * 32 * sign * Math.sin(u * Math.PI * 2 + t * 2.2 + sign);
+        const px = cx + dx * s + nx * bulge;
+        const py = cy + dy * s + ny * bulge;
         i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
       }
-      ctx.strokeStyle = sign < 0 ? rgba(COLORS.brandTeal, 0.42 * beamFade) : rgba(COLORS.brandPeriwinkle, 0.36 * beamFade);
-      ctx.lineWidth = 1.8;
+      ctx.strokeStyle = sign < 0 ? rgba(COLORS.brandTeal, 0.40 * beamFade) : rgba(COLORS.brandAmber, 0.38 * beamFade);
+      ctx.lineWidth = 1.6;
       ctx.stroke();
     }
   }
 
-  // 3. 灵动呼吸的核心好奇光点（在 1.85s-3.15s 滑落到书页句号上，唤醒整本书！）
-  const coreScale = lerp(0.75, 1.35, Math.sin(pPulse * Math.PI * 0.5)) * lerp(1.0, 0.65, pTravelToDot);
+  // 4. 沿精装书桌扩张圆形显影边界（curR）奔跑的「暖金-青绿日光揭幕光环」！
+  if (bookRevealProg > 0.01 && bookRevealProg < 0.98) {
+    const maxR = Math.hypot(STAGE_W, STAGE_H) * 0.62;
+    const curR = lerp(24, maxR, easeEditorialInOut(bookRevealProg));
+    const rimEnv = Math.sin(clamp(bookRevealProg) * Math.PI);
+
+    ctx.save();
+    // 柔焦暖金外光带
+    ctx.strokeStyle = rgba(COLORS.brandAmber, 0.24 * rimEnv);
+    ctx.lineWidth = 16;
+    ctx.beginPath();
+    ctx.arc(cx, cy, curR, 0, TAU);
+    ctx.stroke();
+
+    // 细腻高亮白金揭幕边线
+    ctx.strokeStyle = rgba("#FFFDF5", 0.78 * rimEnv);
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.arc(cx, cy, curR, 0, TAU);
+    ctx.stroke();
+
+    // 沿揭幕光环分布的 4 枚微闪星芒珠
+    for (let k = 0; k < 4; k++) {
+      const a = (k / 4) * TAU + bookRevealProg * 1.4 + 0.4;
+      drawStarlightGlint(
+        ctx,
+        cx + Math.cos(a) * curR,
+        cy + Math.sin(a) * curR,
+        14 * rimEnv,
+        "#FFFFFF",
+        k % 2 === 0 ? COLORS.brandAmber : COLORS.brandTeal,
+        0.85 * rimEnv,
+        t * 1.6 + k
+      );
+    }
+    ctx.restore();
+  }
+
+  // 5. 星芒滑向句号时的绵长金青丝带拖尾（1.85s – 3.30s）
+  if (pTravelToDot > 0.01 && pTravelToDot < 0.995) {
+    const steps = 28;
+    const tailStart = Math.max(0, pTravelToDot - 0.42);
+    for (let i = 1; i <= steps; i++) {
+      const u0 = lerp(tailStart, pTravelToDot, (i - 1) / steps);
+      const u1 = lerp(tailStart, pTravelToDot, i / steps);
+      const p0 = sparkPath(u0);
+      const p1 = sparkPath(u1);
+      const ratio = i / steps;
+      ctx.strokeStyle = i % 2 === 0 ? rgba(COLORS.brandTeal, ratio * 0.62) : rgba(COLORS.brandAmber, ratio * 0.68);
+      ctx.lineWidth = 1.4 + ratio * 5.2;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(p0.x, p0.y);
+      ctx.lineTo(p1.x, p1.y);
+      ctx.stroke();
+    }
+  }
+
+  // 6. 灵动呼吸的核心好奇星芒（内置精致微棱晶菱核，从第 0 帧即呈现高定珠宝质感！）
+  const coreScale = lerp(0.82, 1.38, Math.sin(pPulse * Math.PI * 0.5)) * lerp(1.0, 0.70, pTravelToDot);
   drawStarlightGlint(
     ctx,
-    sx,
-    sy,
-    24 * coreScale,
+    curSpark.x,
+    curSpark.y,
+    30 * coreScale,
     "#FFFFFF",
     pTravelToDot > 0.5 ? COLORS.brandTeal : COLORS.brandAmber,
-    0.96,
-    t * 0.7
+    0.98,
+    t * 0.55
   );
+
+  // 星芒正中的青金双色微菱晶（呼应主角「棱片」诞生前的光核！）
+  const gemR = 6.5 * coreScale;
+  ctx.save();
+  ctx.translate(curSpark.x, curSpark.y);
+  ctx.rotate(t * 0.35);
+  ctx.fillStyle = rgba(COLORS.brandTeal, 0.78);
+  ctx.beginPath();
+  ctx.moveTo(0, -gemR);
+  ctx.lineTo(gemR * 0.72, 0);
+  ctx.lineTo(-gemR * 0.72, 0);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = rgba(COLORS.brandPeriwinkle, 0.72);
+  ctx.beginPath();
+  ctx.moveTo(0, gemR);
+  ctx.lineTo(gemR * 0.72, 0);
+  ctx.lineTo(-gemR * 0.72, 0);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = "#FFFFFF";
+  ctx.beginPath();
+  ctx.arc(0, 0, gemR * 0.36, 0, TAU);
+  ctx.fill();
+  ctx.restore();
 
   ctx.restore();
 }
@@ -421,8 +671,8 @@ export function renderAct01({ worldCtx, overlayCtx, camera, ui, t }) {
     ribbonLen: 1050,
   });
 
-  // 5. 开场 0:00 – 0:03.8 的一粒光点与一束暖光（最上层引导视线落在句号上！）
-  drawOpeningLightSeed(worldCtx, t, { x: dotPos.dotX, y: dotPos.dotY });
+  // 5. 开场 0:00 – 0:03.9 的精密光学星盘破晓与书桌揭幕光环（最上层引导视线落在句号上！）
+  drawOpeningLightSeed(worldCtx, t, { x: dotPos.dotX, y: dotPos.dotY }, pBookReveal);
 
   // 6. 紫光捏改谐振环
   if (pVioletTweak > 0.02 && pVioletTweak < 0.96 && pRewind < 0.1) {

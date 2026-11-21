@@ -462,9 +462,9 @@ function drawStyledRainbowScene(ctx, styleId, t, alpha = 1, { showVernier = true
   }
 
   if (styleId === "paper-editorial") {
-    drawDappledSunlight(ctx, STAGE_W, STAGE_H, t, 0.95);
-    drawPopupPaperDiorama(ctx, 660, 560, 1, 0.88);
-    drawBrassGoniometer(ctx, 640, 540, 365, t, { alpha: 0.92, reveal: 1 });
+    drawDappledSunlight(ctx, STAGE_W, STAGE_H, t, showVernier ? 0.95 : 0.85);
+    drawPopupPaperDiorama(ctx, 660, 560, 1, showVernier ? 0.88 : 0.85);
+    drawBrassGoniometer(ctx, 640, 540, 365, t, { alpha: showVernier ? 0.92 : 0.88, reveal: 1 });
 
     // 动态引导焦点：67.5–72.6s 测角仪金色指针臂随扫描波段从红光 11.5° 实时扫至紫光 33.6°！
     if (vernierHits && scanBandF >= 0 && showcaseTime >= 67.3 && showcaseTime <= 73.2) {
@@ -614,26 +614,28 @@ function drawStyledRainbowScene(ctx, styleId, t, alpha = 1, { showVernier = true
       ctx.restore();
     }
 
-    // 上空漂浮的 2 枚微缩半透明折纸小棱晶
-    [
-      { x: 1320, y: 155 + Math.sin(t * 1.4) * 10, s: 26, rot: 0.28 },
-      { x: 1620, y: 240 + Math.cos(t * 1.2) * 12, s: 20, rot: -0.42 },
-    ].forEach((sh) => {
-      ctx.save();
-      ctx.translate(sh.x, sh.y);
-      ctx.rotate(sh.rot + Math.sin(t * 0.7) * 0.08);
-      ctx.beginPath();
-      ctx.moveTo(0, -sh.s);
-      ctx.lineTo(sh.s * 0.82, sh.s * 0.65);
-      ctx.lineTo(-sh.s * 0.82, sh.s * 0.65);
-      ctx.closePath();
-      ctx.fillStyle = "rgba(255, 253, 249, 0.72)";
-      ctx.fill();
-      ctx.strokeStyle = "rgba(18, 148, 141, 0.30)";
-      ctx.lineWidth = 1.2;
-      ctx.stroke();
-      ctx.restore();
-    });
+    // 上空漂浮的 2 枚微缩半透明折纸小棱晶（仅第三幕展示期显示，91–92s 交接第四幕时保持与第四幕 100% 像素一致！）
+    if (showVernier) {
+      [
+        { x: 1320, y: 155 + Math.sin(t * 1.4) * 10, s: 26, rot: 0.28 },
+        { x: 1620, y: 240 + Math.cos(t * 1.2) * 12, s: 20, rot: -0.42 },
+      ].forEach((sh) => {
+        ctx.save();
+        ctx.translate(sh.x, sh.y);
+        ctx.rotate(sh.rot + Math.sin(t * 0.7) * 0.08);
+        ctx.beginPath();
+        ctx.moveTo(0, -sh.s);
+        ctx.lineTo(sh.s * 0.82, sh.s * 0.65);
+        ctx.lineTo(-sh.s * 0.82, sh.s * 0.65);
+        ctx.closePath();
+        ctx.fillStyle = "rgba(255, 253, 249, 0.72)";
+        ctx.fill();
+        ctx.strokeStyle = "rgba(18, 148, 141, 0.30)";
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+        ctx.restore();
+      });
+    }
   } else if (styleId === "modern-graphic") {
     // Bauhaus / 瑞士海报展：错拍入场动效（翻页打开即有活态几何编排，零呆滞空等！）
     const pBau = springProgress(segProgress(t, 75.2, 77.2), 0.72, 0.76, 16);
@@ -853,28 +855,30 @@ function drawStyledRainbowScene(ctx, styleId, t, alpha = 1, { showVernier = true
     perBandLengths,
   });
 
-  // 风格左下角刊物印章标
-  ctx.save();
-  drawPaperCard(ctx, 78, 924, 278, 58, {
-    radius: 29,
-    fill: "rgba(255, 253, 249, 0.92)",
-    stroke: "rgba(28, 42, 48, 0.16)",
-    lineWidth: 1.3,
-    shadowBlur: 14,
-    shadowOffsetY: 5,
-  });
-  ctx.fillStyle = style.palette[3];
-  ctx.beginPath();
-  ctx.arc(108, 953, 6.5, 0, TAU);
-  ctx.fill();
-  ctx.font = `600 18px ${FONTS.serif}`;
-  ctx.fillStyle = style.ink;
-  ctx.textBaseline = "middle";
-  ctx.fillText(style.name, 128, 953);
-  ctx.font = `500 12px ${FONTS.mono}`;
-  ctx.fillStyle = style.muted;
-  ctx.fillText(style.id, 232, 954);
-  ctx.restore();
+  // 风格左下角刊物印章标（仅第三幕展示期显示，避免 92.0s 切入第四幕时突兀消失）
+  if (showVernier) {
+    ctx.save();
+    drawPaperCard(ctx, 78, 924, 278, 58, {
+      radius: 29,
+      fill: "rgba(255, 253, 249, 0.92)",
+      stroke: "rgba(28, 42, 48, 0.16)",
+      lineWidth: 1.3,
+      shadowBlur: 14,
+      shadowOffsetY: 5,
+    });
+    ctx.fillStyle = style.palette[3];
+    ctx.beginPath();
+    ctx.arc(108, 953, 6.5, 0, TAU);
+    ctx.fill();
+    ctx.font = `600 18px ${FONTS.serif}`;
+    ctx.fillStyle = style.ink;
+    ctx.textBaseline = "middle";
+    ctx.fillText(style.name, 128, 953);
+    ctx.font = `500 12px ${FONTS.mono}`;
+    ctx.fillStyle = style.muted;
+    ctx.fillText(style.id, 232, 954);
+    ctx.restore();
+  }
 
   ctx.restore();
 }
@@ -1447,9 +1451,9 @@ function drawContinuousCrossTopicMorphs(ctx, t) {
     ctx.restore();
   }
 
-  // ── D. 88.6–92.0s：真 3D 双骰子 -> 90.4–91.7s 物理翻页手帐扫屏自然切回主线暖纸彩虹！（彻底告别生硬叠化！） ──
+  // ── D. 88.6–92.0s：真 3D 双骰子 -> 90.15–91.35s 物理翻页手帐扫屏自然切回主线暖纸彩虹！ ──
   if (t >= 88.6) {
-    const pPageBack = easeEditorialInOut(segProgress(t, 90.4, 91.65));
+    const pPageBack = easeEditorialInOut(segProgress(t, 90.15, 91.35));
     const wipeX = lerp(0, STAGE_W, pPageBack);
 
     // 1) 翻页扫过的左侧区域：直接露出 100% 清晰的第四幕起始暖纸彩虹画幅
@@ -1636,8 +1640,22 @@ function drawContinuousCrossTopicMorphs(ctx, t) {
 }
 
 /**
+ * 91.35s – 93.40s 跨第三/第四幕共享回旋弧线（2.05s 从容优雅滑翔，彻底消除 1:32 过快飞驰与拖尾突断！）
+ */
+export function act03To04ReturnArc(time) {
+  const u = easeEditorialOut(segProgress(time, 91.35, 93.40));
+  return bezierPoint(
+    { x: 1902, y: 540 },
+    { x: 1680, y: 350 },
+    { x: 1320, y: 400 },
+    { x: 1080, y: 460 },
+    u
+  );
+}
+
+/**
  * 第三幕「棱片」全连续无缝轨迹函数（52.0s – 92.0s）：
- * 彻底修复 1:13 处及任何段落交界的位置突变，保证每一帧都自然连续！
+ * 彻底修复 1:13 与 1:32 处的速度与位置衔接，保证每一帧都优雅连续！
  */
 function act03PrismPath(time) {
   // 52.0 – 55.2s：从第二幕划开终点 (1145, 760) 平滑滑升至右上守望点 (1690, 210)
@@ -1701,38 +1719,35 @@ function act03PrismPath(time) {
       u
     );
   }
-  // 83.2 – 89.7s：伴随三大跨主题奇观于左上空域柔和巡航
-  if (time < 89.7) {
+  // 83.2 – 89.5s：伴随三大跨主题奇观于左上空域柔和巡航
+  if (time < 89.5) {
     return {
       x: 215 + Math.sin((time - 83.2) * 1.1) * 18,
       y: 178 + Math.cos((time - 83.2) * 1.4) * 22,
     };
   }
-  // 89.7 – 90.4s：平滑俯冲至左页缘 (18, 540) 准备以物理手帐翻页切回主线彩虹！
-  if (time < 90.4) {
-    const u = easeEditorialInOut(segProgress(time, 89.7, 90.4));
+  // 89.5 – 90.15s：平滑俯冲至左页缘 (18, 540) 准备以物理手帐翻页切回主线彩虹！
+  if (time < 90.15) {
+    const u = easeEditorialInOut(segProgress(time, 89.5, 90.15));
+    const pStart = {
+      x: 215 + Math.sin((89.5 - 83.2) * 1.1) * 18,
+      y: 178 + Math.cos((89.5 - 83.2) * 1.4) * 22,
+    };
     return bezierPoint(
-      { x: 215, y: 178 },
+      pStart,
       { x: 96, y: 270 },
       { x: 24, y: 410 },
       { x: 18, y: 540 },
       u
     );
   }
-  // 90.4 – 91.65s：从左向右执行 FOLD 手帐翻页扫屏，自然揭开主线彩虹
-  if (time < 91.65) {
-    const u = easeEditorialInOut(segProgress(time, 90.4, 91.65));
+  // 90.15 – 91.35s：从左向右执行 FOLD 手帐翻页扫屏，自然揭开主线彩虹
+  if (time < 91.35) {
+    const u = easeEditorialInOut(segProgress(time, 90.15, 91.35));
     return { x: lerp(18, 1902, u), y: 540 };
   }
-  // 91.65 – 92.0s：从右缘优雅回旋刹车悬停至第四幕精确起点 (1080, 460)（0.0px 无缝交接！）
-  const u = easeEditorialOut(segProgress(time, 91.65, 92.0));
-  return bezierPoint(
-    { x: 1902, y: 540 },
-    { x: 1620, y: 390 },
-    { x: 1300, y: 410 },
-    { x: 1080, y: 460 },
-    u
-  );
+  // 91.35 – 92.0s+：共享 2.05s 从容优雅回旋弧线（跨过 92.0s 无缝延续进第四幕，拖尾自然绵长！）
+  return act03To04ReturnArc(time);
 }
 
 export function renderAct03({ worldCtx, overlayCtx, camera, ui, t }) {
@@ -1800,14 +1815,14 @@ export function renderAct03({ worldCtx, overlayCtx, camera, ui, t }) {
   // ── 顶层「棱片」主角：单一连续轨迹函数驱动，零瞬移、零突变！ ─────────────
   const inFlip1 = t >= 74.2 && t <= 76.4;
   const inFlip2 = t >= 78.7 && t <= 80.9;
-  const inFlipBack = t >= 90.4 && t <= 91.65;
+  const inFlipBack = t >= 90.15 && t <= 91.35;
 
   if (inFlip1 || inFlip2 || inFlipBack) {
     const uFlip = inFlip1
       ? easeEditorialInOut(segProgress(t, 74.2, 76.4))
       : inFlip2
         ? easeEditorialInOut(segProgress(t, 78.7, 80.9))
-        : easeEditorialInOut(segProgress(t, 90.4, 91.65));
+        : easeEditorialInOut(segProgress(t, 90.15, 91.35));
     const edgeGrow = Math.min(1, uFlip / 0.08) * Math.min(1, (1 - uFlip) / 0.08);
     drawPrismFold(overlayCtx, {
       x: inFlipBack ? lerp(0, STAGE_W, uFlip) : lerp(STAGE_W, 0, uFlip),
@@ -1820,19 +1835,26 @@ export function renderAct03({ worldCtx, overlayCtx, camera, ui, t }) {
     });
   } else {
     const pos = act03PrismPath(t);
-    const ahead = act03PrismPath(Math.min(92.0, t + 0.04));
+    const ahead = act03PrismPath(t + 0.04);
     const speed = Math.hypot(ahead.x - pos.x, ahead.y - pos.y);
-    // 52s 承接第二幕竖划角度 Math.PI*0.5 -> 平滑回正；90.4-92s 平滑落定到第四幕倾角 0.16
+    // 52s 承接第二幕竖划角度 Math.PI*0.5 -> 平滑回正；91.35-92s+ 优雅过渡至第四幕倾角
     const entryAngleBlend = 1 - easeEditorialOut(segProgress(t, 52.0, 53.2));
-    const exitAngleBlend = easeEditorialInOut(segProgress(t, 90.4, 92.0));
+    const exitAngleBlend = easeEditorialInOut(segProgress(t, 91.35, 92.6));
     const velAngle = speed > 0.6 ? Math.atan2(ahead.y - pos.y, ahead.x - pos.x) * 0.24 : 0;
-    const angle = lerp(lerp(velAngle, Math.PI * 0.5, entryAngleBlend), 0.16, exitAngleBlend);
+    const angle = lerp(lerp(velAngle, Math.PI * 0.5, entryAngleBlend), 0.12, exitAngleBlend);
 
-    const trail = sampleTrailFromPath(act03PrismPath, t, 0.58, 24);
+    // 91.35s 刚结束 FOLD 翻页后，拖尾时间起点钳制在 91.35s，随后丝滑生长至 0.78s 绵长拖尾并无缝移交第四幕！
+    const trailSpan = t > 91.35 ? Math.min(0.78, Math.max(0.04, t - 91.35)) : 0.58;
+    const trail = sampleTrailFromPath(
+      (st) => (t > 91.35 ? act03To04ReturnArc(Math.max(91.35, st)) : act03PrismPath(st)),
+      t,
+      trailSpan,
+      28
+    );
     const isCalmPrism = (t >= 55.0 && t < 71.8);
     const prismBlend = isCalmPrism
       ? easeEditorialInOut(segProgress(t, 55.0, 56.0)) * (1 - easeEditorialInOut(segProgress(t, 71.0, 71.8)))
-      : lerp(0.15, 0.25, exitAngleBlend);
+      : 0.15;
 
     drawPrismFold(overlayCtx, {
       x: pos.x,

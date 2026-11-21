@@ -36,6 +36,7 @@ import {
   drawStarlightGlint,
 } from "../entities/ornaments.js";
 import { UI_GEOMETRY } from "../ui/frontendStage.js";
+import { act03To04ReturnArc } from "./act03_theater.js";
 
 const REV_PROMPT = "拉大红光与紫光的波长起伏对比，并在折射边界补上手绘角度刻度";
 
@@ -948,7 +949,8 @@ export function renderAct04({ worldCtx, overlayCtx, camera, ui, t }) {
 
   const flightPath = (time) => {
     if (time < 93.4) {
-      return { x: 1080, y: 460 + Math.sin(time * 3) * 6 };
+      // 无缝承接第三幕 91.35–93.40s 共享从容回旋弧线（慢速丝滑刹车至 (1080, 460)，拖尾跨越 1:32 绝不中断！）
+      return act03To04ReturnArc(Math.max(91.35, time));
     }
     if (time < 97.2) {
       const u = easeEditorialInOut(segProgress(time, 93.4, 97.2));
@@ -1054,7 +1056,10 @@ export function renderAct04({ worldCtx, overlayCtx, camera, ui, t }) {
 
   const posW = flightPath(t);
   const posS = camera.worldToScreen(posW.x, posW.y);
-  const trailW = sampleTrailFromPath(flightPath, t, 0.44, 18);
+  // 92.0–94.6s 维持与第三幕完全一致的 0.78s 绵长丝滑拖尾，自然收拢消融，绝不生硬截断！
+  const handoffTrailBlend = 1 - easeEditorialInOut(segProgress(t, 93.4, 95.0));
+  const trailSpan = lerp(0.48, 0.78, handoffTrailBlend);
+  const trailW = sampleTrailFromPath(flightPath, t, trailSpan, 28);
   const trailS = trailW.map((pt) => camera.worldToScreen(pt.x, pt.y));
 
   const hideForCompareLine = compareActive ? 1 - pCompareIn * (1 - pCompareOut) : 1;
@@ -1068,17 +1073,24 @@ export function renderAct04({ worldCtx, overlayCtx, camera, ui, t }) {
       pRingSweep > 0 && pRingSweep < 1 ? 1 : 0,
       t >= 138.7 ? 0.95 : 0.35
     );
+    const aheadW = flightPath(t + 0.04);
+    const velSpd = Math.hypot(aheadW.x - posW.x, aheadW.y - posW.y);
+    const velAng = velSpd > 0.6 ? Math.atan2(aheadW.y - posW.y, aheadW.x - posW.x) * 0.24 : 0;
+    const exitAngleBlend = easeEditorialInOut(segProgress(t, 91.35, 92.6));
+    const entryAngle = lerp(velAng, 0.12, exitAngleBlend);
+    const angle = lerp(entryAngle, 0, easeEditorialOut(segProgress(t, 92.6, 94.2)));
+
     drawPrismFold(overlayCtx, {
       x: posS.x,
       y: posS.y,
       mode: "GLIDE",
       size: startSize * camera.zoom,
-      angle: lerp(0.16, 0, easeEditorialOut(segProgress(t, 92.8, 94.0))),
+      angle,
       alpha: hideForCompareLine * exportVanish,
       t,
       coreGlow: activePulse,
       trail: trailS,
-      trailAlpha: 0.78,
+      trailAlpha: lerp(0.78, 0.88, handoffTrailBlend),
     });
   }
 }
