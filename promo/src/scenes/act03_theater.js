@@ -534,7 +534,7 @@ function drawStyledRainbowScene(ctx, styleId, t, alpha = 1, { showVernier = true
     // 倾斜光学分光游标接收尺（每道波长刻度精准落在对应色波的物理落点上！）
     if (vernierHits) {
       const vernierReveal =
-        showcaseTime !== null ? easeEditorialOut(segProgress(showcaseTime, 65.8, 67.4)) : 1;
+        showcaseTime !== null ? easeEditorialOut(segProgress(showcaseTime, 65.2, 66.8)) : 1;
       ctx.save();
       ctx.globalAlpha = clamp(alpha * vernierReveal);
       const first = vernierHits[0];
@@ -1754,11 +1754,16 @@ export function renderAct03({ worldCtx, overlayCtx, camera, ui, t }) {
   ui.hideAll();
   camera.reset();
 
-  // ── 底层画面渲染（全连续过渡，零硬切！） ─────────────────────────────────
-  if (t < 65.5) {
+  // ── 底层画面渲染（全连续过渡，零硬切、零重复拉镜！） ───────────────────────
+  if (t < 74.2) {
     const pBlend = easeEditorialInOut(segProgress(t, 63.4, 65.4));
-    drawPaperBase(worldCtx, STAGE_W, STAGE_H, { tealGlow: 1.0, amberGlow: 1.0 });
-    if (pBlend < 0.99) {
+    // 统一连续拉远曲线：从 63.4s 淡入那一刻起即处于微距焦段 (1.14x)，一路平滑拉远至 67.2s 标准全景 (1.00x)
+    const camPull = easeEditorialInOut(segProgress(t, 63.4, 67.2));
+    const rainbowZoom = lerp(1.14, 1.0, camPull);
+    const rainbowOffsetX = lerp(85, 0, camPull);
+
+    if (pBlend < 0.995) {
+      drawPaperBase(worldCtx, STAGE_W, STAGE_H, { tealGlow: 1.0, amberGlow: 1.0 });
       worldCtx.save();
       const zoomOut = lerp(1.0, 0.86, pBlend);
       worldCtx.translate(STAGE_W * 0.5, STAGE_H * 0.5);
@@ -1767,21 +1772,29 @@ export function renderAct03({ worldCtx, overlayCtx, camera, ui, t }) {
       drawMicroRefraction(worldCtx, t, 1 - pBlend);
       worldCtx.restore();
     }
-    if (pBlend > 0.01) {
+
+    if (pBlend > 0.005) {
+      worldCtx.save();
+      worldCtx.translate(STAGE_W * 0.5, STAGE_H * 0.5);
+      worldCtx.scale(rainbowZoom, rainbowZoom);
+      worldCtx.translate(-STAGE_W * 0.5 + rainbowOffsetX, -STAGE_H * 0.5);
       drawStyledRainbowScene(worldCtx, "paper-editorial", t, pBlend, { showcaseTime: t });
+      worldCtx.restore();
     }
-    drawEditorialPrintMarks(overlayCtx, STAGE_W, STAGE_H, { alpha: 0.42, issue: "ACT III · LIVING THEATER" });
-  } else if (t < 74.2) {
-    // 65.5–67.8s 柔和电影感微拉远 + 67.5–72.6s 光谱游标动态扫瞄聚焦！
-    const camPull = easeEditorialOut(segProgress(t, 65.5, 67.8));
-    const zoom = lerp(1.12, 1.0, camPull);
-    worldCtx.save();
-    worldCtx.translate(STAGE_W * 0.5, STAGE_H * 0.5);
-    worldCtx.scale(zoom, zoom);
-    worldCtx.translate(-STAGE_W * 0.5 + lerp(90, 0, camPull), -STAGE_H * 0.5);
-    drawStyledRainbowScene(worldCtx, "paper-editorial", t, 1, { showcaseTime: t });
-    worldCtx.restore();
-    drawEditorialPrintMarks(overlayCtx, STAGE_W, STAGE_H, { alpha: 0.45, issue: "PAPER EDITORIAL · 1080P 60FPS" });
+
+    // 刊物角标先淡出再淡入，避免右上角文字交叉重叠，并在 74.2s 翻页前平滑隐去
+    const flipFadeOut = 1 - easeEditorialInOut(segProgress(t, 73.5, 74.2));
+    if (pBlend < 0.5) {
+      drawEditorialPrintMarks(overlayCtx, STAGE_W, STAGE_H, {
+        alpha: 0.42 * (1 - pBlend * 2),
+        issue: "ACT III · LIVING THEATER",
+      });
+    } else if (flipFadeOut > 0.01) {
+      drawEditorialPrintMarks(overlayCtx, STAGE_W, STAGE_H, {
+        alpha: 0.45 * ((pBlend - 0.5) * 2) * flipFadeOut,
+        issue: "PAPER EDITORIAL · 1080P 60FPS",
+      });
+    }
   } else if (t < 82.2) {
     const isFlip1 = t < 78.7;
     const uFlip = isFlip1
