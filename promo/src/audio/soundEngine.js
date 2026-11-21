@@ -317,10 +317,11 @@ export async function renderSoundtrackBuffer(duration = TOTAL_DURATION) {
   // 二、0ms 精准同步拟音与高光时刻事件（对齐 AUDIO_CUES）
   // =========================================================================
 
-  // 第一幕：静谧纸风 -> 折纸弹起 -> 玻璃轻叩 -> 拨动紫光 -> 倒卷光标
-  playPaperWhoosh(AUDIO_CUES.paperBreeze, 1.4, 380, 920, 0.075, -0.2);
-  playPaperWhoosh(3.2, 0.65, 520, 1280, 0.06, 0.15);
-  playClick(AUDIO_CUES.dotTremble, 1200, 0.08, -0.1);
+  // 第一幕：0:00.15 单点破晓清音 -> 暖光展开纸风 -> 墨滴唤醒句号 -> 折纸弹起 -> 玻璃轻叩 -> 拨动紫光 -> 倒卷光标
+  playGlassChime(0.15, 1396.9, 0.13, 1.8, 0.0);
+  playPaperWhoosh(0.65, 1.5, 420, 1240, 0.085, 0.0);
+  playGlassChime(2.95, 1760.0, 0.11, 1.0, -0.15);
+  playClick(3.95, 1420, 0.09, -0.1);
   // 立体书清脆弹起
   playPaperWhoosh(AUDIO_CUES.origamiPop, 0.28, 650, 2600, 0.24, 0.05);
   playSnap(AUDIO_CUES.origamiPop + 0.08, 0.16, 0.1);
@@ -401,6 +402,11 @@ export async function renderSoundtrackBuffer(duration = TOTAL_DURATION) {
   playGlassChime(AUDIO_CUES.rulerSweepStart + 3.4, 1396.9, 0.11, 2.2, 0.2);
   playSnap(AUDIO_CUES.exportStamp, 0.16, 0.4);
   playGlassChime(AUDIO_CUES.exportStamp + 0.04, 1760.0, 0.14, 1.3, 0.35);
+
+  // 2:31.5–2:36.2 原画丝滑编织消融和声泛音过渡
+  playPaperWhoosh(152.0, 2.6, 980, 420, 0.09, 0.0);
+  playGlassChime(153.2, 1046.5, 0.10, 2.4, -0.18);
+  playGlassChime(154.6, 1318.5, 0.11, 2.2, 0.15);
 
   // 品牌收尾：清澈温暖的 Fmaj9 木琴泛音 + 柔和合页声
   playMarimba(AUDIO_CUES.spineDraw, 69, 0.22, 1.4, -0.15);

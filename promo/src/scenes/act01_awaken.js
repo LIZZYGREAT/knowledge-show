@@ -1,9 +1,10 @@
 /*
- * 第一幕：破纸而出与悬念反转（0:00 – 0:22，高定炫技视觉版）
- * 0:00 – 0:06   精装典籍书桌 + 午后斑驳斜阳 + 黄铜直尺 + 1.4s 好奇金青墨滴涟漪瞬间抓眼！
- * 0:06 – 0:14   立体书剧场轰然撑起（层叠剪纸山丘 + 旋转黄铜测角仪 + 折纸彩屑迸发 + 7 股光子水彩彩虹）
- * 0:14 – 0:19.6 留存反转钩子（BRACKET 精准捏改紫光波列 + 声波谐振环 + 手绘角度小签）
- * 0:19.6 – 0:22 衔接机关 ①（彩虹化作星芒流光倒卷收束，优雅立正为真实输入框光标）
+ * 第一幕：破纸而出与悬念反转（0:00 – 0:22，光点破晓引入 + 高定立体书版）
+ * 0:00 – 0:03.2 光点引入：纯净暖纸中央一粒好奇光点呼吸 -> 射出斜向金青光束与丝带 -> 渐进展开整张精装书桌
+ * 0:03.2 – 0:06.8 墨滴涟漪唤醒句号 -> 棱片破缝跃出轻敲平面灰三角触发触感回弹环
+ * 0:06.8 – 0:14.0 立体书剧场轰然撑起（层叠剪纸山丘 + 旋转黄铜测角仪 + 折纸彩屑迸发 + 7 股光子水彩彩虹）
+ * 0:14.0 – 0:19.6 留存反转钩子（BRACKET 精准捏改紫光波列 + 声波谐振环 + 手绘角度小签）
+ * 0:19.6 – 0:22.0 衔接机关 ①（彩虹化作星芒流光倒卷收束，优雅立正为真实输入框光标）
  */
 
 import { COLORS, FONTS, STAGE_W, STAGE_H } from "../config/tokens.js";
@@ -33,16 +34,135 @@ import {
 import { UI_GEOMETRY } from "../ui/frontendStage.js";
 
 /**
- * 绘制前 7 秒精装物理典籍书桌与静态光学铜版讲义（开场 1.4s 即以好奇墨滴涟漪瞬间抓眼！）
+ * 0:00 – 0:03.4 开场光点与引入光束（首帧从一粒温暖星芒光点启程，优雅绽放为完整画桌）
  */
-function drawOpenBookDesk(ctx, t, alpha, slideLeftPx, inkRippleProg = 0) {
-  if (alpha <= 0.005) return { dotX: 734, dotY: 590 };
+function drawOpeningLightSeed(ctx, t, dotTarget) {
+  if (t > 4.2) return;
+
+  const pPulse = easeEditorialOut(segProgress(t, 0.0, 0.85));
+  const pBeam = easeEditorialInOut(segProgress(t, 0.35, 1.55));
+  const pIris = easeEditorialInOut(segProgress(t, 0.85, 2.75));
+  const pTravelToDot = easeEditorialInOut(segProgress(t, 1.85, 3.15));
+  const pFade = 1 - easeEditorialOut(segProgress(t, 3.15, 3.85));
+
+  if (pFade <= 0.005) return;
+
+  const sx = lerp(STAGE_W * 0.5, dotTarget.x - 2, pTravelToDot);
+  const sy = lerp(STAGE_H * 0.5, dotTarget.y - 4, pTravelToDot);
 
   ctx.save();
-  ctx.globalAlpha = clamp(alpha);
+  ctx.globalAlpha = clamp(pFade);
+
+  // 1. 首帧极简优雅的同心探索细环（自中心一点向外舒展）
+  if (pPulse > 0.01 && pIris < 0.98) {
+    const ringAlpha = (1 - pIris * 0.85) * 0.45;
+    for (let k = 0; k < 3; k++) {
+      const u = clamp((pBeam - k * 0.14) / 0.86);
+      if (u <= 0) continue;
+      const rr = lerp(10, 140 + k * 140, easeEditorialOut(u));
+      ctx.strokeStyle =
+        k === 0
+          ? rgba(COLORS.brandAmber, ringAlpha)
+          : k === 1
+            ? rgba(COLORS.brandTeal, ringAlpha * 0.85)
+            : rgba(COLORS.brandPeriwinkle, ringAlpha * 0.55);
+      ctx.lineWidth = 1.8 - k * 0.4;
+      ctx.beginPath();
+      ctx.arc(STAGE_W * 0.5, STAGE_H * 0.5, rr, 0, TAU);
+      ctx.stroke();
+    }
+  }
+
+  // 2. 划开暖白纸面的 18° 斜向金青光束 + 两条柔美引入游丝
+  if (pBeam > 0.01 && pTravelToDot < 0.92) {
+    const beamFade = (1 - pTravelToDot) * Math.sin(clamp(pBeam) * Math.PI * 0.88);
+    const halfSpan = lerp(0, 1080, easeEditorialOut(pBeam));
+    const ang = (18 * Math.PI) / 180;
+    const dx = Math.cos(ang);
+    const dy = Math.sin(ang);
+
+    const x1 = STAGE_W * 0.5 - dx * halfSpan;
+    const y1 = STAGE_H * 0.5 - dy * halfSpan;
+    const x2 = STAGE_W * 0.5 + dx * halfSpan;
+    const y2 = STAGE_H * 0.5 + dy * halfSpan;
+
+    const grad = ctx.createLinearGradient(x1, y1, x2, y2);
+    grad.addColorStop(0, "rgba(255, 250, 236, 0)");
+    grad.addColorStop(0.28, rgba(COLORS.brandTeal, 0.24 * beamFade));
+    grad.addColorStop(0.5, rgba("#FFFDF8", 0.95 * beamFade));
+    grad.addColorStop(0.72, rgba(COLORS.brandAmber, 0.34 * beamFade));
+    grad.addColorStop(1, "rgba(255, 250, 236, 0)");
+
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = lerp(26, 4, pTravelToDot);
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+
+    // 纤细暖白光芯
+    ctx.strokeStyle = rgba("#FFFFFF", 0.92 * beamFade);
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+
+    // 伴随光束舒展的双股微弧游丝
+    for (const sign of [-1, 1]) {
+      ctx.beginPath();
+      for (let i = 0; i <= 60; i++) {
+        const u = i / 60;
+        const s = lerp(-halfSpan * 0.72, halfSpan * 0.72, u);
+        const bulge = Math.sin(u * Math.PI) * 34 * sign * Math.sin(t * 2.4 + sign);
+        const px = STAGE_W * 0.5 + dx * s - dy * bulge;
+        const py = STAGE_H * 0.5 + dy * s + dx * bulge;
+        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      }
+      ctx.strokeStyle = sign < 0 ? rgba(COLORS.brandTeal, 0.42 * beamFade) : rgba(COLORS.brandPeriwinkle, 0.36 * beamFade);
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+    }
+  }
+
+  // 3. 灵动呼吸的核心好奇光点（在 1.85s-3.15s 滑落到书页句号上，唤醒整本书！）
+  const coreScale = lerp(0.75, 1.35, Math.sin(pPulse * Math.PI * 0.5)) * lerp(1.0, 0.65, pTravelToDot);
+  drawStarlightGlint(
+    ctx,
+    sx,
+    sy,
+    24 * coreScale,
+    "#FFFFFF",
+    pTravelToDot > 0.5 ? COLORS.brandTeal : COLORS.brandAmber,
+    0.96,
+    t * 0.7
+  );
+
+  ctx.restore();
+}
+
+/**
+ * 绘制精装物理典籍书桌与静态光学铜版讲义（随开场光环平滑显现，不再生硬直出）
+ */
+function drawOpenBookDesk(ctx, t, alpha, revealProg, slideLeftPx, inkRippleProg = 0) {
+  const effAlpha = clamp(alpha * revealProg);
+  if (effAlpha <= 0.005) return { dotX: 734, dotY: 590 };
+
+  ctx.save();
+  ctx.globalAlpha = effAlpha;
   ctx.translate(-slideLeftPx, 0);
 
-  // 1. 书页多层纸缘（左侧与底部层叠精装页边，营造厚实实体感）
+  // 由中央向外扩张的优雅圆形光晕裁切显影（0:00.85 -> 0:02.75 书桌由一束光逐渐铺满全屏！）
+  if (revealProg < 0.995) {
+    const maxR = Math.hypot(STAGE_W, STAGE_H) * 0.62;
+    const curR = lerp(24, maxR, easeEditorialInOut(revealProg));
+    ctx.beginPath();
+    ctx.arc(STAGE_W * 0.5, STAGE_H * 0.5, curR, 0, TAU);
+    ctx.clip();
+  }
+
+  // 1. 书页多层纸缘（厚实精装书感）
   for (let layer = 3; layer >= 1; layer--) {
     const off = layer * 5;
     roundRectPath(ctx, 118 + off * 0.4, 96 + off, 1684 - off * 0.8, 882, 10);
@@ -53,7 +173,6 @@ function drawOpenBookDesk(ctx, t, alpha, slideLeftPx, inkRippleProg = 0) {
     ctx.stroke();
   }
 
-  // 主摊开双页书纸
   drawPaperCard(ctx, 118, 92, 1684, 882, {
     radius: 8,
     fill: "#FDFBF6",
@@ -64,7 +183,7 @@ function drawOpenBookDesk(ctx, t, alpha, slideLeftPx, inkRippleProg = 0) {
     shadowColor: "rgba(28, 42, 48, 0.13)",
   });
 
-  // 中央装订书脊自然柔和折痕阴影
+  // 中央装订书脊折痕阴影
   const spineGrad = ctx.createLinearGradient(910, 92, 1010, 92);
   spineGrad.addColorStop(0, "rgba(28, 42, 48, 0)");
   spineGrad.addColorStop(0.46, "rgba(28, 42, 48, 0.065)");
@@ -74,7 +193,7 @@ function drawOpenBookDesk(ctx, t, alpha, slideLeftPx, inkRippleProg = 0) {
   ctx.fillStyle = spineGrad;
   ctx.fillRect(910, 92, 100, 882);
 
-  // 精致典籍页眉与页脚细边框
+  // 页眉细线
   ctx.strokeStyle = "rgba(28, 42, 48, 0.12)";
   ctx.lineWidth = 1;
   ctx.beginPath();
@@ -91,7 +210,7 @@ function drawOpenBookDesk(ctx, t, alpha, slideLeftPx, inkRippleProg = 0) {
   ctx.fillText("PLATE 04 · P. 142", 1744, 146);
   ctx.textAlign = "left";
 
-  // 2. 左页：沉闷传统灰度讲义排版
+  // 2. 左页：沉闷灰度讲义排版
   const lx = 212;
   ctx.font = `500 14px ${FONTS.mono}`;
   ctx.fillStyle = "rgba(138, 96, 44, 0.72)";
@@ -120,36 +239,34 @@ function drawOpenBookDesk(ctx, t, alpha, slideLeftPx, inkRippleProg = 0) {
     ctx.fillText(line, lx, 424 + idx * 50);
   });
 
-  // 末行句号：1.4s 时好奇金青墨滴落下、荡开毛细宣纸涟漪，瞬间抓住观众注意力！
   const lastW = ctx.measureText(lines[3]).width;
   const dotX = lx + lastW + 10;
   const dotY = 424 + 3 * 50;
 
+  // 光点落上句号后荡开的宣纸毛细涟漪
   if (inkRippleProg > 0.01) {
     for (let k = 0; k < 3; k++) {
       const rp = clamp((inkRippleProg - k * 0.14) / 0.86);
       if (rp <= 0) continue;
-      const rr = lerp(6, 130 + k * 48, easeEditorialOut(rp));
-      const ra = (1 - rp) * (k === 0 ? 0.55 : 0.34);
+      const rr = lerp(6, 138 + k * 52, easeEditorialOut(rp));
+      const ra = (1 - rp) * (k === 0 ? 0.58 : 0.36);
       ctx.strokeStyle = k % 2 === 0 ? rgba(COLORS.brandTeal, ra) : rgba(COLORS.brandAmber, ra);
       ctx.lineWidth = 2.2 - k * 0.5;
       ctx.beginPath();
       ctx.arc(dotX - 2, dotY - 4, rr, 0, TAU);
       ctx.stroke();
     }
-    // 句号被唤醒发出微光
-    drawStarlightGlint(ctx, dotX - 2, dotY - 4, 16 * Math.sin(clamp(inkRippleProg) * Math.PI), "#FFFDF9", COLORS.brandAmber, 0.9, t);
+    drawStarlightGlint(ctx, dotX - 2, dotY - 4, 16 * Math.sin(clamp(inkRippleProg) * Math.PI), "#FFFDF9", COLORS.brandAmber, 0.92, t);
   }
 
   ctx.fillStyle = inkRippleProg > 0.05 ? COLORS.brandTeal : "#6B777C";
   ctx.fillText("。", dotX - 8, dotY);
 
-  // 左页底部淡淡的复古公式注脚（衬托“呆板课本”与后续“灵动视觉”的反差）
   ctx.font = `italic 15px ${FONTS.serif}`;
   ctx.fillStyle = "rgba(91, 107, 115, 0.52)";
   ctx.fillText("n₁ sin θ₁ = n₂(λ) sin θ₂   ·   Static textbook illustration", lx, 718);
 
-  // 3. 右页：淡灰铜版草图辅助虚线弧（环绕右侧平躺灰三角）
+  // 3. 右页：铜版草图辅助虚线弧
   ctx.save();
   ctx.strokeStyle = "rgba(91, 107, 115, 0.16)";
   ctx.lineWidth = 1.1;
@@ -170,10 +287,10 @@ function drawOpenBookDesk(ctx, t, alpha, slideLeftPx, inkRippleProg = 0) {
   ctx.fillText("图 4-1  平面三棱镜示意图（静态黑白讲义）", 1335, 788);
   ctx.textAlign = "left";
 
-  // 4. 书桌右下角斜放的一枚精致黄铜直尺（增加真实手工坊层次感）
+  // 4. 书桌右下角黄铜直尺
   drawBrassRuler(ctx, 1210, 868, 490, 34, -0.045, 0.92);
 
-  // 5. 书页右下角微微翘起的立体纸角阴影（暗示“马上就要翻活了”）
+  // 5. 书页右下角微翘纸角
   const curl = 24 + 14 * Math.sin(t * 1.6);
   ctx.save();
   ctx.beginPath();
@@ -201,16 +318,17 @@ function drawOpenBookDesk(ctx, t, alpha, slideLeftPx, inkRippleProg = 0) {
 export function renderAct01({ worldCtx, overlayCtx, camera, ui, t }) {
   ui.hideAll();
 
-  // 各节奏节点进度（1.4s 就有抓人眼球的好奇涟漪，3.8s 棱片破缝跃出！）
-  const pIntroCam = easeEditorialOut(segProgress(t, 0.0, 5.2));
-  const pInkEmber = segProgress(t, 1.4, 4.2);
-  const pPrismPeek = easeEditorialOut(segProgress(t, 3.6, 5.2));
-  const pPopup = springProgress(segProgress(t, 6.8, 8.7), 0.72, 0.74, 17);
-  const pConfetti = segProgress(t, 7.0, 9.6);
-  const pHandoutOut = easeEditorialInOut(segProgress(t, 6.7, 8.5));
-  const pGoniometer = easeEditorialOut(segProgress(t, 7.4, 9.8));
-  const pBeam = easeEditorialOut(segProgress(t, 8.0, 9.4));
-  const pDispersion = easeEditorialOut(segProgress(t, 8.7, 12.2));
+  // 0:00 – 0:03.2：由一点一束光渐进铺开全屏，再衔接句号墨滴与棱片苏醒！
+  const pBookReveal = easeEditorialInOut(segProgress(t, 0.85, 2.85));
+  const pIntroCam = easeEditorialOut(segProgress(t, 0.0, 5.4));
+  const pInkEmber = segProgress(t, 2.9, 5.0);
+  const pPrismPeek = easeEditorialOut(segProgress(t, 4.0, 5.4));
+  const pPopup = springProgress(segProgress(t, 7.0, 8.8), 0.72, 0.74, 17);
+  const pConfetti = segProgress(t, 7.1, 9.7);
+  const pHandoutOut = easeEditorialInOut(segProgress(t, 6.8, 8.6));
+  const pGoniometer = easeEditorialOut(segProgress(t, 7.5, 9.9));
+  const pBeam = easeEditorialOut(segProgress(t, 8.1, 9.5));
+  const pDispersion = easeEditorialOut(segProgress(t, 8.8, 12.3));
   const pHookMove = easeEditorialInOut(segProgress(t, 14.0, 15.1));
   const pBracketOpen = springProgress(segProgress(t, 14.8, 15.8), 0.52, 0.78, 18);
   const pVioletTweak = springProgress(segProgress(t, 15.9, 17.9), 0.65, 0.75, 16);
@@ -218,34 +336,34 @@ export function renderAct01({ worldCtx, overlayCtx, camera, ui, t }) {
   const pRewind = easeEditorialInOut(segProgress(t, 19.6, 21.1));
   const pCursorMorph = easeEditorialInOut(segProgress(t, 20.8, 22.0));
 
-  // 动态镜头推拉：精装书微距 -> 立体书展开回归宏伟全景 -> 紫光捏改微推 -> 归位光标
+  // 开场微推拉：由 1.14x 聚焦中心光点柔和拉远展开整张书桌 -> 立体书展开全景 -> 紫光钩子微推
   const camZoom =
-    lerp(1.05, 1.0, pIntroCam) +
+    lerp(1.14, 1.0, pIntroCam) +
     0.07 * Math.sin(pHookMove * Math.PI * 0.5) * (1 - pRewind);
   const camX = lerp(960, 1025, pHookMove * (1 - pRewind));
   const camY = lerp(540, 578, pHookMove * (1 - pRewind));
   camera.set({ x: camX, y: camY, zoom: camZoom });
 
-  // 1. 底层暖纸画桌 + 午后斑驳斜阳空气浮尘
+  // 1. 纯净暖纸底色 + 午后斜阳随开场光束柔和渐入
   drawPaperBase(worldCtx, STAGE_W, STAGE_H, {
-    tealGlow: lerp(0.45, 1.0, pPopup),
-    amberGlow: lerp(0.45, 1.0, pBeam),
-    dotGridAlpha: lerp(0.018, 0.032, pPopup),
+    tealGlow: lerp(0.18, 1.0, Math.max(pBookReveal * 0.5, pPopup)),
+    amberGlow: lerp(0.22, 1.0, Math.max(pBookReveal * 0.5, pBeam)),
+    dotGridAlpha: lerp(0.008, 0.032, Math.max(pBookReveal * 0.5, pPopup)),
   });
-  drawDappledSunlight(worldCtx, STAGE_W, STAGE_H, t, lerp(0.75, 1.0, pBeam) * (1 - pCursorMorph * 0.4));
+  drawDappledSunlight(worldCtx, STAGE_W, STAGE_H, t, lerp(0.15, 1.0, pBookReveal) * (1 - pCursorMorph * 0.4));
 
   worldCtx.save();
   camera.applyToCanvas(worldCtx, STAGE_W, STAGE_H);
 
-  // 2. 精装物理书桌讲义（立体书弹开时向左侧退去）
+  // 2. 精装物理书桌（由 0.85s-2.85s 随光环渐进显现，再于立体书撑起时向左侧优雅退隐）
   const handoutAlpha = 1 - pHandoutOut;
-  const dotPos = drawOpenBookDesk(worldCtx, t, handoutAlpha, pHandoutOut * 165, pInkEmber);
+  const dotPos = drawOpenBookDesk(worldCtx, t, handoutAlpha, pBookReveal, pHandoutOut * 165, pInkEmber);
 
-  // 3. 立体书多层纸艺舞台 + 旋转黄铜光学测角仪（立体书轰然撑起的核心奇观！）
-  const prismCx = lerp(1335, 730, easeEditorialInOut(segProgress(t, 6.8, 9.0)));
-  const prismCy = lerp(542, 546, easeEditorialInOut(segProgress(t, 6.8, 9.0)));
+  // 3. 立体书多层纸艺舞台 + 旋转黄铜测角仪
+  const prismCx = lerp(1335, 730, easeEditorialInOut(segProgress(t, 7.0, 9.1)));
+  const prismCy = lerp(542, 546, easeEditorialInOut(segProgress(t, 7.0, 9.1)));
   const prismSize = lerp(220, 272, clamp(pPopup));
-  const opticsAlpha = 1 - easeEditorialOut(segProgress(t, 20.7, 21.4));
+  const opticsAlpha = pBookReveal * (1 - easeEditorialOut(segProgress(t, 20.7, 21.4)));
 
   if (pPopup > 0.02 && opticsAlpha > 0.01) {
     drawPopupPaperDiorama(worldCtx, prismCx + 24, prismCy + 16, pPopup, opticsAlpha * (1 - pRewind * 0.9));
@@ -257,7 +375,6 @@ export function renderAct01({ worldCtx, overlayCtx, camera, ui, t }) {
     });
   }
 
-  // 立体书撑开瞬间的彩纸折纸礼花迸发！
   if (pConfetti > 0.01 && pConfetti < 0.99) {
     drawOrigamiConfettiBurst(worldCtx, prismCx, prismCy - 20, pConfetti, {
       seed: 20261,
@@ -267,9 +384,9 @@ export function renderAct01({ worldCtx, overlayCtx, camera, ui, t }) {
     });
   }
 
-  // 4. 棱片敲击静态灰三角时的触感回弹波纹（5.6s – 6.8s）
-  if (t >= 5.5 && t <= 6.85) {
-    const tapCycle = ((t - 5.5) / 0.65) % 1;
+  // 棱片敲击静态灰三角时的触感回弹波纹
+  if (t >= 5.6 && t <= 7.0) {
+    const tapCycle = ((t - 5.6) / 0.65) % 1;
     const tapR = lerp(10, 96, easeEditorialOut(tapCycle));
     worldCtx.save();
     worldCtx.strokeStyle = rgba(COLORS.brandTeal, (1 - tapCycle) * 0.55);
@@ -280,7 +397,7 @@ export function renderAct01({ worldCtx, overlayCtx, camera, ui, t }) {
     worldCtx.restore();
   }
 
-  // 5. 三棱镜与 7 股光子水彩彩虹
+  // 4. 三棱镜与 7 股光子水彩彩虹（随开场光环平滑显现）
   const waveT =
     t < 14.0
       ? t
@@ -304,7 +421,10 @@ export function renderAct01({ worldCtx, overlayCtx, camera, ui, t }) {
     ribbonLen: 1050,
   });
 
-  // 6. 紫光捏改瞬间辐射出的精致谐振同心细环（强化“伸手拨动”的神奇手感！）
+  // 5. 开场 0:00 – 0:03.8 的一粒光点与一束暖光（最上层引导视线落在句号上！）
+  drawOpeningLightSeed(worldCtx, t, { x: dotPos.dotX, y: dotPos.dotY });
+
+  // 6. 紫光捏改谐振环
   if (pVioletTweak > 0.02 && pVioletTweak < 0.96 && pRewind < 0.1) {
     worldCtx.save();
     for (let ring = 0; ring < 2; ring++) {
@@ -319,7 +439,7 @@ export function renderAct01({ worldCtx, overlayCtx, camera, ui, t }) {
     worldCtx.restore();
   }
 
-  // 7. 衔接机关 ①：彩虹倒卷凝聚为星芒暖白细线 -> 立正落位到第二幕真实输入框光标 (434, 404)
+  // 7. 衔接机关 ①：彩虹倒卷凝聚为星芒细线 -> 立正落位到第二幕真实输入框光标 (434, 404)
   if (pRewind > 0.40) {
     const lineIn = easeEditorialOut(segProgress(t, 20.3, 21.0));
     const target = UI_GEOMETRY.composer.cursorStart;
@@ -366,18 +486,16 @@ export function renderAct01({ worldCtx, overlayCtx, camera, ui, t }) {
 
   worldCtx.restore();
 
-  // 刊物高定页边裁切印记（仅立体书展开后轻盈浮现）
   drawEditorialPrintMarks(overlayCtx, STAGE_W, STAGE_H, {
     alpha: 0.48 * pGoniometer * (1 - pCursorMorph),
     issue: "ACT I · AWAKEN THE PAGE",
   });
 
-  // 8. 顶层「棱片」主角路径与四态驱动（3.6s 即从句号缝隙跃出，全程高光带队！）
-  if (t >= 3.55) {
+  // 8. 顶层「棱片」主角路径与四态驱动（4.0s 从句号缝隙跃出）
+  if (t >= 3.95) {
     const flightPath = (time) => {
-      if (time < 6.8) {
-        // 3.6s 从句号缝隙破纸而出，优雅绕半弧俯冲轻敲灰三角底边两次
-        const u = segProgress(time, 3.55, 6.8);
+      if (time < 7.0) {
+        const u = segProgress(time, 3.95, 7.0);
         const p = bezierPoint(
           { x: dotPos.dotX + 4, y: dotPos.dotY - 6 },
           { x: 960, y: 290 },
@@ -385,12 +503,11 @@ export function renderAct01({ worldCtx, overlayCtx, camera, ui, t }) {
           { x: 1270, y: 630 },
           easeEditorialOut(u)
         );
-        const tap = u > 0.62 ? Math.sin(((u - 0.62) / 0.38) * Math.PI * 2) * 13 : 0;
+        const tap = u > 0.60 ? Math.sin(((u - 0.60) / 0.40) * Math.PI * 2) * 13 : 0;
         return { x: p.x, y: p.y - Math.abs(tap) };
       }
-      if (time < 9.2) {
-        // 向上撬起立体书三棱镜，随后优雅旋停于测角仪右上方
-        const u = segProgress(time, 6.8, 9.2);
+      if (time < 9.3) {
+        const u = segProgress(time, 7.0, 9.3);
         return bezierPoint(
           { x: 1270, y: 630 },
           { x: 1090, y: 250 },
@@ -400,7 +517,7 @@ export function renderAct01({ worldCtx, overlayCtx, camera, ui, t }) {
         );
       }
       if (time < 14.0) {
-        const u = segProgress(time, 9.2, 14.0);
+        const u = segProgress(time, 9.3, 14.0);
         return {
           x: 905 + Math.sin(u * TAU) * 16,
           y: 345 + Math.cos(u * TAU) * 11,
@@ -449,8 +566,8 @@ export function renderAct01({ worldCtx, overlayCtx, camera, ui, t }) {
 
     const bracketBlend = clamp(pBracketOpen * (1 - pBracketClose));
     const prismBlend =
-      t >= 8.8 && t < 14.0
-        ? easeEditorialInOut(segProgress(t, 8.8, 9.6)) * (1 - segProgress(t, 13.4, 14.0))
+      t >= 8.9 && t < 14.0
+        ? easeEditorialInOut(segProgress(t, 8.9, 9.7)) * (1 - segProgress(t, 13.4, 14.0))
         : 0;
 
     drawPrismFold(overlayCtx, {
@@ -471,7 +588,7 @@ export function renderAct01({ worldCtx, overlayCtx, camera, ui, t }) {
         pPopup > 0.1 && pPopup < 0.9 ? 0.9 : 0.3
       ),
       trail: trailS,
-      trailAlpha: t > 3.7 ? 0.92 : 0,
+      trailAlpha: t > 4.05 ? 0.92 : 0,
     });
   }
 }
