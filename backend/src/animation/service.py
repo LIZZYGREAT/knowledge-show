@@ -285,6 +285,32 @@ class AnimationService:
         updated=self.projects.publish_artifact_ref(project_id,expected_revision,'animation_manifest',ref)
         return {'status':'published','artifact_ref':ref,'project_revision':updated['revision']}
 
+    @staticmethod
+    def _clip_revision_targets(scene: dict[str,Any], resource: dict[str,Any], request: dict[str,Any]) -> tuple[list[dict[str,Any]], list[dict[str,int]]]:
+        anchors=request.get('anchors',[])
+        selected_ids=[a['id'] for a in anchors if a.get('kind') in {'render_element','timed_text'} and a.get('id')]
+        selected_set=set(selected_ids)
+        target_elements: list[dict[str,Any]]=[]
+        if selected_set:
+            if resource.get('kind')=='vector-scene':
+                for obj in resource.get('objects',[]):
+                    if obj['id'] in selected_set:
+                        target_elements.append({'id':obj['id'],'label':obj.get('label',obj['id']),'shape':obj.get('shape')})
+            else:
+                for element_id in dict.fromkeys(selected_ids):
+                    target_elements.append({'id':element_id})
+        local_ranges: list[dict[str,int]]=[]
+        scene_start=int(scene['start_ms'])
+        scene_duration=int(scene['duration_ms'])
+        scene_end=scene_start+scene_duration
+        for anchor in anchors:
+            if anchor.get('kind')!='time_range': continue
+            overlap_start=max(scene_start,int(anchor['start_ms']))
+            overlap_end=min(scene_end,int(anchor['end_ms']))
+            if overlap_end>overlap_start:
+                local_ranges.append({'start_ms':overlap_start-scene_start,'end_ms':overlap_end-scene_start})
+        return target_elements,local_ranges
+
     async def revise(self, project: dict[str,Any], request: dict[str,Any], *, client=None) -> dict[str,Any]:
         original=self.load(project['project_id'],self.ref(request['target_artifact']))
         text=self._feedback_text(request)
@@ -296,17 +322,22 @@ class AnimationService:
         for clip in affected:
             scene=next(s for s in original['script']['scenes'] if s['scene_id']==clip['scene_id'])
             old=resources[scene['scene_id']]
+            target_elements,target_time_ranges=self._clip_revision_targets(scene,old,request)
             if re.search(r'慢|减速|slower|slow',text,re.I) and old['kind']=='pn-scene': old['parameters']['speed']=max(.1,old['parameters']['speed']*.5)
             elif re.search(r'快|加速|faster|fast',text,re.I) and old['kind']=='pn-scene': old['parameters']['speed']=min(3,old['parameters']['speed']*1.5)
             elif client is not None and old['kind']=='pn-scene':
-                response=await client.generate_json(instructions='Adjust only the selected PN scene visual parameters according to user feedback. Return JSON with speed (0.1..3), particleScale (0.5..2) and particleOpacity (0.3..1). Do not change facts, event schedules, object IDs, text, geometry, field polarity or barrier mechanism. Reject requests needing those changes by returning {"upstream_required":true}.',data={'scene':scene,'style_profile':old['style'],'parameters':old['parameters'],'feedback':text},max_output_tokens=800)
+                pn_data={'scene':scene,'style_profile':old['style'],'parameters':old['parameters'],'feedback':text}
+                if target_elements: pn_data['target_elements']=target_elements
+                if target_time_ranges: pn_data['target_time_ranges']=target_time_ranges
+                response=await client.generate_json(instructions='Adjust only the selected PN scene visual parameters according to user feedback. Return JSON with speed (0.1..3), particleScale (0.5..2) and particleOpacity (0.3..1). Do not change facts, event schedules, object IDs, text, geometry, field polarity or barrier mechanism. Reject requests needing those changes by returning {"upstream_required":true}.',data=pn_data,max_output_tokens=800)
                 values=response.value
                 if values.get('upstream_required'): return {'status':'upstream_required','message':'这条意见涉及上游约束，已保留请求；当前动画未改变。'}
                 for key,low,high in [('speed',.1,3),('particleScale',.5,2),('particleOpacity',.3,1)]:
                     value=values.get(key)
                     if isinstance(value,bool) or not isinstance(value,(int,float)) or not low<=value<=high: raise ValueError('动画参数无效。')
                 old['parameters']={key:values[key] for key in ['speed','particleScale','particleOpacity']}
-            elif client is not None and old['kind']=='vector-scene': resources[scene['scene_id']]=await direct_scene(client,scene,old['style'],previous=old,feedback=text)
+            elif client is not None and old['kind']=='vector-scene':
+                resources[scene['scene_id']]=await direct_scene(client,scene,old['style'],previous=old,feedback=text,target_elements=target_elements or None,target_time_ranges=target_time_ranges or None)
             else: raise ValueError('这条局部美术修改需要模型支持，请提供本次 API Key；当前版本未改变。')
         return await self._publish_async(project,original['script'],resources)
 
