@@ -691,28 +691,51 @@ function drawTensionArc(ctx, t, alpha) {
     return lerp(base, target, pArch);
   };
 
-  // 衔接机关 ② 惊艳透视窗：51.0s 棱片划开波峰时，裂缝中实时透出第三幕发光的 7 色微观波列！
-  if (pSlice > 0.02) {
-    const slitW = lerp(10, STAGE_W, easeEditorialInOut(pSlice));
+  // 衔接机关 ② 惊艳透视窗：51.0s 棱片划开波峰时，裂缝中透出与第三幕 52.0s 完全同坐标的 7 排直线平行光波（尚未遇玻璃，0px 无缝交接！）
+  if (pSlice > 0.01) {
+    const slitW = lerp(16, STAGE_W * 1.4, easeEditorialInOut(pSlice));
     const sx = 1145;
+    const incAng = (14 * Math.PI) / 180;
+    const incDx = Math.cos(incAng);
+    const incDy = Math.sin(incAng);
+    const incNx = -incDy;
+    const incNy = incDx;
+
     ctx.save();
     ctx.beginPath();
     ctx.rect(sx - slitW * 0.5, 0, slitW, STAGE_H);
     ctx.clip();
 
-    ctx.fillStyle = "rgba(225, 241, 240, 0.55)";
-    ctx.fillRect(sx - slitW * 0.5, 0, slitW, STAGE_H);
-    SPECTRUM.forEach((band, i) => {
+    drawPaperBase(ctx, STAGE_W, STAGE_H, { tealGlow: 1.0, amberGlow: 1.0, dotGridAlpha: 0.025 });
+
+    ctx.save();
+    ctx.globalCompositeOperation = "multiply";
+    ctx.globalAlpha = clamp(pSlice * 1.15);
+    for (let i = 0; i < SPECTRUM.length; i++) {
+      const band = SPECTRUM[i];
+      const yAnchor = 246 + i * 94;
+      const xAnchor = lerp(860, 660, yAnchor / STAGE_H);
+      const airLambda = 112 - i * 4.5;
+      const airAmp = 10.5;
+      const omega = 5.4;
+
       ctx.beginPath();
-      const y0 = 250 + i * 94;
-      for (let x = sx - slitW * 0.5; x <= sx + slitW * 0.5; x += 10) {
-        const y = y0 + (x - 860) * (0.24 + i * 0.04) + Math.sin(x * (0.07 + i * 0.014) - t * 5.2) * 11;
-        x === sx - slitW * 0.5 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      for (let k = 0; k <= 160; k++) {
+        const s = -940 + (k / 160) * 2240;
+        const w = Math.sin((TAU * s) / airLambda - omega * t + band.phase) * airAmp;
+        const px = xAnchor + incDx * s + incNx * w;
+        const py = yAnchor + incDy * s + incNy * w;
+        k === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
       }
-      ctx.strokeStyle = rgba(band.hex, 0.72 * pSlice);
-      ctx.lineWidth = 5;
+      ctx.strokeStyle = rgba(band.hex, 0.14);
+      ctx.lineWidth = 20;
+      ctx.lineCap = "round";
       ctx.stroke();
-    });
+      ctx.strokeStyle = rgba(band.hex, 0.80);
+      ctx.lineWidth = 5.4;
+      ctx.stroke();
+    }
+    ctx.restore();
     ctx.restore();
   }
 

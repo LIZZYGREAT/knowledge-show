@@ -30,77 +30,94 @@ import {
 } from "../entities/ornaments.js";
 
 /**
- * 52s - 64s：微观玻璃晶格共振 + 惠更斯次级子波 + 垂直推进波前 + 黄铜放大镜
+ * 52s - 64s：动态玻璃滑入折射大秀！
+ * 52.0 – 54.2s：纯空气环境（无玻璃片），7 排彩色波列步幅一致、14° 笔直前行（与 51.8s 裂隙 0px 无缝连贯！）
+ * 54.2 – 57.6s：磨砂晶格玻璃块从画面右侧平滑推入视野，玻璃前沿扫过之处，7 道直光实时减速并动态弯折散开！
+ * 57.6 – 64.0s：晶格共振 + 惠更斯子波 + 黄铜放大镜聚焦紫光短波（v_violet ≈ 0.62 c）
  */
 function drawMicroRefraction(ctx, t, alpha) {
   if (alpha <= 0.005) return;
-  const pEnter = easeEditorialOut(segProgress(t, 52.0, 53.8));
-  const pCross = easeEditorialOut(segProgress(t, 53.1, 59.8));
-  const pLoupe = easeEditorialOut(segProgress(t, 56.4, 58.0));
+
+  // 玻璃块从右侧 x = +1260 平移滑入至最终位 (0)
+  const pSlide = easeEditorialInOut(segProgress(t, 54.2, 57.6));
+  const pGlassPresent = segProgress(t, 54.15, 54.7);
+  const pLoupe = easeEditorialOut(segProgress(t, 58.0, 59.4));
+  const pCallout = easeEditorialOut(segProgress(t, 58.2, 59.8));
 
   ctx.save();
   ctx.globalAlpha = clamp(alpha);
 
-  const bxTop = 860;
-  const bxBot = 660;
+  const slideOffsetX = lerp(1280, 0, pSlide);
+  const bxTop = 860 + slideOffsetX;
+  const bxBot = 660 + slideOffsetX;
   const boundaryXAt = (y) => lerp(bxTop, bxBot, y / STAGE_H);
 
-  // 1. 半透明玻璃介质 + 内部共振六角晶格
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(bxTop, -20);
-  ctx.lineTo(STAGE_W + 40, -20);
-  ctx.lineTo(STAGE_W + 40, STAGE_H + 20);
-  ctx.lineTo(bxBot, STAGE_H + 20);
-  ctx.closePath();
+  // 1. 平移进入视野的倾斜磨砂玻璃块 + 内部六角晶格阵列
+  if (pGlassPresent > 0.005) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(bxTop, -20);
+    ctx.lineTo(STAGE_W + 1400, -20);
+    ctx.lineTo(STAGE_W + 1400, STAGE_H + 20);
+    ctx.lineTo(bxBot, STAGE_H + 20);
+    ctx.closePath();
 
-  const glassGrad = ctx.createLinearGradient(bxBot, 0, STAGE_W, STAGE_H);
-  glassGrad.addColorStop(0, "rgba(219, 240, 238, 0.80)");
-  glassGrad.addColorStop(0.5, "rgba(234, 245, 247, 0.64)");
-  glassGrad.addColorStop(1, "rgba(226, 236, 249, 0.74)");
-  ctx.fillStyle = glassGrad;
-  ctx.fill();
-  ctx.clip();
+    // 玻璃块滑入边缘的柔和纸面投射阴影
+    ctx.save();
+    ctx.shadowColor = "rgba(28, 52, 58, 0.14)";
+    ctx.shadowBlur = 32;
+    ctx.shadowOffsetX = -14;
+    const glassGrad = ctx.createLinearGradient(bxBot, 0, bxTop + 1200, STAGE_H);
+    glassGrad.addColorStop(0, "rgba(214, 239, 237, 0.84)");
+    glassGrad.addColorStop(0.5, "rgba(232, 245, 247, 0.68)");
+    glassGrad.addColorStop(1, "rgba(224, 235, 249, 0.76)");
+    ctx.fillStyle = glassGrad;
+    ctx.fill();
+    ctx.restore();
 
-  const stepX = 112;
-  const stepY = 98;
-  for (let row = 0; row <= 12; row++) {
-    for (let col = 0; col <= 13; col++) {
-      const gx = 680 + col * stepX + (row % 2) * (stepX * 0.5);
-      const gy = row * stepY;
-      if (gx < boundaryXAt(gy) + 28) continue;
-      const osc = Math.sin(t * 5.2 - gx * 0.015 + gy * 0.01) * 3.4 * pCross;
-      ctx.strokeStyle = "rgba(18, 148, 141, 0.11)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(gx + osc, gy, 15, 0, TAU);
-      ctx.stroke();
+    ctx.clip();
 
-      ctx.fillStyle = "rgba(18, 148, 141, 0.24)";
-      ctx.beginPath();
-      ctx.arc(gx + osc, gy, 3.2, 0, TAU);
-      ctx.fill();
+    // 随玻璃块一起平移进场的六角晶格节点
+    const stepX = 112;
+    const stepY = 98;
+    for (let row = 0; row <= 12; row++) {
+      for (let col = 0; col <= 14; col++) {
+        const gx = 680 + slideOffsetX + col * stepX + (row % 2) * (stepX * 0.5);
+        const gy = row * stepY;
+        if (gx < boundaryXAt(gy) + 24 || gx > STAGE_W + 40) continue;
+        const osc = Math.sin(t * 5.2 - gx * 0.015 + gy * 0.01) * 3.4 * pSlide;
+        ctx.strokeStyle = "rgba(18, 148, 141, 0.12)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(gx + osc, gy, 15, 0, TAU);
+        ctx.stroke();
+
+        ctx.fillStyle = "rgba(18, 148, 141, 0.25)";
+        ctx.beginPath();
+        ctx.arc(gx + osc, gy, 3.2, 0, TAU);
+        ctx.fill();
+      }
     }
+    ctx.restore();
+
+    // 玻璃前沿双层折光高光边线
+    ctx.strokeStyle = "rgba(18, 148, 141, 0.48)";
+    ctx.lineWidth = 3.6;
+    ctx.beginPath();
+    ctx.moveTo(bxTop, 0);
+    ctx.lineTo(bxBot, STAGE_H);
+    ctx.stroke();
+
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.94)";
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.moveTo(bxTop + 5, 0);
+    ctx.lineTo(bxBot + 5, STAGE_H);
+    ctx.stroke();
   }
-  ctx.restore();
 
-  // 界面双层高光厚线
-  ctx.strokeStyle = "rgba(18, 148, 141, 0.44)";
-  ctx.lineWidth = 3.5;
-  ctx.beginPath();
-  ctx.moveTo(bxTop, 0);
-  ctx.lineTo(bxBot, STAGE_H);
-  ctx.stroke();
-
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.94)";
-  ctx.lineWidth = 2.2;
-  ctx.beginPath();
-  ctx.moveTo(bxTop + 5, 0);
-  ctx.lineTo(bxBot + 5, STAGE_H);
-  ctx.stroke();
-
-  // 刊物注记卡片（避开所有色波）
-  drawPaperCard(ctx, 112, 930, 248, 46, {
+  // 刊物注记卡片（随玻璃滑入动态显现右侧标签！）
+  drawPaperCard(ctx, 112, 930, 268, 46, {
     radius: 23,
     fill: "rgba(255, 253, 249, 0.92)",
     stroke: COLORS.inkHairline,
@@ -112,26 +129,35 @@ function drawMicroRefraction(ctx, t, alpha) {
   ctx.fillStyle = COLORS.inkSecondary;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("AIR · 空气中步幅一致", 236, 953);
+  ctx.fillText(pSlide < 0.2 ? "AIR · 空气中步幅一致 · 直线前行" : "AIR · 空气中步幅一致", 246, 953);
 
-  drawPaperCard(ctx, 940, 74, 376, 46, {
-    radius: 23,
-    fill: "rgba(255, 253, 249, 0.92)",
-    stroke: rgba(COLORS.brandTeal, 0.34),
-    lineWidth: 1.2,
-    shadowBlur: 12,
-    shadowOffsetY: 4,
-  });
-  ctx.fillStyle = COLORS.brandTealDark;
-  ctx.fillText("GLASS LATTICE · 介质减速与偏折分化", 1128, 97);
+  if (pSlide > 0.25) {
+    const gLabelA = clamp((pSlide - 0.25) / 0.45);
+    ctx.save();
+    ctx.globalAlpha = clamp(alpha * gLabelA);
+    drawPaperCard(ctx, Math.min(STAGE_W - 410, bxTop + 80), 74, 376, 46, {
+      radius: 23,
+      fill: "rgba(255, 253, 249, 0.92)",
+      stroke: rgba(COLORS.brandTeal, 0.34),
+      lineWidth: 1.2,
+      shadowBlur: 12,
+      shadowOffsetY: 4,
+    });
+    ctx.fillStyle = COLORS.brandTealDark;
+    ctx.fillText("GLASS LATTICE · 介质减速与偏折分化", Math.min(STAGE_W - 410, bxTop + 80) + 188, 97);
+    ctx.restore();
+  }
   ctx.textAlign = "left";
 
-  // 2. 7 色波列 + 惠更斯次级子波半环 + 推进波前短棒
+  // 2. 7 色波列：空气侧严格直线传播，与移动玻璃前沿实时求交，入玻璃后瞬间动态压缩波长并弯折！
   const incAng = (14 * Math.PI) / 180;
   const incDx = Math.cos(incAng);
   const incDy = Math.sin(incAng);
   const incNx = -incDy;
   const incNy = incDx;
+
+  // 玻璃斜边直线方程：x = bxTop + (bxBot - bxTop) * (y / STAGE_H) => x + m * y = bxTop
+  const slopeM = (bxTop - bxBot) / STAGE_H; // = 200 / 1080
 
   const beadPoints = [];
 
@@ -140,56 +166,88 @@ function drawMicroRefraction(ctx, t, alpha) {
 
   for (let i = 0; i < SPECTRUM.length; i++) {
     const band = SPECTRUM[i];
-    const yHit = 246 + i * 94;
-    const xHit = boundaryXAt(yHit);
-
-    const airLen = 860 * pEnter;
+    // 每道光在空气中的固定参考锚点（与第二幕 51.8s 透视裂隙完全同坐标！）
+    const y0 = 246 + i * 94;
+    const x0 = lerp(860, 660, y0 / STAGE_H);
     const airLambda = 112 - i * 4.5;
     const airAmp = 10.5;
     const omega = 5.4;
 
-    ctx.beginPath();
-    for (let k = 0; k <= 120; k++) {
-      const s = -airLen + (k / 120) * airLen;
-      const w = Math.sin((TAU * s) / airLambda - omega * t + band.phase) * airAmp;
-      const px = xHit + incDx * s + incNx * w;
-      const py = yHit + incDy * s + incNy * w;
-      k === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-    }
-    ctx.strokeStyle = rgba(band.hex, 0.14);
-    ctx.lineWidth = 20;
-    ctx.lineCap = "round";
-    ctx.stroke();
-    ctx.strokeStyle = rgba(band.hex, 0.80);
-    ctx.lineWidth = 5.4;
-    ctx.stroke();
+    // 实时计算该直线光束与当前移动玻璃前沿的交点参数 sHit
+    const denom = incDx + slopeM * incDy;
+    const sHit = (bxTop - (x0 + slopeM * y0)) / denom;
+    const xHit = x0 + incDx * sHit;
+    const yHit = y0 + incDy * sHit;
 
-    if (pCross > 0.01) {
-      const refAng = ((16 + i * 3.85) * Math.PI) / 180;
+    // 空气段：从画面最左端 (-940) 一直画到交点 sHit（若玻璃还在画面外，则直接直线穿透整个 1920 画面！）
+    const airStartS = -940;
+    const airEndS = Math.min(1380, sHit);
+
+    if (airEndS > airStartS) {
+      const airSteps = Math.max(80, Math.round((airEndS - airStartS) / 10));
+      ctx.beginPath();
+      for (let k = 0; k <= airSteps; k++) {
+        const s = lerp(airStartS, airEndS, k / airSteps);
+        const w = Math.sin((TAU * s) / airLambda - omega * t + band.phase) * airAmp;
+        const px = x0 + incDx * s + incNx * w;
+        const py = y0 + incDy * s + incNy * w;
+        k === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      }
+      ctx.strokeStyle = rgba(band.hex, 0.14);
+      ctx.lineWidth = 20;
+      ctx.lineCap = "round";
+      ctx.stroke();
+      ctx.strokeStyle = rgba(band.hex, 0.80);
+      ctx.lineWidth = 5.4;
+      ctx.stroke();
+
+      // 空气段同步冲浪光子珠（全部 7 色同速前进！）
+      for (let m = 0; m < 3; m++) {
+        const s = airStartS + (((m * 520 + t * 215) % Math.max(120, airEndS - airStartS)));
+        if (s > airEndS - 20) continue;
+        const w = Math.sin((TAU * s) / airLambda - omega * t + band.phase) * airAmp;
+        const px = x0 + incDx * s + incNx * w;
+        const py = y0 + incDy * s + incNy * w;
+        if (px > 10 && px < STAGE_W - 10 && py > 10 && py < STAGE_H - 10) {
+          beadPoints.push({ x: px, y: py, color: band.hex });
+        }
+      }
+    }
+
+    // 玻璃内部段：只要交点进入画面内（xHit < STAGE_W + 40），右侧立即实时发生减速、波长压缩与动态弯折！
+    if (xHit < STAGE_W + 40 && pGlassPresent > 0.02) {
+      // 弯折角随玻璃推进平滑舒展（从直行 14° 自然过渡到各色完整折射角，丝毫不生硬！）
+      const bendProgress = clamp((STAGE_W + 40 - xHit) / 420);
+      const targetRefDeg = 16 + i * 3.85;
+      const curRefDeg = lerp(14, targetRefDeg, easeEditorialOut(bendProgress));
+      const refAng = (curRefDeg * Math.PI) / 180;
       const rDx = Math.cos(refAng);
       const rDy = Math.sin(refAng);
       const rNx = -rDy;
       const rNy = rDx;
-      const glassLen = 1140 * pCross;
-      const glassLambda = lerp(96, 42, i / 6);
-      const glassAmp = lerp(12.2, 14.6, i / 6);
 
-      // 惠更斯次级子波扩散弧（从玻璃界面入射点向右扩散，惊艳展现波动光学本质！）
+      const glassLen = Math.max(40, (STAGE_W + 180 - xHit) / Math.max(0.35, rDx));
+      const glassLambda = lerp(airLambda, lerp(96, 42, i / 6), easeEditorialOut(bendProgress));
+      const glassAmp = lerp(airAmp, lerp(12.2, 14.6, i / 6), easeEditorialOut(bendProgress));
+      // 保持在交点处相位严格连续！
+      const phaseAtHit = (TAU * sHit) / airLambda + band.phase;
+
+      // 惠更斯次级子波扩散弧
       for (let wv = 0; wv < 2; wv++) {
         const wu = (t * 0.65 + i * 0.14 + wv * 0.5) % 1;
         const wr = wu * lerp(72, 46, i / 6);
-        ctx.strokeStyle = rgba(band.hex, (1 - wu) * 0.34);
+        ctx.strokeStyle = rgba(band.hex, (1 - wu) * 0.34 * bendProgress);
         ctx.lineWidth = 1.6;
         ctx.beginPath();
         ctx.arc(xHit, yHit, wr, -0.75, 1.25);
         ctx.stroke();
       }
 
-      // 垂直推进波前短标（仅在红波和紫波上轻柔呈现，一眼对比宽波前 vs 密波前！）
-      if (i === 0 || i === 6) {
+      // 垂直推进波前短标（红波宽 vs 紫波密）
+      if ((i === 0 || i === 6) && bendProgress > 0.35) {
         const wfCount = Math.floor(glassLen / glassLambda);
-        const phaseOff = ((omega * t - band.phase) / TAU) * glassLambda;
-        ctx.strokeStyle = rgba(band.hex, 0.30);
+        const phaseOff = ((omega * t - phaseAtHit) / TAU) * glassLambda;
+        ctx.strokeStyle = rgba(band.hex, 0.30 * bendProgress);
         ctx.lineWidth = 1.8;
         for (let m = 0; m < wfCount; m++) {
           const s = ((m * glassLambda + phaseOff) % glassLen + glassLen) % glassLen;
@@ -203,10 +261,11 @@ function drawMicroRefraction(ctx, t, alpha) {
         }
       }
 
+      const glassSteps = Math.max(120, Math.min(360, Math.round(glassLen / 3.5)));
       ctx.beginPath();
-      for (let k = 0; k <= 340; k++) {
-        const s = (k / 340) * glassLen;
-        const w = Math.sin((TAU * s) / glassLambda - omega * t + band.phase) * glassAmp;
+      for (let k = 0; k <= glassSteps; k++) {
+        const s = (k / glassSteps) * glassLen;
+        const w = Math.sin((TAU * s) / glassLambda - omega * t + phaseAtHit) * glassAmp;
         const px = xHit + rDx * s + rNx * w;
         const py = yHit + rDy * s + rNy * w;
         k === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
@@ -221,21 +280,23 @@ function drawMicroRefraction(ctx, t, alpha) {
       const speedPx = lerp(165, 86, i / 6);
       for (let m = 0; m < 4; m++) {
         const s = ((m * 280 + t * speedPx) % Math.max(40, glassLen));
-        const w = Math.sin((TAU * s) / glassLambda - omega * t + band.phase) * glassAmp;
-        beadPoints.push({
-          x: xHit + rDx * s + rNx * w,
-          y: yHit + rDy * s + rNy * w,
-          color: band.hex,
-        });
+        const w = Math.sin((TAU * s) / glassLambda - omega * t + phaseAtHit) * glassAmp;
+        const px = xHit + rDx * s + rNx * w;
+        const py = yHit + rDy * s + rNy * w;
+        if (px < STAGE_W + 10 && py < STAGE_H + 10) {
+          beadPoints.push({ x: px, y: py, color: band.hex });
+        }
       }
-      beadPoints.push({ x: xHit, y: yHit, color: band.hex, isHit: true });
+      if (xHit > 10 && xHit < STAGE_W - 10) {
+        beadPoints.push({ x: xHit, y: yHit, color: band.hex, isHit: true });
+      }
     }
   }
   ctx.restore();
 
   for (const pt of beadPoints) {
     if (pt.isHit) {
-      drawStarlightGlint(ctx, pt.x, pt.y, 11, "#FFFFFF", pt.color, 0.78, t * 0.4);
+      drawStarlightGlint(ctx, pt.x, pt.y, 12, "#FFFFFF", pt.color, 0.82, t * 0.4);
     } else {
       ctx.fillStyle = rgba(pt.color, 0.28);
       ctx.beginPath();
@@ -251,7 +312,7 @@ function drawMicroRefraction(ctx, t, alpha) {
     }
   }
 
-  // 3. 悬浮黄铜光学放大镜（聚焦在紫光进入玻璃界面的紧凑波峰，标出 v_violet = 0.62c！）
+  // 3. 玻璃滑定后显现的黄铜光学放大镜（v_violet ≈ 0.62 c）
   if (pLoupe > 0.02) {
     const lx = 740;
     const ly = 815;
@@ -268,7 +329,6 @@ function drawMicroRefraction(ctx, t, alpha) {
     ctx.fill();
     ctx.shadowColor = "transparent";
 
-    // 黄铜双层镜框 + 精致准星
     ctx.strokeStyle = "#C59753";
     ctx.lineWidth = 4.2;
     ctx.beginPath();
@@ -280,7 +340,6 @@ function drawMicroRefraction(ctx, t, alpha) {
     ctx.arc(lx, ly, lr - 4, 0, TAU);
     ctx.stroke();
 
-    // 放大镜速度注记小签
     drawPaperCard(ctx, lx - 82, ly + lr + 12, 164, 30, {
       radius: 15,
       fill: "rgba(255, 253, 249, 0.94)",
@@ -298,10 +357,9 @@ function drawMicroRefraction(ctx, t, alpha) {
   }
 
   // 4. 红光长步幅 vs 紫光短步幅暖纸标尺卡
-  const calloutAlpha = easeEditorialOut(segProgress(t, 56.0, 57.8));
-  if (calloutAlpha > 0.02) {
+  if (pCallout > 0.02) {
     ctx.save();
-    ctx.globalAlpha = clamp(alpha * calloutAlpha);
+    ctx.globalAlpha = clamp(alpha * pCallout);
 
     drawPaperCard(ctx, 1140, 224, 308, 46, {
       radius: 23,
