@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 /*
- * Knowledge.Show(me) 宣传片离线渲染脚本
+ * Knowledge.Show(me) 宣传片 v2 离线确定性渲染与 FFmpeg 合成管线
  * 用法：
- *   node render.mjs --keyframes                      # 截取全片 16 个关键帧到 output/keyframes/
- *   node render.mjs --fps 30 --width 1280 --height 720  # 逐帧导出完整视频与配乐
- *   node render.mjs --fps 30 --width 1920 --height 1080 # 全高清 1080p 导出
+ *   node render.mjs --keyframes                              # 截取全片 24 个关键帧与无缝衔接点 (1920x1080)
+ *   node render.mjs --audio-only                             # 仅离线合成 48kHz 立体声 promo-audio.wav
+ *   node render.mjs --fps 60 --width 1920 --height 1080      # 导出 B 站高码率成片 knowledge-show-promo-v2.mp4
+ *   node render.mjs --start 0 --end 22 --fps 30 --out hook.mp4  # 片段快速抽检
  */
 import http from "node:http";
 import fs from "node:fs/promises";
@@ -25,10 +26,32 @@ const opt = (name, fallback) => {
 };
 
 const keyframesOnly = hasFlag("--keyframes");
-const fps = Number(opt("--fps", "30"));
-const width = Number(opt("--width", "1280"));
-const height = Number(opt("--height", "720"));
+const audioOnly = hasFlag("--audio-only");
+const fps = Number(opt("--fps", "60"));
+const width = Number(opt("--width", "1920"));
+const height = Number(opt("--height", "1080"));
+const dpr = Number(opt("--dpr", "1"));
+const crf = opt("--crf", "15");
+const preset = opt("--preset", "slow");
+const startOpt = opt("--start", null);
+const endOpt = opt("--end", null);
 const outDir = path.resolve(__dirname, opt("--out-dir", "output"));
+const outName = opt("--out", "knowledge-show-promo-v2.mp4");
+
+function buildBrowserEnv() {
+  const env = { ...process.env };
+  const ksLibDir = "/tmp/ks-libs/root/usr/lib/x86_64-linux-gnu";
+  if (existsSync(ksLibDir)) {
+    env.LD_LIBRARY_PATH = env.LD_LIBRARY_PATH
+      ? `${ksLibDir}:${env.LD_LIBRARY_PATH}`
+      : ksLibDir;
+  }
+  const ksFontConf = "/tmp/ks-libs/fc/fonts.conf";
+  if (!env.FONTCONFIG_FILE && existsSync(ksFontConf)) {
+    env.FONTCONFIG_FILE = ksFontConf;
+  }
+  return env;
+}
 
 function findFfmpeg() {
   const explicit = opt("--ffmpeg", process.env.PROMO_FFMPEG || process.env.ANIMATION_FFMPEG);
@@ -52,22 +75,21 @@ function detectCodecs(ffmpegPath) {
     return {
       h264: /\blibx264\b/.test(enc),
       aac: /\baac\b/.test(enc),
-      vp9: /\blibvpx-vp9\b/.test(enc),
-      opus: /\blibopus\b/.test(enc),
       decPng: /\bpng\b/.test(dec),
-      decMjpeg: /\bmjpeg\b/.test(dec),
     };
   } catch {
-    return { h264: false, aac: false, vp9: false, opus: false, decPng: false, decMjpeg: false };
+    return { h264: false, aac: false, decPng: false };
   }
 }
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
+  ".mjs": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".json": "application/json",
   ".svg": "image/svg+xml",
+  ".png": "image/png",
 };
 
 const server = http.createServer(async (req, res) => {
@@ -97,13 +119,23 @@ await fs.mkdir(outDir, { recursive: true });
 let browser;
 let encoder;
 try {
-  browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
+  browser = await chromium.launch({
+    headless: true,
+    env: buildBrowserEnv(),
+    args: ["--no-sandbox", "--disable-gpu-sandbox"],
+  });
+  const page = await browser.newPage({
+    viewport: { width, height },
+    deviceScaleFactor: dpr,
+  });
   const pageErrors = [];
   page.on("pageerror", (err) => pageErrors.push(err.message));
+  page.on("console", (msg) => {
+    if (msg.type() === "error") pageErrors.push(msg.text());
+  });
 
   await page.goto(`http://127.0.0.1:${port}/index.html?capture=1`, { waitUntil: "networkidle" });
-  await page.waitForFunction(() => Boolean(window.__PROMO__), { timeout: 15000 });
+  await page.waitForFunction(() => Boolean(window.__renderFrame && window.__PROMO__), { timeout: 15000 });
   await page.evaluate(() => document.fonts.ready);
 
   const meta = await page.evaluate(() => ({
@@ -113,67 +145,101 @@ try {
   }));
 
   if (keyframesOnly) {
-    const kfDir = path.join(outDir, "keyframes");
+    const kfDir = path.join(outDir, "keyframes-v2");
     await fs.mkdir(kfDir, { recursive: true });
+    // 24 个全片验收关键帧，覆盖全部 5 幕、3 种画风、跨主题变奏及全部 5 处幕间无缝衔接
     const samples = [
-      ["01_spark_mid", 2.4],
-      ["02_spark_burst", 4.75],
-      ["03_ppt_slides", 6.95],
-      ["04_ppt_shatter", 7.85],
-      ["05_slogan_move", 10.2],
-      ["06_logo_hero", 14.9],
-      ["07_explore_input", 19.7],
-      ["08_explore_graph", 24.2],
-      ["09_script_timeline", 29.2],
-      ["10_show_dice_hist", 38.8],
-      ["11_show_prism", 41.2],
-      ["12_show_pn_fwd", 43.1],
-      ["13_show_pn_rev", 44.3],
-      ["14_workbench_rev", 49.9],
-      ["15_export_done", 54.15],
-      ["16_finale_hero", 59.0],
+      ["01_act1_handout_static", 2.0],
+      ["02_act1_popup_prism", 8.4],
+      ["03_act1_rainbow_bloom", 12.2],
+      ["04_act1_violet_bracket_hook", 17.6],
+      ["05_cut1_rewind_cursor", 21.6],
+      ["06_act2_composer_typing", 27.8],
+      ["07_act2_optical_breakdown", 36.2],
+      ["08_act2_myth_flick", 38.2],
+      ["09_act2_stagebar", 44.0],
+      ["10_act2_tension_arc", 49.4],
+      ["11_cut2_arc_slice", 51.4],
+      ["12_act3_micro_refraction", 59.0],
+      ["13_act3_cover_rainbow", 68.0],
+      ["14_act3_fold_modern_graphic", 75.4],
+      ["15_act3_modern_graphic_full", 77.5],
+      ["16_act3_narrative_collage", 81.8],
+      ["17_act3_morph_soap", 84.5],
+      ["18_act3_morph_pn", 87.6],
+      ["19_act3_morph_dice", 90.0],
+      ["20_act4_workbench_full", 98.5],
+      ["21_act4_bracket_typing", 112.5],
+      ["22_act4_ink_ripple_burst", 115.8],
+      ["23_act4_tracing_compare", 125.6],
+      ["24_act5_ruler_sweep", 144.2],
+      ["25_act5_export_stamp", 149.6],
+      ["26_act5_brand_finale", 162.4],
     ];
     for (const [name, t] of samples) {
-      await page.evaluate((time) => window.__PROMO__.renderAt(time), t);
-      const png = await page.locator("#stage").screenshot({ type: "png" });
-      await fs.writeFile(path.join(kfDir, `${name}_${t.toFixed(2)}s.png`), png);
-      console.log(`[keyframe] ${name} @ ${t}s`);
+      const f = Math.round(t * 60);
+      await page.evaluate(({ frame }) => window.__renderFrame(frame, 60), { frame: f });
+      const png = await page.screenshot({ type: "png", animations: "disabled" });
+      await fs.writeFile(path.join(kfDir, `${name}_${t.toFixed(1)}s.png`), png);
+      console.log(`[keyframe] ${name} @ ${t.toFixed(1)}s`);
     }
     if (pageErrors.length) throw new Error(`Page errors: ${pageErrors.join("; ")}`);
     console.log(`Done! Saved ${samples.length} keyframes to ${kfDir}`);
+  } else if (audioOnly) {
+    const wavPath = path.join(outDir, "promo-audio.wav");
+    console.log("[audio] Synthesizing deterministic 48kHz stereo WAV soundtrack...");
+    const wavB64 = await page.evaluate(() => window.__PROMO__.renderAudioWavBase64());
+    await fs.writeFile(wavPath, Buffer.from(wavB64, "base64"));
+    if (pageErrors.length) throw new Error(`Page errors: ${pageErrors.join("; ")}`);
+    console.log(`[audio] Saved ${wavPath}`);
   } else {
-    // 1. 离线合成配乐 WAV
-    const wavPath = path.join(outDir, "soundtrack.wav");
-    console.log("[audio] Synthesizing deterministic Web Audio soundtrack...");
+    const startSec = startOpt !== null ? Math.max(0, Number(startOpt)) : 0;
+    const endSec = endOpt !== null ? Math.min(meta.duration, Number(endOpt)) : meta.duration;
+    const startFrame = Math.round(startSec * fps);
+    const endFrame = Math.round(endSec * fps);
+    const totalFrames = Math.max(1, endFrame - startFrame);
+
+    // 1. 离线合成 48kHz 立体声无损音轨
+    const wavPath = path.join(outDir, "promo-audio.wav");
+    console.log("[audio] Synthesizing deterministic 48kHz stereo soundtrack...");
     const wavB64 = await page.evaluate(() => window.__PROMO__.renderAudioWavBase64());
     await fs.writeFile(wavPath, Buffer.from(wavB64, "base64"));
     console.log(`[audio] Saved ${wavPath}`);
 
-    // 2. 选择编码器与输入解码器并逐帧推流
+    // 2. 启动 FFmpeg 管道（对齐方案第 6.4 节 B 站高码率压制参数）
     const ffmpeg = findFfmpeg();
-    if (!ffmpeg) throw new Error("No ffmpeg binary found. Install ffmpeg or pass --ffmpeg /path/to/ffmpeg");
+    if (!ffmpeg) throw new Error("No ffmpeg binary found.");
     const enc = detectCodecs(ffmpeg);
-    const useJpeg = !enc.decPng && enc.decMjpeg;
-    if (!enc.decPng && !enc.decMjpeg) throw new Error(`FFmpeg at ${ffmpeg} has neither png nor mjpeg decoder`);
-    const totalFrames = Math.ceil(meta.duration * fps);
-    const useMp4 = enc.h264;
-    const videoFile = path.join(outDir, useMp4 ? "knowledge-show-promo.mp4" : "knowledge-show-promo.webm");
-
-    const ffArgs = [
-      "-hide_banner", "-loglevel", "error", "-y",
-      "-f", "image2pipe", "-vcodec", useJpeg ? "mjpeg" : "png", "-framerate", String(fps), "-i", "pipe:0",
-    ];
-    if (useMp4 && enc.aac) {
-      ffArgs.push("-i", wavPath, "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", videoFile);
-    } else if (useMp4) {
-      ffArgs.push("-an", "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-movflags", "+faststart", videoFile);
-    } else if (enc.vp9) {
-      ffArgs.push("-an", "-c:v", "libvpx-vp9", "-deadline", "realtime", "-cpu-used", "8", "-threads", "4", "-b:v", "4500k", "-pix_fmt", "yuv420p", videoFile);
-    } else {
-      throw new Error(`Unsupported ffmpeg encoder set at ${ffmpeg}`);
+    if (!enc.h264 || !enc.decPng) {
+      throw new Error(`FFmpeg at ${ffmpeg} requires libx264 and png decoder.`);
     }
 
-    console.log(`[video] Rendering ${totalFrames} frames (${width}x${height} @ ${fps}fps, pipe=${useJpeg ? "mjpeg" : "png"}) -> ${videoFile}`);
+    const videoFile = path.join(outDir, outName);
+    const ffArgs = [
+      "-hide_banner", "-loglevel", "error", "-y",
+      "-f", "image2pipe", "-vcodec", "png", "-framerate", String(fps), "-i", "pipe:0",
+    ];
+    if (enc.aac) {
+      ffArgs.push(
+        "-ss", String(startSec),
+        "-t", String(endSec - startSec),
+        "-i", wavPath,
+        "-c:v", "libx264", "-preset", preset, "-profile:v", "high", "-level", "4.2",
+        "-crf", String(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart",
+        "-c:a", "aac", "-b:a", "320k", "-ar", "48000",
+        "-shortest",
+        videoFile
+      );
+    } else {
+      ffArgs.push(
+        "-an",
+        "-c:v", "libx264", "-preset", preset, "-profile:v", "high", "-level", "4.2",
+        "-crf", String(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart",
+        videoFile
+      );
+    }
+
+    console.log(`[video] Rendering frames ${startFrame}..${endFrame - 1} (${totalFrames} frames, ${width}x${height} @ ${fps}fps, CRF ${crf}, preset ${preset}) -> ${videoFile}`);
     encoder = spawn(ffmpeg, ffArgs, { stdio: ["pipe", "ignore", "pipe"] });
     let errText = "";
     let encoderExited = false;
@@ -188,33 +254,27 @@ try {
     });
     done.catch(() => {});
 
-    const stage = page.locator("#stage");
     const tStart = Date.now();
-    for (let f = 0; f < totalFrames; f++) {
+    for (let i = 0; i < totalFrames; i++) {
       if (encoderExited) break;
-      const t = Math.min(meta.duration, f / fps);
-      await page.evaluate(({ time, idx }) => window.__PROMO__.renderAt(time, idx), { time: t, idx: f });
-      const buf = useJpeg
-        ? await stage.screenshot({ type: "jpeg", quality: 94, animations: "disabled" })
-        : await stage.screenshot({ type: "png", animations: "disabled" });
+      const f = startFrame + i;
+      await page.evaluate(({ frame, rate }) => window.__renderFrame(frame, rate), { frame: f, rate: fps });
+      const buf = await page.screenshot({ type: "png", animations: "disabled" });
       if (encoderExited) break;
       if (!encoder.stdin.write(buf)) {
         await Promise.race([once(encoder.stdin, "drain"), done]);
       }
-      if ((f + 1) % (fps * 3) === 0 || f === totalFrames - 1) {
-        const pct = (((f + 1) / totalFrames) * 100).toFixed(1);
+      if ((i + 1) % (fps * 3) === 0 || i === totalFrames - 1) {
+        const pct = (((i + 1) / totalFrames) * 100).toFixed(1);
         const sec = ((Date.now() - tStart) / 1000).toFixed(1);
-        const eta = (((Date.now() - tStart) / (f + 1)) * (totalFrames - f - 1) / 1000).toFixed(0);
-        console.log(`[video] ${f + 1}/${totalFrames} (${pct}%) - ${sec}s elapsed, ~${eta}s left`);
+        const eta = (((Date.now() - tStart) / (i + 1)) * (totalFrames - i - 1) / 1000).toFixed(0);
+        console.log(`[video] ${i + 1}/${totalFrames} (${pct}%) - ${sec}s elapsed, ~${eta}s left`);
       }
     }
     encoder.stdin.end();
     await done;
     if (pageErrors.length) throw new Error(`Page errors: ${pageErrors.join("; ")}`);
     console.log(`[done] Video: ${videoFile}`);
-    if (!useMp4 || !enc.aac) {
-      console.log(`[note] Current ffmpeg lacks AAC/H.264 muxing; soundtrack saved separately at ${wavPath}`);
-    }
   }
 } finally {
   encoder?.kill();
