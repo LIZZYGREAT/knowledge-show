@@ -58,6 +58,8 @@ export class AnimationPlayer {
   getCurrentTimeMs() { return this.time; }
   getSelectableElements() { this.check(); return this.scene.getSelectableElements(); }
   getElementBounds(id: string) { this.check(); return this.scene.getElementBounds(id); }
+  getVisibleElements() { this.check(); return this.scene.getVisibleElements?.() ?? []; }
+  hitTest(normX: number, normY: number) { this.check(); return this.scene.hitTest?.(normX, normY) ?? []; }
   destroy() {
     if (this.disposed) return;
     this.pause(); this.disposed = true; ++this.seekVersion;

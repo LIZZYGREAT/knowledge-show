@@ -87,15 +87,31 @@ export function createPnScene(scene: ScriptScene, profile: StyleProfile, speed =
       const element = node('text', { x: text.text === 'P' || text.text === '空穴' ? 510 : text.text === 'N' || text.text === '电子' ? 1100 : 800,
         y: text.kind === 'subtitle' ? 820 : text.kind === 'title' ? 115 : 160 + (i % 2) * 34, fill: c.ink, 'font-size': text.kind === 'title' ? 39 : 30, 'text-anchor': 'middle', 'font-family': profile.typography.body });
       element.textContent = text.text;
-      registry.register({ id: text.id, label: text.text, sourceRef: { kind: 'timed_text', id: text.id } }, element);
+      registry.register(
+        {
+          id: text.id,
+          label: text.text,
+          sourceRef: { kind: 'timed_text', id: text.id },
+          meta: { engine: 'pn-scene', className: 'TimedTextNode', shape: 'text', nodeTag: 'text', zIndex: 50 },
+        },
+        element,
+      );
       return { text, element };
     });
-    for (const [id, label, nodes] of [
-      ['EL_S01_JUNCTION', '结本体', [main.body, other.body]], ['EL_S01_CARRIERS', '红蓝载流子群', [main.carriers, other.carriers]],
-      ['EL_S01_METER', '电流仪表', [main.meter, other.meter]], ['EL_PN_FIXED_IONS', '固定离子', [main.ions, other.ions]],
-      ['EL_PN_BARRIER', '势垒地形', [main.terrain, other.terrain]], ['EL_PN_FIELD', '内建电场', [main.internal, other.internal]],
-    ] as const) registry.register({ id, label }, ...nodes);
-    registry.register({ id: 'EL_PN_WAVES', label: '输入与输出波形' }, waves);
+    for (const [id, label, className, zIndex, nodes] of [
+      ['EL_S01_JUNCTION', '结本体', 'PnJunctionDevice.Body', 10, [main.body, other.body]],
+      ['EL_PN_FIXED_IONS', '固定离子', 'PnJunctionDevice.FixedIons', 15, [main.ions, other.ions]],
+      ['EL_PN_BARRIER', '势垒地形', 'PnJunctionDevice.BarrierTerrain', 20, [main.terrain, other.terrain]],
+      ['EL_PN_FIELD', '内建电场', 'PnJunctionDevice.InternalField', 25, [main.internal, other.internal]],
+      ['EL_S01_CARRIERS', '红蓝载流子群', 'PnJunctionDevice.Carriers', 30, [main.carriers, other.carriers]],
+      ['EL_S01_METER', '电流仪表', 'PnJunctionDevice.Meter', 35, [main.meter, other.meter]],
+    ] as const) {
+      registry.register({ id, label, meta: { engine: 'pn-scene', className, shape: 'group', nodeTag: 'g', zIndex } }, ...nodes);
+    }
+    registry.register(
+      { id: 'EL_PN_WAVES', label: '输入与输出波形', meta: { engine: 'pn-scene', className: 'PnJunctionDevice.RectifierWaves', shape: 'group', nodeTag: 'g', zIndex: 40 } },
+      waves,
+    );
     root.append(svg);
     const heightAt = (x: number, height: number) => height * Math.exp(-(((x - 800) / 154) ** 2));
     function drawDevice(view: typeof main, ms: number, forcedReverse = false) {
@@ -155,7 +171,10 @@ export function createPnScene(scene: ScriptScene, profile: StyleProfile, speed =
         texts.forEach(({ text, element }) => { element.style.display = time >= text.offset_ms && time < text.offset_ms + text.duration_ms ? '' : 'none'; });
         svg.dataset.timeMs = String(time); svg.dataset.sceneId = scene.scene_id;
       },
-      getSelectableElements: () => registry.getElements(), getElementBounds: id => registry.getBounds(id),
+      getSelectableElements: () => registry.getElements(),
+      getElementBounds: id => registry.getBounds(id),
+      getVisibleElements: () => registry.getVisibleElements(),
+      hitTest: (normX, normY) => registry.hitTest(normX, normY),
       destroy() { if (!destroyed) { destroyed = true; outer.remove(); } },
     };
   } };

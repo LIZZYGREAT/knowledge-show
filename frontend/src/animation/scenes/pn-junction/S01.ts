@@ -106,12 +106,30 @@ export function createPnS01(style: StyleProfile = precisionScience, speed = 1, p
     const camera = find<SVGGElement>('[data-camera]');
     const subtitle = find<SVGGElement>('[data-subtitle]');
     const registry = new ElementRegistry(svg);
-    for (const [id, label, selector] of [
-      ['EL_S01_JUNCTION', '结本体', '[data-body]'],
-      ['EL_S01_CARRIERS', '红蓝粒子群', '[data-carriers]'],
-      ['EL_S01_METER', '仪表', '[data-meter]'],
-    ]) registry.register({ id, label, sourceRef: { kind: 'script_event', id: 'EV01' } }, ...svg.querySelectorAll<SVGGraphicsElement>(selector));
-    registry.register({ id: 'T01', label: s01Script.timed_text[0].text, sourceRef: { kind: 'timed_text', id: 'T01' } }, subtitle);
+    for (const [id, label, selector, className, zIndex] of [
+      ['EL_S01_JUNCTION', '结本体', '[data-body]', 'PnJunctionDevice.Body', 10],
+      ['EL_S01_CARRIERS', '红蓝粒子群', '[data-carriers]', 'PnJunctionDevice.Carriers', 20],
+      ['EL_S01_METER', '仪表', '[data-meter]', 'PnJunctionDevice.Meter', 30],
+    ] as const) {
+      registry.register(
+        {
+          id,
+          label,
+          sourceRef: { kind: 'script_event', id: 'EV01' },
+          meta: { engine: 'pn-scene', className, shape: 'group', nodeTag: 'g', zIndex },
+        },
+        ...svg.querySelectorAll<SVGGraphicsElement>(selector),
+      );
+    }
+    registry.register(
+      {
+        id: 'T01',
+        label: s01Script.timed_text[0].text,
+        sourceRef: { kind: 'timed_text', id: 'T01' },
+        meta: { engine: 'pn-scene', className: 'TimedTextNode', shape: 'text', nodeTag: 'g', zIndex: 40 },
+      },
+      subtitle,
+    );
 
     const pose = { rotation: 0, split: 0, zoom: 1, current: 0 };
     const timeline = gsap.timeline({ paused: true });
@@ -168,6 +186,8 @@ export function createPnS01(style: StyleProfile = precisionScience, speed = 1, p
       },
       getSelectableElements: () => registry.getElements(),
       getElementBounds: (id: string) => registry.getBounds(id),
+      getVisibleElements: () => registry.getVisibleElements(),
+      hitTest: (normX: number, normY: number) => registry.hitTest(normX, normY),
       destroy() { if (!destroyed) { destroyed = true; timeline.kill(); container.remove(); } },
     };
     return handle;

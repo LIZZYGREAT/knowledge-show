@@ -38,6 +38,8 @@ export function createSequence(bundle: AnimationBundle): SceneDefinition {
       },
       getSelectableElements: () => [...registered.values()],
       getElementBounds: id => active?.getElementBounds(id) ?? null,
+      getVisibleElements: () => active?.getVisibleElements?.() ?? [],
+      hitTest: (normX, normY) => active?.hitTest?.(normX, normY) ?? [],
       destroy() { if (!destroyed) { destroyed = true; active?.destroy(); active = null; } },
     };
   } };
