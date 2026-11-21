@@ -20,7 +20,7 @@ import {
 } from "../core/math.js";
 import { drawPaperBase, drawPaperCard, roundRectPath } from "../core/paper.js";
 import { drawPrismFold, sampleTrailFromPath } from "../entities/prismFold.js";
-import { drawRainbowOptics } from "../entities/rainbowOptics.js";
+import { drawRainbowOptics, getPrismGeometry } from "../entities/rainbowOptics.js";
 import {
   drawDappledSunlight,
   drawBrassGoniometer,
@@ -355,7 +355,7 @@ function drawMicroRefraction(ctx, t, alpha) {
 /**
  * 绘制三种风格迥异、细节拉满的全景彩虹画幅（支持传入 swirlCollapse 供无缝卷曲演进至肥皂泡！）
  */
-function drawStyledRainbowScene(ctx, styleId, t, alpha = 1) {
+function drawStyledRainbowScene(ctx, styleId, t, alpha = 1, { showVernier = true } = {}) {
   const style = STYLE_PROFILES[styleId] || STYLE_PROFILES["paper-editorial"];
   ctx.save();
   ctx.globalAlpha = clamp(alpha);
@@ -367,35 +367,120 @@ function drawStyledRainbowScene(ctx, styleId, t, alpha = 1) {
     dotGridAlpha: styleId === "narrative-collage" ? 0.045 : 0.024,
   });
 
+  // 计算 7 道色光与倾斜光学分光接收尺的精确交点（保证每一道波与对应波长刻度 0.0px 严格对齐！）
+  let vernierHits = null;
+  let perBandLengths = null;
+  if (styleId === "paper-editorial" && showVernier) {
+    const geom = getPrismGeometry(640, 540, 278, 1);
+    const nAng = (21.8 * Math.PI) / 180; // 垂直于中央绿光方向，构成真实倾斜光学接收屏
+    const nx = Math.cos(nAng);
+    const ny = Math.sin(nAng);
+    const screenD = 1645;
+    vernierHits = SPECTRUM.map((band, i) => {
+      const u = 0.42 + (i / 6) * 0.34;
+      const epX = lerp(geom.top.x, geom.right.x, u);
+      const epY = lerp(geom.top.y, geom.right.y, u);
+      const rad = (band.bendDeg * Math.PI) / 180;
+      const dx = Math.cos(rad);
+      const dy = Math.sin(rad);
+      const s = (screenD - (epX * nx + epY * ny)) / (dx * nx + dy * ny);
+      return {
+        band,
+        s,
+        x: epX + dx * s,
+        y: epY + dy * s,
+      };
+    });
+    perBandLengths = vernierHits.map((h) => h.s);
+  }
+
   if (styleId === "paper-editorial") {
     drawDappledSunlight(ctx, STAGE_W, STAGE_H, t, 0.95);
     drawPopupPaperDiorama(ctx, 660, 560, 1, 0.88);
     drawBrassGoniometer(ctx, 640, 540, 365, t, { alpha: 0.92, reveal: 1 });
 
-    // 右侧精致垂直光谱纳米游标尺（680nm -> 405nm 随波动态轻盈脉动！）
-    ctx.save();
-    const rx = 1796;
-    ctx.strokeStyle = "rgba(28, 42, 48, 0.14)";
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(rx, 460);
-    ctx.lineTo(rx, 965);
-    ctx.stroke();
-    SPECTRUM.forEach((b, idx) => {
-      const sy = 486 + idx * 76;
-      const pulse = 0.85 + 0.15 * Math.sin(t * 3.5 - idx * 0.7);
-      ctx.fillStyle = rgba(b.hex, 0.88 * pulse);
-      roundRectPath(ctx, rx - 14, sy - 6, 12, 12, 3);
-      ctx.fill();
-      ctx.font = `600 12px ${FONTS.mono}`;
-      ctx.fillStyle = COLORS.inkSecondary;
-      ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
-      ctx.fillText(`${b.wavelengthNm}nm`, rx + 10, sy);
-    });
-    ctx.restore();
+    // 倾斜光学分光游标接收尺（每道波长刻度精准落在对应色波的物理落点上！）
+    if (vernierHits) {
+      ctx.save();
+      const first = vernierHits[0];
+      const last = vernierHits[vernierHits.length - 1];
+      const ux = last.x - first.x;
+      const uy = last.y - first.y;
+      const uLen = Math.hypot(ux, uy) || 1;
+      const tx = ux / uLen;
+      const ty = uy / uLen;
 
-    // 上空漂浮的 2 枚微缩半透明折纸小棱晶（投射极淡虹彩焦散，画幅层次更丰富！）
+      // 细雅黄铜-墨线倾斜接收标尺脊线
+      ctx.strokeStyle = "rgba(176, 128, 66, 0.42)";
+      ctx.lineWidth = 2.0;
+      ctx.beginPath();
+      ctx.moveTo(first.x - tx * 28, first.y - ty * 28);
+      ctx.lineTo(last.x + tx * 28, last.y + ty * 28);
+      ctx.stroke();
+
+      // 尺背柔和暖白纸条底托
+      ctx.strokeStyle = "rgba(255, 253, 249, 0.72)";
+      ctx.lineWidth = 10;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(first.x - tx * 20, first.y - ty * 20);
+      ctx.lineTo(last.x + tx * 20, last.y + ty * 20);
+      ctx.stroke();
+
+      // 顶部微型标题
+      ctx.font = `600 11.5px ${FONTS.mono}`;
+      ctx.fillStyle = "rgba(138, 96, 44, 0.75)";
+      ctx.textAlign = "left";
+      ctx.fillText("SPECTRUM SCALE · λ", first.x + 14, first.y - 34);
+
+      vernierHits.forEach((hit, idx) => {
+        const b = hit.band;
+        const pulse = 0.86 + 0.14 * Math.sin(t * 3.5 - idx * 0.7);
+
+        // 柔和色光落点晕斑
+        const rg = ctx.createRadialGradient(hit.x, hit.y, 1, hit.x, hit.y, 18);
+        rg.addColorStop(0, rgba(b.hex, 0.55 * pulse));
+        rg.addColorStop(1, rgba(b.hex, 0));
+        ctx.fillStyle = rg;
+        ctx.beginPath();
+        ctx.arc(hit.x, hit.y, 18, 0, TAU);
+        ctx.fill();
+
+        // 精确落点圆珠标
+        ctx.fillStyle = "#FFFDF9";
+        ctx.strokeStyle = b.hex;
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        ctx.arc(hit.x, hit.y, 5.2, 0, TAU);
+        ctx.fill();
+        ctx.stroke();
+
+        // 水平细短引线 -> 色块 + 精确纳米数与中文色名
+        ctx.strokeStyle = rgba(b.hex, 0.45);
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(hit.x + 8, hit.y);
+        ctx.lineTo(hit.x + 26, hit.y);
+        ctx.stroke();
+
+        ctx.fillStyle = rgba(b.hex, 0.92);
+        roundRectPath(ctx, hit.x + 30, hit.y - 6, 12, 12, 3);
+        ctx.fill();
+
+        ctx.font = `600 13px ${FONTS.mono}`;
+        ctx.fillStyle = COLORS.inkPrimary;
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        ctx.fillText(`${b.wavelengthNm}nm`, hit.x + 49, hit.y);
+
+        ctx.font = `500 12.5px ${FONTS.sans}`;
+        ctx.fillStyle = COLORS.inkSecondary;
+        ctx.fillText(b.zh, hit.x + 104, hit.y);
+      });
+      ctx.restore();
+    }
+
+    // 上空漂浮的 2 枚微缩半透明折纸小棱晶
     [
       { x: 1320, y: 185 + Math.sin(t * 1.4) * 10, s: 28, rot: 0.28 },
       { x: 1540, y: 270 + Math.cos(t * 1.2) * 12, s: 20, rot: -0.42 },
@@ -603,6 +688,7 @@ function drawStyledRainbowScene(ctx, styleId, t, alpha = 1) {
     alpha: 1,
     showWaveBeads: true,
     ribbonLen: 1140,
+    perBandLengths,
   });
 
   // 风格左下角刊物印章标
@@ -1085,7 +1171,7 @@ function drawContinuousCrossTopicMorphs(ctx, t) {
   if (t >= 88.6) {
     // 90.7s 起底图平滑融回主线纸艺彩虹（与第四幕 92.0s 100% 像素级重合！）
     if (pDiceToRainbow > 0.02) {
-      drawStyledRainbowScene(ctx, "paper-editorial", 92.0, pDiceToRainbow);
+      drawStyledRainbowScene(ctx, "paper-editorial", 92.0, pDiceToRainbow, { showVernier: false });
     }
 
     const pDiceIn = springProgress(segProgress(t, 88.6, 89.5), 0.56, 0.74, 18);

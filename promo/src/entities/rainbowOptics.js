@@ -379,6 +379,7 @@ export function drawRainbowOptics(ctx, opts = {}) {
     showWaveBeads = true,
     onlyInsideClip = false,
     ribbonLen = 980,
+    perBandLengths = null, // 可选：7 元素数组，精确控制每道色光到达分光游标尺的距离
   } = opts;
 
   const style = STYLE_PROFILES[styleId] || STYLE_PROFILES["paper-editorial"];
@@ -495,7 +496,8 @@ export function drawRainbowOptics(ctx, opts = {}) {
       const normX = -dirY;
       const normY = dirX;
 
-      const curLen = ribbonLen * effDisp;
+      const baseLen = Array.isArray(perBandLengths) && perBandLengths[i] ? perBandLengths[i] : ribbonLen;
+      const curLen = baseLen * effDisp;
       const omega = 4.5 + i * 0.54;
 
       bandMeta.push({ id: band.id, ep, dirX, dirY, normX, normY, rad, bendDeg, color, lambdaPx, amp, omega, phase: band.phase, curLen });
