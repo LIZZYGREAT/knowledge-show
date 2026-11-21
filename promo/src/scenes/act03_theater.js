@@ -131,11 +131,12 @@ function drawMicroRefraction(ctx, t, alpha) {
   ctx.textBaseline = "middle";
   ctx.fillText(pSlide < 0.2 ? "AIR · 空气中步幅一致 · 直线前行" : "AIR · 空气中步幅一致", 246, 953);
 
-  if (pSlide > 0.25) {
-    const gLabelA = clamp((pSlide - 0.25) / 0.45);
+  if (pSlide > 0.42) {
+    const gLabelA = clamp((pSlide - 0.42) / 0.35);
+    const gLabelX = Math.max(bxTop + 68, Math.min(STAGE_W - 416, bxTop + 80));
     ctx.save();
     ctx.globalAlpha = clamp(alpha * gLabelA);
-    drawPaperCard(ctx, Math.min(STAGE_W - 410, bxTop + 80), 74, 376, 46, {
+    drawPaperCard(ctx, gLabelX, 74, 376, 46, {
       radius: 23,
       fill: "rgba(255, 253, 249, 0.92)",
       stroke: rgba(COLORS.brandTeal, 0.34),
@@ -144,7 +145,7 @@ function drawMicroRefraction(ctx, t, alpha) {
       shadowOffsetY: 4,
     });
     ctx.fillStyle = COLORS.brandTealDark;
-    ctx.fillText("GLASS LATTICE · 介质减速与偏折分化", Math.min(STAGE_W - 410, bxTop + 80) + 188, 97);
+    ctx.fillText("GLASS LATTICE · 介质减速与偏折分化", gLabelX + 188, 97);
     ctx.restore();
   }
   ctx.textAlign = "left";

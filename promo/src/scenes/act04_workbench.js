@@ -489,10 +489,10 @@ function drawCurvedWaveRibbonSelection(
     ctx.restore();
   }
 
-  // 6. 红光上方清雅浮标（避开棱镜，精准悬于波浪带之上）
+  // 6. 红光上方清雅浮标（置于右侧宽阔留白区，彻底避开 θ_red < θ_violet 角度注释卡）
   if (badgeText) {
-    const anchor = redPts[24];
-    drawSemanticPill(ctx, anchor.x - 16, anchor.y - 52, badgeText, COLORS.brandTeal, alpha);
+    const anchor = redPts[54];
+    drawSemanticPill(ctx, anchor.x - 48, anchor.y - 58, badgeText, COLORS.brandTeal, alpha);
   }
 
   ctx.restore();
@@ -635,9 +635,9 @@ export function renderAct04({ worldCtx, overlayCtx, camera, ui, t }) {
     easeEditorialInOut(segProgress(t, 129.0, 130.2)) *
     (1 - easeEditorialInOut(segProgress(t, 136.4, 137.6)));
 
-  const camZoom = 1.0 + focusAmt * 0.11 + multiEditZoom * 0.12;
-  const camX = STAGE_W * 0.5 + focusAmt * 84 + multiEditZoom * -125;
-  const camY = STAGE_H * 0.5 + focusAmt * 12 + multiEditZoom * -35;
+  const camZoom = 1.0 + focusAmt * 0.085 + multiEditZoom * 0.055;
+  const camX = STAGE_W * 0.5 + focusAmt * 52 + multiEditZoom * -34;
+  const camY = STAGE_H * 0.5 + focusAmt * 8 + multiEditZoom * -12;
   camera.set({ x: camX, y: camY, zoom: camZoom });
 
   // ── 2. 暖纸桌面底色 ──
