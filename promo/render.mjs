@@ -27,10 +27,12 @@ const opt = (name, fallback) => {
 
 const keyframesOnly = hasFlag("--keyframes");
 const audioOnly = hasFlag("--audio-only");
+const reuseAudio = hasFlag("--reuse-audio");
 const fps = Number(opt("--fps", "60"));
 const width = Number(opt("--width", "1920"));
 const height = Number(opt("--height", "1080"));
 const dpr = Number(opt("--dpr", "1"));
+const workers = Math.max(1, Number(opt("--workers", "1")));
 const crf = opt("--crf", "15");
 const preset = opt("--preset", "slow");
 const startOpt = opt("--start", null);
@@ -199,14 +201,18 @@ try {
     const endFrame = Math.round(endSec * fps);
     const totalFrames = Math.max(1, endFrame - startFrame);
 
-    // 1. 离线合成 48kHz 立体声无损音轨
+    // 1. 离线合成 48kHz 立体声无损音轨（支持 --reuse-audio 复用已有 WAV）
     const wavPath = path.join(outDir, "promo-audio.wav");
-    console.log("[audio] Synthesizing deterministic 48kHz stereo soundtrack...");
-    const wavB64 = await page.evaluate(() => window.__PROMO__.renderAudioWavBase64());
-    await fs.writeFile(wavPath, Buffer.from(wavB64, "base64"));
-    console.log(`[audio] Saved ${wavPath}`);
+    if (reuseAudio && existsSync(wavPath)) {
+      console.log(`[audio] Reusing existing ${wavPath}`);
+    } else {
+      console.log("[audio] Synthesizing deterministic 48kHz stereo soundtrack...");
+      const wavB64 = await page.evaluate(() => window.__PROMO__.renderAudioWavBase64());
+      await fs.writeFile(wavPath, Buffer.from(wavB64, "base64"));
+      console.log(`[audio] Saved ${wavPath}`);
+    }
 
-    // 2. 启动 FFmpeg 管道（对齐方案第 6.4 节 B 站高码率压制参数）
+    // 2. 启动 FFmpeg 管道（支持单进程流式或 --workers N 分段并发渲染后无损拼接）
     const ffmpeg = findFfmpeg();
     if (!ffmpeg) throw new Error("No ffmpeg binary found.");
     const enc = detectCodecs(ffmpeg);
@@ -215,64 +221,121 @@ try {
     }
 
     const videoFile = path.join(outDir, outName);
-    const ffArgs = [
-      "-hide_banner", "-loglevel", "error", "-y",
-      "-f", "image2pipe", "-vcodec", "png", "-framerate", String(fps), "-i", "pipe:0",
-    ];
-    if (enc.aac) {
-      ffArgs.push(
+
+    async function renderSegmentToFile(segPage, segStartFrame, segEndFrame, targetFile, withAudio, label) {
+      const segFrames = Math.max(1, segEndFrame - segStartFrame);
+      const ffArgs = [
+        "-hide_banner", "-loglevel", "error", "-y",
+        "-f", "image2pipe", "-vcodec", "png", "-framerate", String(fps), "-i", "pipe:0",
+      ];
+      if (withAudio && enc.aac) {
+        ffArgs.push(
+          "-ss", String(segStartFrame / fps),
+          "-t", String(segFrames / fps),
+          "-i", wavPath,
+          "-c:v", "libx264", "-preset", preset, "-profile:v", "high", "-level", "4.2",
+          "-crf", String(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart",
+          "-c:a", "aac", "-b:a", "320k", "-ar", "48000",
+          "-shortest",
+          targetFile
+        );
+      } else {
+        ffArgs.push(
+          "-an",
+          "-c:v", "libx264", "-preset", preset, "-profile:v", "high", "-level", "4.2",
+          "-crf", String(crf), "-pix_fmt", "yuv420p",
+          targetFile
+        );
+      }
+
+      const proc = spawn(ffmpeg, ffArgs, { stdio: ["pipe", "ignore", "pipe"] });
+      let errText = "";
+      let exited = false;
+      proc.stderr.on("data", (d) => { errText = (errText + d.toString()).slice(-4000); });
+      proc.stdin.on("error", () => {});
+      const done = new Promise((resolve, reject) => {
+        proc.on("error", (e) => { exited = true; reject(e); });
+        proc.on("close", (code) => {
+          exited = true;
+          code === 0 ? resolve() : reject(new Error(errText || `ffmpeg exited ${code}`));
+        });
+      });
+      done.catch(() => {});
+
+      const tStart = Date.now();
+      for (let i = 0; i < segFrames; i++) {
+        if (exited) break;
+        const f = segStartFrame + i;
+        await segPage.evaluate(({ frame, rate }) => window.__renderFrame(frame, rate), { frame: f, rate: fps });
+        const buf = await segPage.screenshot({ type: "png", animations: "disabled" });
+        if (exited) break;
+        if (!proc.stdin.write(buf)) {
+          await Promise.race([once(proc.stdin, "drain"), done]);
+        }
+        if ((i + 1) % (fps * 2) === 0 || i === segFrames - 1) {
+          const pct = (((i + 1) / segFrames) * 100).toFixed(1);
+          const sec = ((Date.now() - tStart) / 1000).toFixed(1);
+          const eta = (((Date.now() - tStart) / (i + 1)) * (segFrames - i - 1) / 1000).toFixed(0);
+          console.log(`[${label}] ${i + 1}/${segFrames} (${pct}%) - ${sec}s elapsed, ~${eta}s left`);
+        }
+      }
+      proc.stdin.end();
+      await done;
+    }
+
+    if (workers <= 1 || totalFrames < workers * 4) {
+      console.log(`[video] Rendering frames ${startFrame}..${endFrame - 1} (${totalFrames} frames, ${width}x${height} @ ${fps}fps, CRF ${crf}, preset ${preset}) -> ${videoFile}`);
+      await renderSegmentToFile(page, startFrame, endFrame, videoFile, true, "video");
+    } else {
+      const segDir = path.join(outDir, ".segments");
+      await fs.mkdir(segDir, { recursive: true });
+      const chunkSize = Math.ceil(totalFrames / workers);
+      const segments = [];
+      for (let wIdx = 0; wIdx < workers; wIdx++) {
+        const sF = startFrame + wIdx * chunkSize;
+        const eF = Math.min(endFrame, sF + chunkSize);
+        if (sF >= eF) break;
+        segments.push({ wIdx, sF, eF, file: path.join(segDir, `seg_${String(wIdx).padStart(2, "0")}.mp4`) });
+      }
+      console.log(`[video] Parallel rendering ${totalFrames} frames across ${segments.length} workers (${width}x${height} @ ${fps}fps, CRF ${crf}, preset ${preset})`);
+      await Promise.all(
+        segments.map(async (seg) => {
+          const wPage = seg.wIdx === 0
+            ? page
+            : await browser.newPage({ viewport: { width, height }, deviceScaleFactor: dpr });
+          if (seg.wIdx !== 0) {
+            wPage.on("pageerror", (err) => pageErrors.push(err.message));
+            await wPage.goto(`http://127.0.0.1:${port}/index.html?capture=1`, { waitUntil: "networkidle" });
+            await wPage.waitForFunction(() => Boolean(window.__renderFrame), { timeout: 15000 });
+            await wPage.evaluate(() => document.fonts.ready);
+          }
+          await renderSegmentToFile(wPage, seg.sF, seg.eF, seg.file, false, `worker-${seg.wIdx + 1}`);
+          if (seg.wIdx !== 0) await wPage.close();
+        })
+      );
+
+      // 使用 concat demuxer 无损拼接分段并封装 48kHz AAC 音轨
+      const listPath = path.join(segDir, "concat.txt");
+      await fs.writeFile(
+        listPath,
+        segments.map((s) => `file '${s.file.replace(/'/g, "'\\''")}'`).join("\n") + "\n"
+      );
+      const muxArgs = [
+        "-hide_banner", "-loglevel", "error", "-y",
+        "-f", "concat", "-safe", "0", "-i", listPath,
         "-ss", String(startSec),
         "-t", String(endSec - startSec),
         "-i", wavPath,
-        "-c:v", "libx264", "-preset", preset, "-profile:v", "high", "-level", "4.2",
-        "-crf", String(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart",
+        "-c:v", "copy",
         "-c:a", "aac", "-b:a", "320k", "-ar", "48000",
+        "-movflags", "+faststart",
         "-shortest",
-        videoFile
-      );
-    } else {
-      ffArgs.push(
-        "-an",
-        "-c:v", "libx264", "-preset", preset, "-profile:v", "high", "-level", "4.2",
-        "-crf", String(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart",
-        videoFile
-      );
+        videoFile,
+      ];
+      execFileSync(ffmpeg, muxArgs);
+      await fs.rm(segDir, { recursive: true, force: true });
     }
 
-    console.log(`[video] Rendering frames ${startFrame}..${endFrame - 1} (${totalFrames} frames, ${width}x${height} @ ${fps}fps, CRF ${crf}, preset ${preset}) -> ${videoFile}`);
-    encoder = spawn(ffmpeg, ffArgs, { stdio: ["pipe", "ignore", "pipe"] });
-    let errText = "";
-    let encoderExited = false;
-    encoder.stderr.on("data", (d) => { errText = (errText + d.toString()).slice(-4000); });
-    encoder.stdin.on("error", () => {});
-    const done = new Promise((resolve, reject) => {
-      encoder.on("error", (e) => { encoderExited = true; reject(e); });
-      encoder.on("close", (code) => {
-        encoderExited = true;
-        code === 0 ? resolve() : reject(new Error(errText || `ffmpeg exited ${code}`));
-      });
-    });
-    done.catch(() => {});
-
-    const tStart = Date.now();
-    for (let i = 0; i < totalFrames; i++) {
-      if (encoderExited) break;
-      const f = startFrame + i;
-      await page.evaluate(({ frame, rate }) => window.__renderFrame(frame, rate), { frame: f, rate: fps });
-      const buf = await page.screenshot({ type: "png", animations: "disabled" });
-      if (encoderExited) break;
-      if (!encoder.stdin.write(buf)) {
-        await Promise.race([once(encoder.stdin, "drain"), done]);
-      }
-      if ((i + 1) % (fps * 3) === 0 || i === totalFrames - 1) {
-        const pct = (((i + 1) / totalFrames) * 100).toFixed(1);
-        const sec = ((Date.now() - tStart) / 1000).toFixed(1);
-        const eta = (((Date.now() - tStart) / (i + 1)) * (totalFrames - i - 1) / 1000).toFixed(0);
-        console.log(`[video] ${i + 1}/${totalFrames} (${pct}%) - ${sec}s elapsed, ~${eta}s left`);
-      }
-    }
-    encoder.stdin.end();
-    await done;
     if (pageErrors.length) throw new Error(`Page errors: ${pageErrors.join("; ")}`);
     console.log(`[done] Video: ${videoFile}`);
   }

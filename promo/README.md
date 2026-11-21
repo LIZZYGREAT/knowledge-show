@@ -65,9 +65,9 @@ node promo/render.mjs --keyframes --width 1920 --height 1080
 # 2. 仅合成 48kHz 立体声无损音轨 promo/output/promo-audio.wav
 node promo/render.mjs --audio-only
 
-# 3. 导出 B 站首发 1080P 60fps 高码率成片（CRF 15 + AAC 320k）
-node promo/render.mjs --fps 60 --width 1920 --height 1080
+# 3. 导出 B 站首发 1080P 60fps 高码率成片（CRF 15 + AAC 320k，支持多并发分段加速）
+node promo/render.mjs --fps 60 --width 1920 --height 1080 --workers 4
 
-# 4. 片段快速抽检（例如仅导出第四幕高潮片段）
-node promo/render.mjs --start 92 --end 140 --fps 30 --preset fast --out act04-check.mp4
+# 4. 片段快速抽检（复用已有音轨，例如抽检第四幕局部修订涟漪高潮）
+node promo/render.mjs --start 114 --end 119 --fps 60 --width 1920 --height 1080 --workers 2 --reuse-audio --out act04-ripple-check.mp4
 ```
