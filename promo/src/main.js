@@ -61,10 +61,10 @@ export function renderAt(timeSec) {
   // 同步 Layer 2 DOM 摄像机变换矩阵
   ui.syncCamera(camera);
 
-  // 克制刊物旁白字幕（Layer 3）
+  // 帧感知刊物旁白字幕（Layer 3：按场景留白与画风灵活落位装帧）
   const cap = getActiveCaption(t);
   if (cap) {
-    drawEditorialCaption(overlayCtx, cap.text, cap.alpha, STAGE_W, STAGE_H);
+    drawEditorialCaption(overlayCtx, cap, cap.alpha, STAGE_W, STAGE_H);
   }
 
   // 顶层全局世界锁定微纸纹 multiply 叠层（确保 Canvas 与真实 DOM 融为同一张纸并消除 H.264 色带）

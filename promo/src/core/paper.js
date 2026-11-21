@@ -4,7 +4,7 @@
  */
 
 import { COLORS, FONTS, STAGE_W, STAGE_H } from "../config/tokens.js";
-import { mulberry32, clamp } from "./math.js";
+import { mulberry32, clamp, rgba, easeEditorialOut } from "./math.js";
 
 let cachedGrainCanvas = null;
 
@@ -239,47 +239,397 @@ export function roundRectPath(ctx, x, y, w, h, r) {
 }
 
 /**
- * 绘制克制高雅的刊物底部旁白字幕（半透明暖纸轻垫 + 典雅衬线体）
+ * 解析字体族别名（serif / sans / mono）
  */
-export function drawEditorialCaption(ctx, text, alpha, w = STAGE_W, h = STAGE_H) {
-  if (!text || alpha <= 0.005) return;
-  ctx.save();
-  ctx.globalAlpha = clamp(alpha);
-  ctx.font = `500 28px ${FONTS.serif}`;
-  ctx.textAlign = "center";
+function resolveCaptionFont(family = "serif", weight = 500, size = 28) {
+  const fam = family === "sans" ? FONTS.sans : family === "mono" ? FONTS.mono : FONTS.serif;
+  return `${weight} ${size}px ${fam}`;
+}
+
+/**
+ * 渲染支持行内多关键词异色高亮 + 极细雅致手绘下划线的排版行
+ */
+function drawRichCaptionLine(ctx, lineSpec, anchorX, baselineY, align = "left") {
+  const {
+    text = "",
+    size = 28,
+    weight = 500,
+    family = "serif",
+    color = COLORS.inkPrimary,
+    highlights = [],
+  } = lineSpec;
+
+  ctx.font = resolveCaptionFont(family, weight, size);
   ctx.textBaseline = "middle";
+  ctx.textAlign = "left";
 
-  const metrics = ctx.measureText(text);
-  const padX = 34;
-  const pillW = Math.min(w - 160, metrics.width + padX * 2);
-  const pillH = 58;
-  const cx = w * 0.5;
-  const cy = h - 62;
+  const totalW = ctx.measureText(text).width;
+  const startX =
+    align === "center" ? anchorX - totalW * 0.5 : align === "right" ? anchorX - totalW : anchorX;
 
-  ctx.shadowColor = "rgba(28, 42, 48, 0.08)";
-  ctx.shadowBlur = 22;
-  ctx.shadowOffsetY = 6;
-  roundRectPath(ctx, cx - pillW * 0.5, cy - pillH * 0.5, pillW, pillH, 29);
-  ctx.fillStyle = "rgba(255, 253, 249, 0.88)";
-  ctx.fill();
-  ctx.shadowColor = "transparent";
+  // 若无关键词高亮，直接整行绘制
+  if (!highlights || highlights.length === 0) {
+    ctx.fillStyle = color;
+    ctx.fillText(text, startX, baselineY);
+    return totalW;
+  }
 
-  ctx.strokeStyle = "rgba(28, 42, 48, 0.11)";
-  ctx.lineWidth = 1;
-  ctx.stroke();
+  // 将整行拆分为普通片段与高亮片段（按首次出现顺序非重叠切分）
+  const spans = [];
+  let cursor = 0;
+  while (cursor < text.length) {
+    let bestIdx = -1;
+    let bestHl = null;
+    for (const hl of highlights) {
+      if (!hl.word) continue;
+      const idx = text.indexOf(hl.word, cursor);
+      if (idx !== -1 && (bestIdx === -1 || idx < bestIdx)) {
+        bestIdx = idx;
+        bestHl = hl;
+      }
+    }
+    if (bestIdx === -1) {
+      spans.push({ text: text.slice(cursor), hl: null });
+      break;
+    }
+    if (bestIdx > cursor) {
+      spans.push({ text: text.slice(cursor, bestIdx), hl: null });
+    }
+    spans.push({ text: bestHl.word, hl: bestHl });
+    cursor = bestIdx + bestHl.word.length;
+  }
 
-  // 左右极细青绿与暖杏装饰短点
-  ctx.fillStyle = COLORS.brandTeal;
-  ctx.beginPath();
-  ctx.arc(cx - pillW * 0.5 + 16, cy, 2.5, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = COLORS.brandAmber;
-  ctx.beginPath();
-  ctx.arc(cx + pillW * 0.5 - 16, cy, 2.5, 0, Math.PI * 2);
-  ctx.fill();
+  let curX = startX;
+  for (const seg of spans) {
+    const segW = ctx.measureText(seg.text).width;
+    if (seg.hl) {
+      // 若开启下划线：在文字下方绘一道轻盈水彩暖色笔触底线
+      if (seg.hl.underline) {
+        ctx.save();
+        ctx.strokeStyle = rgba(seg.hl.color, 0.34);
+        ctx.lineWidth = Math.max(3, size * 0.14);
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(curX + 2, baselineY + size * 0.44);
+        ctx.lineTo(curX + segW - 2, baselineY + size * 0.44);
+        ctx.stroke();
+        ctx.restore();
+      }
+      ctx.fillStyle = seg.hl.color;
+    } else {
+      ctx.fillStyle = color;
+    }
+    ctx.fillText(seg.text, curX, baselineY);
+    curX += segW;
+  }
 
-  ctx.fillStyle = COLORS.inkPrimary;
-  ctx.fillText(text, cx, cy + 1);
+  return totalW;
+}
+
+/**
+ * 绘制帧感知灵动刊物旁白字幕（支持 5 种与当前画风融为一体的装帧变体 + 多行大小错落 + 关键词异色高亮 + 0% 遮挡）
+ */
+export function drawEditorialCaption(ctx, captionOrText, alphaOverride, w = STAGE_W, h = STAGE_H) {
+  if (!captionOrText) return;
+
+  // 向下兼容旧的字符串调用方式
+  const cap =
+    typeof captionOrText === "string"
+      ? {
+          variant: "editorial-band",
+          x: w * 0.5,
+          y: h - 78,
+          align: "center",
+          alpha: alphaOverride,
+          enterP: alphaOverride,
+          lines: [{ text: captionOrText, size: 28, weight: 500, family: "serif", color: COLORS.inkPrimary }],
+        }
+      : captionOrText;
+
+  const alpha = clamp(alphaOverride ?? cap.alpha ?? 1);
+  const lines = cap.lines || (cap.text ? [{ text: cap.text, size: 28, weight: 500, family: "serif" }] : []);
+  if (lines.length === 0 || alpha <= 0.005) return;
+
+  const variant = cap.variant || "editorial-quote";
+  const align = cap.align || "left";
+  const accent = cap.accent || COLORS.brandTeal;
+  const accent2 = cap.accent2 || COLORS.brandAmber;
+  const enterEase = easeEditorialOut(clamp(cap.enterP ?? alpha));
+  const slideOffsetY = (1 - enterEase) * 12;
+
+  // 预先测量每行宽高与行距
+  const lineMetrics = lines.map((ln) => {
+    const size = ln.size || 26;
+    const weight = ln.weight || 500;
+    const family = ln.family || "serif";
+    ctx.save();
+    ctx.font = resolveCaptionFont(family, weight, size);
+    const width = ctx.measureText(ln.text || "").width;
+    ctx.restore();
+    return { ...ln, size, weight, family, width, rowH: Math.round(size * 1.46) };
+  });
+
+  const maxLineW = Math.max(...lineMetrics.map((m) => m.width), 160);
+  const hasKicker = Boolean(cap.kicker);
+  const kickerH = hasKicker ? 24 : 0;
+  const totalTextH = lineMetrics.reduce((acc, m) => acc + m.rowH, 0);
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+
+  // ── 变体 1：editorial-quote（无重框刊物引语：渐隐空气晕 + 左侧青绿暖杏渐变竖线 + 大小错落衬线） ──
+  if (variant === "editorial-quote") {
+    const baseX = cap.x ?? 1120;
+    const baseY = (cap.y ?? 160) + slideOffsetY;
+    const barGap = 22;
+    const blockH = kickerH + totalTextH;
+
+    // 极柔和暖纸微空气底晕，保证文字在任何淡笔触背景上都清晰通透却不显“加框感”
+    const gx = align === "right" ? baseX - maxLineW * 0.5 : baseX + maxLineW * 0.5;
+    const gy = baseY + blockH * 0.5;
+    const rg = ctx.createRadialGradient(gx, gy, 24, gx, gy, Math.max(maxLineW * 0.68, 260));
+    rg.addColorStop(0, "rgba(249, 247, 242, 0.84)");
+    rg.addColorStop(0.68, "rgba(249, 247, 242, 0.42)");
+    rg.addColorStop(1, "rgba(249, 247, 242, 0)");
+    ctx.fillStyle = rg;
+    ctx.fillRect(gx - maxLineW * 0.78, gy - blockH * 1.1, maxLineW * 1.56, blockH * 2.2);
+
+    // 优雅渐变装饰竖线（随 enterEase 从上向下轻盈生长）
+    const barX = align === "right" ? baseX + barGap : baseX - barGap;
+    const barTop = baseY + 2;
+    const barLen = Math.max(24, (blockH - 6) * enterEase);
+    const barGrad = ctx.createLinearGradient(barX, barTop, barX, barTop + blockH);
+    barGrad.addColorStop(0, accent);
+    barGrad.addColorStop(1, accent2);
+    ctx.strokeStyle = barGrad;
+    ctx.lineWidth = 3.2;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(barX, barTop);
+    ctx.lineTo(barX, barTop + barLen);
+    ctx.stroke();
+
+    // 顶部微星点
+    ctx.fillStyle = accent;
+    ctx.beginPath();
+    ctx.arc(barX, barTop, 3.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    let curY = baseY;
+    if (hasKicker) {
+      ctx.font = `600 12.5px ${FONTS.mono}`;
+      ctx.fillStyle = rgba(accent, 0.86);
+      ctx.textAlign = align;
+      ctx.textBaseline = "middle";
+      ctx.fillText(cap.kicker, baseX, curY + 8);
+      curY += kickerH + 4;
+    }
+
+    for (const m of lineMetrics) {
+      drawRichCaptionLine(ctx, m, baseX, curY + m.rowH * 0.5, align);
+      curY += m.rowH;
+    }
+  }
+
+  // ── 变体 2：editorial-band（典雅无框居下双行排印：柔和雾托底 + 双色极细顶分隔线 + 精致眉标） ──
+  else if (variant === "editorial-band") {
+    const cx = cap.x ?? w * 0.5;
+    const topY = (cap.y ?? h - 180) + slideOffsetY;
+    const blockH = kickerH + totalTextH + 14;
+
+    // 柔雾暖纸托底（无硬边框）
+    const rg = ctx.createRadialGradient(cx, topY + blockH * 0.5, 40, cx, topY + blockH * 0.5, maxLineW * 0.72);
+    rg.addColorStop(0, "rgba(255, 253, 249, 0.88)");
+    rg.addColorStop(0.7, "rgba(249, 247, 242, 0.50)");
+    rg.addColorStop(1, "rgba(249, 247, 242, 0)");
+    ctx.fillStyle = rg;
+    ctx.fillRect(cx - maxLineW * 0.8, topY - 26, maxLineW * 1.6, blockH + 56);
+
+    // 顶部细长居中渐变微线
+    const ruleHalf = 74 * enterEase;
+    const ruleGrad = ctx.createLinearGradient(cx - ruleHalf, topY, cx + ruleHalf, topY);
+    ruleGrad.addColorStop(0, rgba(accent, 0));
+    ruleGrad.addColorStop(0.32, accent);
+    ruleGrad.addColorStop(0.68, accent2);
+    ruleGrad.addColorStop(1, rgba(accent2, 0));
+    ctx.strokeStyle = ruleGrad;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx - ruleHalf, topY);
+    ctx.lineTo(cx + ruleHalf, topY);
+    ctx.stroke();
+
+    let curY = topY + 14;
+    if (hasKicker) {
+      ctx.font = `600 12px ${FONTS.mono}`;
+      ctx.fillStyle = rgba(accent, 0.82);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(cap.kicker, cx, curY + 6);
+      curY += kickerH;
+    }
+
+    for (const m of lineMetrics) {
+      drawRichCaptionLine(ctx, m, cx, curY + m.rowH * 0.5, "center");
+      curY += m.rowH;
+    }
+  }
+
+  // ── 变体 3：bauhaus-poster（第三幕现代图形风专属：利落黑边几何海报卡 + 红黄蓝三原色极简色标 + 粗体无衬线） ──
+  else if (variant === "bauhaus-poster") {
+    const padX = 28;
+    const padY = 20;
+    const cardW = maxLineW + padX * 2;
+    const cardH = kickerH + totalTextH + padY * 2 + 4;
+    const x0 = align === "right" ? (cap.x ?? 84) - cardW : (cap.x ?? 84);
+    const y0 = (cap.y ?? 736) + slideOffsetY;
+
+    // 包豪斯硬朗几何偏移底影
+    ctx.fillStyle = "rgba(32, 38, 56, 0.14)";
+    ctx.fillRect(x0 + 7, y0 + 7, cardW, cardH);
+
+    // 纯净暖米白海报底 + 利落 2.4px 深藏青实线框
+    ctx.fillStyle = "#FAF8F2";
+    ctx.fillRect(x0, y0, cardW, cardH);
+    ctx.strokeStyle = "#202638";
+    ctx.lineWidth = 2.4;
+    ctx.strokeRect(x0, y0, cardW, cardH);
+
+    // 左侧色块装饰条（红 + 黄 + 蓝）
+    const stripeW = 7;
+    ctx.fillStyle = "#EC4B53";
+    ctx.fillRect(x0, y0, stripeW, cardH * 0.34);
+    ctx.fillStyle = "#E3BA34";
+    ctx.fillRect(x0, y0 + cardH * 0.34, stripeW, cardH * 0.33);
+    ctx.fillStyle = "#2262C4";
+    ctx.fillRect(x0, y0 + cardH * 0.67, stripeW, cardH * 0.33);
+
+    let curY = y0 + padY;
+    if (hasKicker) {
+      ctx.font = `700 11.5px ${FONTS.mono}`;
+      ctx.fillStyle = "#2262C4";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText(cap.kicker, x0 + padX + 2, curY + 7);
+      curY += kickerH + 2;
+    }
+
+    for (const m of lineMetrics) {
+      drawRichCaptionLine(ctx, m, x0 + padX + 2, curY + m.rowH * 0.5, "left");
+      curY += m.rowH;
+    }
+  }
+
+  // ── 变体 4：collage-note（第三幕手工叙事拼贴风专属：微倾暖棉纸便签 + 珊瑚红和纸胶带 + 手账虚线边） ──
+  else if (variant === "collage-note") {
+    const padX = 28;
+    const padY = 22;
+    const cardW = maxLineW + padX * 2;
+    const cardH = kickerH + totalTextH + padY * 2 + 2;
+    const x0 = cap.x ?? 1038;
+    const y0 = (cap.y ?? 148) + slideOffsetY;
+
+    ctx.save();
+    ctx.translate(x0 + cardW * 0.5, y0 + cardH * 0.5);
+    ctx.rotate(-0.024); // -1.4° 自然手贴微倾角
+    ctx.translate(-cardW * 0.5, -cardH * 0.5);
+
+    drawPaperCard(ctx, 0, 0, cardW, cardH, {
+      radius: 4,
+      fill: "#FAF3E4",
+      stroke: "rgba(94, 78, 56, 0.34)",
+      lineWidth: 1.5,
+      shadowBlur: 18,
+      shadowOffsetY: 8,
+      shadowColor: "rgba(59, 48, 32, 0.14)",
+    });
+
+    // 内嵌极细手账缝线装饰
+    ctx.strokeStyle = "rgba(184, 134, 72, 0.28)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 4]);
+    ctx.strokeRect(7, 7, cardW - 14, cardH - 14);
+    ctx.setLineDash([]);
+
+    // 顶部半透明珊瑚红和纸胶带
+    ctx.save();
+    ctx.translate(cardW * 0.5, -2);
+    ctx.rotate(0.03);
+    ctx.fillStyle = "rgba(217, 107, 82, 0.42)";
+    ctx.fillRect(-46, -11, 92, 22);
+    ctx.restore();
+
+    let curY = padY;
+    if (hasKicker) {
+      ctx.font = `600 11.5px ${FONTS.mono}`;
+      ctx.fillStyle = "rgba(154, 104, 52, 0.85)";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText(cap.kicker, padX, curY + 7);
+      curY += kickerH;
+    }
+
+    for (const m of lineMetrics) {
+      drawRichCaptionLine(ctx, m, padX, curY + m.rowH * 0.5, "left");
+      curY += m.rowH;
+    }
+    ctx.restore();
+  }
+
+  // ── 变体 5：studio-whisper（第四幕工作台画幅留白轻注卡：磨砂暖纸浮注 + 极细渐变竖条，0% 遮挡 UI） ──
+  else if (variant === "studio-whisper") {
+    const padX = 24;
+    const padY = 16;
+    const cardW = maxLineW + padX * 2 + 10;
+    const cardH = kickerH + totalTextH + padY * 2 + 2;
+    const x0 =
+      align === "right"
+        ? (cap.x ?? 1312) - cardW
+        : align === "center"
+          ? (cap.x ?? w * 0.5) - cardW * 0.5
+          : (cap.x ?? 130);
+    const y0 = (cap.y ?? 120) + slideOffsetY;
+
+    drawPaperCard(ctx, x0, y0, cardW, cardH, {
+      radius: 16,
+      fill: "rgba(255, 253, 249, 0.90)",
+      stroke: rgba(accent, 0.24),
+      lineWidth: 1.25,
+      shadowBlur: 20,
+      shadowOffsetY: 8,
+      shadowColor: "rgba(28, 52, 58, 0.09)",
+    });
+
+    // 右对齐时竖条在右缘、左对齐时竖条在左缘，贴合画面构图重心
+    const barX = align === "right" ? x0 + cardW - 12 : x0 + 12;
+    const barGrad = ctx.createLinearGradient(barX, y0 + 16, barX, y0 + cardH - 16);
+    barGrad.addColorStop(0, accent);
+    barGrad.addColorStop(1, accent2);
+    ctx.strokeStyle = barGrad;
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(barX, y0 + 16);
+    ctx.lineTo(barX, y0 + 16 + (cardH - 32) * enterEase);
+    ctx.stroke();
+
+    const textAnchorX = align === "right" ? x0 + cardW - padX - 4 : x0 + padX + 4;
+    let curY = y0 + padY;
+    if (hasKicker) {
+      ctx.font = `600 11.5px ${FONTS.mono}`;
+      ctx.fillStyle = rgba(accent, 0.88);
+      ctx.textAlign = align === "right" ? "right" : "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText(cap.kicker, textAnchorX, curY + 7);
+      curY += kickerH;
+    }
+
+    for (const m of lineMetrics) {
+      drawRichCaptionLine(ctx, m, textAnchorX, curY + m.rowH * 0.5, align === "right" ? "right" : "left");
+      curY += m.rowH;
+    }
+  }
+
   ctx.restore();
 }
 
