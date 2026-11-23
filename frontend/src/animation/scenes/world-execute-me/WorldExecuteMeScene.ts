@@ -1,11 +1,12 @@
 import type { AnimationBundle } from '../../runtime/BundleTypes';
-import type { FrameBounds, SceneDefinition, SelectableElement } from '../../runtime/SceneTypes';
-import { WEM_ELEMENT_METADATA } from './demoBundle';
+import type { ElementHit, FrameBounds, SceneDefinition, SelectableElement, VisibleElement } from '../../runtime/SceneTypes';
+import { WEM_ELEMENT_META, WEM_ELEMENT_METADATA, WEM_SCENE_ELEMENTS } from './demoBundle';
 
 type WemEngine = {
   duration: number;
   preroll: number;
   renderFrame: (tSeconds: number) => void;
+  shotAt?: (tSeconds: number) => { id?: string; layout?: string } | null;
 };
 
 type WemModule = {
@@ -47,12 +48,17 @@ export function createWorldExecuteMeSequence(bundle: AnimationBundle): SceneDefi
   const styleId = Object.values(bundle.resources)[0]?.style?.id ?? 'precision-science';
   const selectable: SelectableElement[] = bundle.manifest.selectable_elements.map((entry) => {
     const timed = bundle.script.scenes.flatMap((s) => s.timed_text).find((t) => t.id === entry.id);
+    const meta = WEM_ELEMENT_META[entry.id] ?? (timed
+      ? { engine: 'wem-scene' as const, className: 'lyrics.js:TimedCaption', shape: 'text', nodeTag: 'canvas', zIndex: 85 }
+      : undefined);
     return {
       id: entry.id,
       label: timed?.text ?? WEM_ELEMENT_METADATA[entry.id] ?? entry.id,
       ...(entry.source_ref ? { sourceRef: entry.source_ref } : {}),
+      ...(meta ? { meta } : {}),
     };
   });
+  const selectableById = new Map(selectable.map((item) => [item.id, item]));
 
   return {
     sceneId: bundle.manifest.artifact_id,
@@ -141,6 +147,39 @@ export function createWorldExecuteMeSequence(bundle: AnimationBundle): SceneDefi
         }
       })();
 
+      const activeSceneAt = (ms: number) =>
+        bundle.script.scenes.find((s) => ms >= s.start_ms && ms < s.start_ms + s.duration_ms)
+        ?? bundle.script.scenes[bundle.script.scenes.length - 1];
+
+      const boundsAtCurrentTime = (id: string): FrameBounds | null => {
+        const activeScene = activeSceneAt(currentMs);
+        if (!activeScene) return null;
+        const timed = activeScene.timed_text.find((t) => t.id === id);
+        if (timed) {
+          const localMs = currentMs - activeScene.start_ms;
+          return localMs >= timed.offset_ms && localMs < timed.offset_ms + timed.duration_ms
+            ? ELEMENT_BOUNDS.EL_WEM_TYPOGRAPHY
+            : null;
+        }
+        const sceneElements = WEM_SCENE_ELEMENTS[activeScene.scene_id] ?? [];
+        if (!sceneElements.includes(id)) return null;
+        return ELEMENT_BOUNDS[id] ?? null;
+      };
+
+      const getVisible = (): VisibleElement[] => {
+        const visible: VisibleElement[] = [];
+        for (const item of selectable) {
+          const bounds = boundsAtCurrentTime(item.id);
+          if (!bounds) continue;
+          const shot = engine?.shotAt?.(currentMs / 1000);
+          const element = shot?.id && item.meta
+            ? { ...item, meta: { ...item.meta, className: `${item.meta.className} [${shot.id}]` } }
+            : item;
+          visible.push({ element, bounds, zOrder: item.meta?.zIndex ?? 0 });
+        }
+        return visible.sort((a, b) => a.zOrder - b.zOrder);
+      };
+
       return {
         seek(ms) {
           if (destroyed) throw new Error('Sequence destroyed');
@@ -150,15 +189,25 @@ export function createWorldExecuteMeSequence(bundle: AnimationBundle): SceneDefi
           }
         },
         getSelectableElements: () => selectable,
-        getElementBounds(id) {
-          if (ELEMENT_BOUNDS[id]) return ELEMENT_BOUNDS[id];
-          const activeScene = bundle.script.scenes.find(
-            (s) => currentMs >= s.start_ms && currentMs <= s.start_ms + s.duration_ms,
-          );
-          if (activeScene && activeScene.timed_text.some((t) => t.id === id)) {
-            return ELEMENT_BOUNDS.EL_WEM_TYPOGRAPHY;
+        getElementBounds: (id) => boundsAtCurrentTime(id),
+        getVisibleElements: () => getVisible(),
+        hitTest(normX: number, normY: number): ElementHit[] {
+          if (normX < 0 || normX > 1 || normY < 0 || normY > 1) return [];
+          const hits: ElementHit[] = [];
+          for (const item of getVisible()) {
+            const b = item.bounds;
+            if (normX >= b.x && normX <= b.x + b.width && normY >= b.y && normY <= b.y + b.height) {
+              // Exclude timed_text duplicate when EL_WEM_TYPOGRAPHY already covers the same caption box unless directly chosen
+              if (!selectableById.has(item.element.id)) continue;
+              hits.push({
+                ...item,
+                area: b.width * b.height,
+                exact: true,
+              });
+            }
           }
-          return null;
+          // Prefer smaller focused components (e.g. spark inside window), then higher zOrder.
+          return hits.sort((a, b) => a.area - b.area || b.zOrder - a.zOrder);
         },
         destroy() {
           destroyed = true;

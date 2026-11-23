@@ -292,6 +292,79 @@ async def test_new_subject_uses_model_programs_and_rewrites_only_selected_scene(
 
 
 @pytest.mark.anyio
+async def test_targeted_element_revision_passes_target_anchors_and_locks_unselected_objects(runtime):
+    projects,project,script,service=runtime
+    script=copy.deepcopy(script)
+    script['scenes'][0]['objective']='Targeted revision isolation scene.'
+    calls=[]
+    class Client:
+        async def generate_json(self,**kwargs):
+            calls.append(kwargs)
+            value=program(kwargs['data']['scene'])
+            if kwargs['data']['feedback']:
+                # Even if model tries to mutate both EL_ACTOR and unselected EL_REFERENCE, only EL_ACTOR may change.
+                value['objects'][0]['radius']=28
+                value['objects'][1]['radius']=99
+                value['objects'][1]['fill']='#ff0000'
+            return SimpleNamespace(value=value)
+    first=await service.generate(project,script,client=Client())
+    old=service.load(project['project_id'],first['artifact_ref'])
+    project=projects.load(project['project_id'])
+    request=request_for(project,first['artifact_ref'],'只把目标圆放大一点')
+    request['anchors']=[
+        {'kind':'render_element','id':'EL_ACTOR'},
+        {'kind':'clip','id':'CL_S02'},
+        {'kind':'time_range','start_ms':20000,'end_ms':26000},
+    ]
+    second=await service.revise(project,request,client=Client())
+    last_call=calls[-1]
+    assert 'EL_ACTOR' in last_call['instructions']
+    assert last_call['data']['target_elements']==[{'id':'EL_ACTOR','label':'actor','shape':'circle'}]
+    assert last_call['data']['target_time_ranges']==[{'start_ms':5000,'end_ms':11000}]
+    new=service.load(project['project_id'],second['artifact_ref'])
+    s02_old=old['resources'][old['manifest']['clips'][1]['resource_ref']]['objects']
+    s02_new=new['resources'][new['manifest']['clips'][1]['resource_ref']]['objects']
+    assert next(o for o in s02_new if o['id']=='EL_ACTOR')['radius']==28
+    assert next(o for o in s02_new if o['id']=='EL_REFERENCE')==next(o for o in s02_old if o['id']=='EL_REFERENCE')
+
+
+@pytest.mark.anyio
+async def test_multi_scene_continuous_object_revision_updates_only_covered_scenes_and_target_object(runtime):
+    projects,project,script,service=runtime
+    script=copy.deepcopy(script)
+    script['scenes'][0]['objective']='Continuous multi-scene object revision test.'
+    calls=[]
+    class Client:
+        async def generate_json(self,**kwargs):
+            calls.append(kwargs['data'])
+            value=program(kwargs['data']['scene'])
+            if kwargs['data']['feedback']:
+                value['objects'][0]['fill']='#00cc88'
+                value['objects'][1]['fill']='#ff00ff'
+            return SimpleNamespace(value=value)
+    first=await service.generate(project,script,client=Client())
+    old=service.load(project['project_id'],first['artifact_ref'])
+    project=projects.load(project['project_id'])
+    request=request_for(project,first['artifact_ref'],'把连续出现的主角颜色改成青绿色')
+    request['scope']='multi_scene'
+    request['anchors']=[
+        {'kind':'render_element','id':'EL_ACTOR'},
+        {'kind':'clip','id':'CL_S02'},
+        {'kind':'clip','id':'CL_S03'},
+        {'kind':'time_range','start_ms':15000,'end_ms':71000},
+    ]
+    second=await service.revise(project,request,client=Client())
+    new=service.load(project['project_id'],second['artifact_ref'])
+    changed_scenes=[a['scene_id'] for a,b in zip(old['manifest']['clips'],new['manifest']['clips']) if a['resource_ref']!=b['resource_ref']]
+    assert changed_scenes==['S02','S03']
+    for idx in (1,2):
+        old_objs=old['resources'][old['manifest']['clips'][idx]['resource_ref']]['objects']
+        new_objs=new['resources'][new['manifest']['clips'][idx]['resource_ref']]['objects']
+        assert next(o for o in new_objs if o['id']=='EL_ACTOR')['fill']=='#00cc88'
+        assert next(o for o in new_objs if o['id']=='EL_REFERENCE')==next(o for o in old_objs if o['id']=='EL_REFERENCE')
+
+
+@pytest.mark.anyio
 async def test_scene_context_includes_verified_knowledge_neighbors_and_prior_object_identity(runtime):
     projects,project,script,service=runtime
     script=copy.deepcopy(script)

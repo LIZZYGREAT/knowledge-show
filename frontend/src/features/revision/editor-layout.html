@@ -326,10 +326,296 @@
       position: absolute;
       border: 2.5px solid var(--warm);
       background: rgba(240, 164, 59, 0.14);
-      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.65);
-      border-radius: 4px;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.72), 0 8px 24px -10px rgba(184, 108, 28, 0.45);
+      border-radius: 5px;
       pointer-events: none;
       display: none;
+      z-index: 3;
+      transition: border-color 0.12s ease;
+    }
+
+    #stagePicker {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    #stagePicker.off {
+      pointer-events: none;
+      cursor: default;
+    }
+
+    #stagePicker.has-hit {
+      cursor: grab;
+    }
+
+    #stagePicker.dragging {
+      cursor: grabbing;
+    }
+
+    #hoverOverlay {
+      position: absolute;
+      border: 1.5px dashed rgba(24, 198, 168, 0.95);
+      background: rgba(24, 198, 168, 0.1);
+      box-shadow: 0 0 0 1px rgba(18, 41, 38, 0.35);
+      border-radius: 5px;
+      pointer-events: none;
+      display: none;
+      z-index: 2;
+    }
+
+    .overlay-tag {
+      position: absolute;
+      left: 0;
+      top: -26px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(14, 34, 32, 0.92);
+      color: #f4fbf9;
+      border: 1px solid rgba(24, 198, 168, 0.55);
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      max-width: 320px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      box-shadow: 0 6px 16px -6px rgba(0, 0, 0, 0.45);
+    }
+
+    .overlay-tag.flip-inside {
+      top: 6px;
+      left: 6px;
+    }
+
+    .overlay-tag code {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #7ee8d4;
+      font-weight: 500;
+    }
+
+    .selection-badge {
+      position: absolute;
+      left: 0;
+      top: -30px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 6px 3px 9px;
+      border-radius: 999px;
+      background: rgba(184, 108, 28, 0.96);
+      color: #fffaf2;
+      border: 1px solid rgba(255, 240, 214, 0.72);
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      pointer-events: auto;
+      cursor: grab;
+      box-shadow: 0 8px 20px -6px rgba(15, 28, 26, 0.55);
+    }
+
+    .selection-badge.flip-inside {
+      top: 6px;
+      left: 6px;
+    }
+
+    .selection-badge:active {
+      cursor: grabbing;
+    }
+
+    .selection-badge .grip {
+      opacity: 0.78;
+      letter-spacing: -1px;
+      font-size: 10px;
+    }
+
+    .selection-badge .quick-add {
+      border: 0;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.22);
+      color: #ffffff;
+      font: 600 10.5px/1 var(--font-body);
+      padding: 4px 8px;
+      cursor: pointer;
+    }
+
+    .selection-badge .quick-add:hover {
+      background: rgba(255, 255, 255, 0.36);
+    }
+
+    #dragGhost {
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 80;
+      display: none;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(15, 118, 100, 0.96);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      box-shadow: 0 14px 32px -10px rgba(10, 40, 35, 0.55);
+      font-size: 12px;
+      font-weight: 600;
+      pointer-events: none;
+      transform: translate(12px, 12px);
+      white-space: nowrap;
+    }
+
+    #dragGhost code {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: #c8faf0;
+      font-weight: 500;
+    }
+
+    .chat.drop-active {
+      background: #eefaf6;
+      box-shadow: inset 2px 0 0 var(--accent);
+    }
+
+    .object-inspector {
+      margin: 0 14px 4px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: #fdf9f2;
+      border: 1px solid rgba(224, 141, 48, 0.36);
+      display: none;
+      flex-direction: column;
+      gap: 7px;
+      font-size: 11.5px;
+    }
+
+    .object-inspector.on {
+      display: flex;
+    }
+
+    .inspector-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .inspector-title {
+      font-weight: 600;
+      color: var(--ink);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .inspector-meta {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .inspector-close {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      padding: 2px 4px;
+      border-radius: 6px;
+    }
+
+    .inspector-close:hover {
+      background: rgba(18, 41, 38, 0.08);
+      color: var(--ink);
+    }
+
+    .inspector-scopes {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .scope-pill {
+      border: 1px solid var(--line-strong);
+      background: #ffffff;
+      color: var(--ink-body);
+      border-radius: 999px;
+      padding: 3px 9px;
+      font: 500 11px/1.3 var(--font-body);
+      cursor: pointer;
+      transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+    }
+
+    .scope-pill:hover:not(:disabled) {
+      border-color: var(--accent);
+      color: var(--accent-strong);
+    }
+
+    .scope-pill.on {
+      background: var(--warm-soft);
+      border-color: var(--warm);
+      color: var(--warm-deep);
+      font-weight: 600;
+    }
+
+    .scope-pill.attach {
+      margin-left: auto;
+      background: var(--accent-soft);
+      border-color: rgba(15, 150, 125, 0.42);
+      color: var(--accent-strong);
+      font-weight: 600;
+    }
+
+    .scope-pill.attach:hover {
+      background: #cef0e7;
+    }
+
+    .layer-stack {
+      display: none;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px;
+      padding-top: 4px;
+      border-top: 1px dashed rgba(224, 141, 48, 0.28);
+      color: var(--muted);
+      font-size: 10.5px;
+    }
+
+    .layer-stack.on {
+      display: flex;
+    }
+
+    .layer-pill {
+      border: 1px solid var(--line);
+      background: #ffffff;
+      color: var(--muted);
+      border-radius: 6px;
+      padding: 2px 7px;
+      font: 500 10.5px/1.3 var(--font-body);
+      cursor: pointer;
+    }
+
+    .layer-pill.on {
+      border-color: var(--warm);
+      background: var(--warm-soft);
+      color: var(--warm-deep);
+      font-weight: 600;
+    }
+
+    .btn.pick-on {
+      border-color: rgba(15, 150, 125, 0.42);
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      font-weight: 600;
     }
 
     .stage-foot {
@@ -890,6 +1176,7 @@
       </div>
     </details>
     <div class="spacer"></div>
+    <button class="btn pick-on" id="pickModeBtn" aria-pressed="true" title="点击或拖动画面中的视觉对象直接引用到修改意见">点选对象: 开</button>
     <button class="btn" id="saveRequest">保存修改请求</button>
     <button class="btn" id="rollback">版本回退</button>
     <button class="btn primary" id="exportVideo">导出视频</button>
@@ -900,7 +1187,15 @@
       <div class="stage" id="stage">
         <div class="frame" id="frame">
           <iframe id="player" title="动画视频预览" allow="autoplay"></iframe>
-          <div id="selectionOverlay"></div>
+          <div id="stagePicker" title="点击选中画面对象，按住拖动到右侧对话框可直接引用"></div>
+          <div id="hoverOverlay"><span id="hoverLabel" class="overlay-tag"></span></div>
+          <div id="selectionOverlay">
+            <div id="selectionBadge" class="selection-badge" draggable="true" title="拖动到右侧修改框，或点击“+ 引用”">
+              <span class="grip">⋮⋮</span>
+              <span id="selectionBadgeText"></span>
+              <button type="button" id="quickAttachBtn" class="quick-add">+ 引用</button>
+            </div>
+          </div>
           <div class="load" id="load">正在加载已发布动画…</div>
         </div>
         <div class="stage-foot" id="stageFoot">尚未连接预览</div>
@@ -943,10 +1238,24 @@
       <div class="msgs">
         <div class="msg ai">
           <span class="who">工作台</span>
-          选择画面对象或拖入时间轴胶囊，再描述希望调整的地方。选择框只用于编辑，不进入视频。
+          直接点击画面中的任意对象即可绑定其脚本对象与连续帧区间；按住对象拖入本栏（或拖入时间轴胶囊），即可针对该对象提出精确修改意见。选择框只用于编辑，不进入视频。
         </div>
       </div>
-      <div class="input" id="chatInput" role="textbox" aria-label="修改意见" contenteditable="true" data-ph="说说想改哪里…" spellcheck="false"></div>
+      <div class="object-inspector" id="objectInspector" aria-live="polite">
+        <div class="inspector-top">
+          <span class="inspector-title" id="inspectorTitle"></span>
+          <button type="button" class="inspector-close" id="inspectorClose" aria-label="取消选中">×</button>
+        </div>
+        <div class="inspector-meta" id="inspectorMeta"></div>
+        <div class="inspector-scopes" id="inspectorScopes">
+          <button type="button" class="scope-pill" id="scopeClipBtn" data-scope="clip">当前幕</button>
+          <button type="button" class="scope-pill" id="scopeContinuousBtn" data-scope="continuous">连续多帧</button>
+          <button type="button" class="scope-pill" id="scopeMomentBtn" data-scope="moment">当前时刻</button>
+          <button type="button" class="scope-pill attach" id="inspectorAttachBtn">+ 引用</button>
+        </div>
+        <div class="layer-stack" id="layerStack"></div>
+      </div>
+      <div class="input" id="chatInput" role="textbox" aria-label="修改意见" contenteditable="true" data-ph="直接从画面拖入对象，或说说想改哪里…" spellcheck="false"></div>
       <details class="api-key-box">
         <summary>使用模型修改</summary>
         <label>本次 API Key
@@ -959,6 +1268,7 @@
     </div>
   </div>
 </div>
+<div id="dragGhost" aria-hidden="true"></div>
 
 <script type="module" src="./Workbench.ts"></script>
 </body>

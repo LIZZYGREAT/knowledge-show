@@ -166,11 +166,19 @@ def has_real_visual_motion(objects: list[dict[str, Any]]) -> bool:
     return False
 
 
-async def direct_scene(client: Any, scene: dict[str,Any], profile: dict[str,Any], *, previous: dict[str,Any] | None=None, feedback: str | None=None, scene_context: dict[str,Any] | None=None, format_feedback: str | None=None, require_motion: bool | None=None) -> dict[str,Any]:
+async def direct_scene(client: Any, scene: dict[str,Any], profile: dict[str,Any], *, previous: dict[str,Any] | None=None, feedback: str | None=None, scene_context: dict[str,Any] | None=None, format_feedback: str | None=None, require_motion: bool | None=None, target_elements: list[dict[str,Any]] | None=None, target_time_ranges: list[dict[str,int]] | None=None) -> dict[str,Any]:
     instructions=DIRECTOR
+    if previous and target_elements:
+        target_ids=', '.join(str(item['id']) for item in target_elements)
+        instructions += f'\nTARGETED OBJECT REVISION: The user explicitly selected ONLY these render_element IDs: [{target_ids}]. Modify ONLY those selected object(s) (and focus changes within target_time_ranges when provided) according to feedback. Keep EVERY other object in previous_resource completely unchanged and preserve all object IDs.'
     if format_feedback:
         instructions += '\nCorrect this format/validation error and return one complete valid JSON scene program: ' + format_feedback + '. Every fill and stroke must be a six-digit hex color (#RRGGBB), preferably a value from style_profile.palette. Do not repeat timed_text in other text objects. Ensure non-text actors exhibit real continuous motion. Do not change script facts or event times.'
-    response=await client.generate_json(instructions=instructions,data={'scene':scene,'scene_context':scene_context or {},'style_profile':profile,'previous_resource':previous,'feedback':feedback,'format_feedback':format_feedback},max_output_tokens=14000)
+    payload={'scene':scene,'scene_context':scene_context or {},'style_profile':profile,'previous_resource':previous,'feedback':feedback,'format_feedback':format_feedback}
+    if target_elements:
+        payload['target_elements']=target_elements
+    if target_time_ranges:
+        payload['target_time_ranges']=target_time_ranges
+    response=await client.generate_json(instructions=instructions,data=payload,max_output_tokens=14000)
     program=response.value
     enforce_motion = require_motion if require_motion is not None else type(client).__name__ in {'DeepSeekScriptClient', 'DeepSeekClient'}
     try:
@@ -189,6 +197,10 @@ async def direct_scene(client: Any, scene: dict[str,Any], profile: dict[str,Any]
         if enforce_motion and not previous and not has_real_visual_motion(objects):
             raise ValueError('场景缺少真实的动态视觉变化（不能只放置静止图形或文字卡片）。')
         if previous and {o['id'] for o in previous.get('objects',[])} != {o['id'] for o in objects}: raise ValueError('局部修订不得替换对象身份。')
+        if previous and target_elements:
+            target_id_set={str(item['id']) for item in target_elements}
+            previous_by_id={obj['id']:copy.deepcopy(obj) for obj in previous.get('objects',[])}
+            objects=[obj if obj['id'] in target_id_set else previous_by_id[obj['id']] for obj in objects]
     except ValueError as error:
         raise SceneProgramError(str(error)) from error
     return {'kind':'vector-scene','sceneId':scene['scene_id'],'style':profile,'parameters':{'speed':1},'objects':objects}

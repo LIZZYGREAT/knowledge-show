@@ -1,5 +1,6 @@
 import { resolveStyle } from '../../styles/resolveStyle';
 import type { AnimationBundle, ProductionScript, ScriptScene } from '../../runtime/BundleTypes';
+import type { ElementRuntimeMeta } from '../../runtime/SceneTypes';
 
 type WemSectionDef = {
   scene_id: string;
@@ -224,6 +225,21 @@ export const WEM_ELEMENT_METADATA: Record<string, string> = {
   EL_WEM_SETTINGS: '设置抽屉与控件',
   EL_WEM_PLATES: '四联隐喻版画',
   EL_WEM_ERRORS: '代码与错误弹窗',
+};
+
+export const WEM_SCENE_ELEMENTS: Record<string, readonly string[]> = Object.fromEntries(
+  WEM_SECTIONS.map((sec) => [sec.scene_id, sec.elements]),
+);
+
+export const WEM_ELEMENT_META: Record<string, ElementRuntimeMeta> = {
+  EL_WEM_WINDOW: { engine: 'wem-scene', className: 'chat.js:WindowFrame', shape: 'rect', nodeTag: 'canvas', zIndex: 10 },
+  EL_WEM_PLATES: { engine: 'wem-scene', className: 'plate.js:ThreeColorPlate', shape: 'group', nodeTag: 'canvas', zIndex: 20 },
+  EL_WEM_GEOMETRY: { engine: 'wem-scene', className: 'geom.js:MathStage', shape: 'path', nodeTag: 'canvas', zIndex: 30 },
+  EL_WEM_FIGURE: { engine: 'wem-scene', className: 'kit.js:GlassFigure', shape: 'group', nodeTag: 'canvas', zIndex: 40 },
+  EL_WEM_SETTINGS: { engine: 'wem-scene', className: 'chat.js:SettingsDrawer', shape: 'rect', nodeTag: 'canvas', zIndex: 50 },
+  EL_WEM_ERRORS: { engine: 'wem-scene', className: 'code.js:ErrorCascade', shape: 'group', nodeTag: 'canvas', zIndex: 60 },
+  EL_WEM_SPARK: { engine: 'wem-scene', className: 'motif.js:Spark', shape: 'circle', nodeTag: 'canvas', zIndex: 70 },
+  EL_WEM_TYPOGRAPHY: { engine: 'wem-scene', className: 'lyrics.js:LyricTypography', shape: 'text', nodeTag: 'canvas', zIndex: 80 },
 };
 
 export function worldExecuteMeDemoBundle(style = 'precision-science', revision = 1): AnimationBundle {

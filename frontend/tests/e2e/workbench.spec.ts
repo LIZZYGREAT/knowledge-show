@@ -109,3 +109,62 @@ test('S01 local speed revision changes real particles while preserving the polar
   expect(result.cx).not.toBe(original.cx);
   expect(result.rotation).toBe('rotate(180 760 465)');
 });
+
+test('direct stage click binds JS runtime object across continuous frames and drag-to-chat builds multi_scene request', async ({ page }) => {
+  await ready(page);
+  await page.evaluate(() => (window as any).workbench.seek(20000));
+
+  // Locate the real rendered bounds of EL_S01_METER on the stage and click it directly.
+  const meterBounds = await page.evaluate(() =>
+    (document.getElementById('player') as HTMLIFrameElement).contentWindow!.animationBridge!.getElementBounds('EL_S01_METER'),
+  );
+  expect(meterBounds).not.toBeNull();
+
+  const frameBox = (await page.locator('#frame').boundingBox())!;
+  const clickX = frameBox.x + (meterBounds!.x + meterBounds!.width / 2) * frameBox.width;
+  const clickY = frameBox.y + (meterBounds!.y + meterBounds!.height / 2) * frameBox.height;
+
+  // Hover highlights the object before clicking
+  await page.mouse.move(clickX, clickY);
+  await expect(page.locator('#hoverOverlay')).toBeVisible();
+  await expect(page.locator('#hoverLabel')).toContainText('PnJunctionDevice.Meter');
+
+  // Direct click selects the object at current frame (without jumping back to 0:00)
+  await page.mouse.click(clickX, clickY);
+  await expect(page.locator('#selectionOverlay')).toBeVisible();
+  await expect(page.locator('#objectInspector')).toHaveClass(/on/);
+  await expect(page.locator('#inspectorMeta')).toContainText('EL_S01_METER');
+  await expect(page.locator('#inspectorMeta')).toContainText('PnJunctionDevice.Meter');
+  const currentTime = await page.evaluate(() =>
+    (document.getElementById('player') as HTMLIFrameElement).contentWindow!.animationBridge!.getCurrentTimeMs(),
+  );
+  expect(currentTime).toBe(20000);
+
+  // Default stage pick for a continuous multi-scene object spans S01–S07
+  const continuousSel = await page.evaluate(() => (window as any).workbench.getSelection());
+  expect(continuousSel.id).toBe('EL_S01_METER');
+  expect(continuousSel.scopeMode).toBe('continuous');
+  expect(continuousSel.clipIds).toHaveLength(7);
+
+  // Switch scope to current clip and back to continuous
+  await page.locator('#scopeClipBtn').click();
+  expect((await page.evaluate(() => (window as any).workbench.getSelection())).scopeMode).toBe('clip');
+  await page.locator('#scopeContinuousBtn').click();
+  expect((await page.evaluate(() => (window as any).workbench.getSelection())).scopeMode).toBe('continuous');
+
+  // Pointer-drag directly from the video object into the right-hand Co-Director chat panel
+  const chatBox = (await page.locator('#chatInput').boundingBox())!;
+  await page.mouse.move(clickX, clickY);
+  await page.mouse.down();
+  await page.mouse.move(chatBox.x + chatBox.width / 2, chatBox.y + chatBox.height / 2, { steps: 10 });
+  await expect(page.locator('#dragGhost')).toBeVisible();
+  await page.mouse.up();
+
+  await expect(page.locator('#chatInput .chip')).toHaveCount(1);
+  await expect(page.locator('#chatInput .chip')).toContainText('S01–S07');
+
+  const request = await page.evaluate(() => (window as any).workbench.requestFor('把这个仪表盘整体做更大更清晰'));
+  expect(request.scope).toBe('multi_scene');
+  expect(request.anchors.some((a: any) => a.kind === 'render_element' && a.id === 'EL_S01_METER')).toBe(true);
+  expect(request.anchors.filter((a: any) => a.kind === 'clip')).toHaveLength(7);
+});

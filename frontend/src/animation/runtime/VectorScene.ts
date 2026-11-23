@@ -36,7 +36,21 @@ export function createVectorScene(scene: ScriptScene, resource: SceneResource): 
       }
       group.append(el); svg.append(group);
       const timed = scene.timed_text.find(t => t.id === object.id);
-      registry.register({ id: object.id, label: object.label, ...(timed ? { sourceRef: { kind: 'timed_text' as const, id: timed.id } } : {}) }, group);
+      registry.register({
+        id: object.id,
+        label: object.label,
+        ...(timed ? { sourceRef: { kind: 'timed_text' as const, id: timed.id } } : {}),
+        meta: {
+          engine: 'vector-scene',
+          className: timed ? 'TimedTextObject' : `VectorObject<${object.shape}>`,
+          shape: object.shape,
+          nodeTag: object.shape,
+          zIndex: object.zIndex ?? 0,
+          fill: object.fill,
+          materialKey: object.materialKey ?? 'flat',
+          keyframeCount: object.keyframes.length,
+        },
+      }, group);
       return { object, group, el, timed };
     });
     return {
@@ -50,7 +64,11 @@ export function createVectorScene(scene: ScriptScene, resource: SceneResource): 
         }
         svg.dataset.timeMs = String(ms);
       },
-      getSelectableElements: () => registry.getElements(), getElementBounds: id => registry.getBounds(id), destroy: () => outer.remove(),
+      getSelectableElements: () => registry.getElements(),
+      getElementBounds: id => registry.getBounds(id),
+      getVisibleElements: () => registry.getVisibleElements(),
+      hitTest: (normX, normY) => registry.hitTest(normX, normY),
+      destroy: () => outer.remove(),
     };
   } };
 }
